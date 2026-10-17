@@ -253,13 +253,15 @@ func TestWithoutAProtocolTheModelIsToldItWasNotSent(t *testing.T) {
 // path swapped for another file in the gap sends none of the other file's bytes.
 func swapAfterOpen(t *testing.T, ref provider.VideoRef, other string) {
 	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows does not let a file that is open be replaced, so the swap cannot happen; the system guarantees what this test checks")
+	}
 	elsewhere := filepath.Join(t.TempDir(), "other.mp4")
 	if err := os.WriteFile(elsewhere, []byte(other), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	afterVideoOpen = func(path string) {
-		// Windows refuses to replace an open file, which keeps the same guarantee.
-		if err := os.Rename(elsewhere, path); err != nil && runtime.GOOS != "windows" {
+		if err := os.Rename(elsewhere, path); err != nil {
 			t.Error(err)
 		}
 	}
