@@ -15,7 +15,7 @@ import { scrubSensitiveText } from "./scrub";
 
 // A reply without images stays within what 4 KiB of text can need.
 const SMALL_REPLY_BYTES = MAX_REPLY_BYTES * 2 + 512;
-const REPLYABLE = ["needs_info", "answered", "recorded", "in_progress", "fixed"];
+const REPLYABLE = ["received", "needs_info", "answered", "recorded", "in_progress", "fixed"];
 const REPLYABLE_SQL = `(${REPLYABLE.map((s) => `'${s}'`).join(",")})`;
 
 export async function handleUserReply(request: Request, env: Env, receipt: string, ctx?: OpsWaiter): Promise<Response> {
