@@ -1,0 +1,1 @@
+import{A as e,h as t,k as n}from"./Button-CUUeFNCs.js";function r({classNames:r,styles:i,props:a,stylesCtx:o}){let s=t();return{resolvedClassNames:r===void 0?void 0:e({theme:s,classNames:r,props:a,stylesCtx:o||void 0}),resolvedStyles:i===void 0?void 0:n({theme:s,styles:i,props:a,stylesCtx:o||void 0})}}export{r as t};

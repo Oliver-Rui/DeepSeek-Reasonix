@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -72,6 +73,8 @@ type muxPane struct {
 	unsubscribe func()
 	stop        chan struct{}
 	bc          *Broadcaster
+	sent        atomic.Int64
+	lastSeq     atomic.Int64
 }
 
 func (m *eventMuxes) open() *muxConn {
@@ -203,6 +206,8 @@ func (c *muxConn) next(cursor *int) ([]byte, bool) {
 		select {
 		case f := <-p.slot:
 			*cursor = idx + 1
+			p.sent.Add(1)
+			p.lastSeq.Store(f.Seq)
 			return muxEnvelope(p.id, string(f.Data)), true
 		default:
 		}
@@ -220,7 +225,46 @@ func (c *muxConn) watermarks() [][]byte {
 	return out
 }
 
+// muxPaneMetrics is one pane's delivery on a connection. Behind is how many
+// frames the pane has numbered that this connection has not yet written: zero
+// is a pane that is idle or caught up, and a count that does not fall is a pane
+// that has stopped being delivered.
+type muxPaneMetrics struct {
+	Pane      string `json:"pane"`
+	Sent      int64  `json:"sent"`
+	LastSeq   int64  `json:"last_seq"`
+	Watermark int64  `json:"watermark"`
+	Behind    int64  `json:"behind"`
+}
+
+type muxMetrics struct {
+	Conn  string           `json:"conn"`
+	Panes []muxPaneMetrics `json:"panes"`
+}
+
+func (c *muxConn) metrics() muxMetrics {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := muxMetrics{Conn: c.id, Panes: make([]muxPaneMetrics, 0, len(c.order))}
+	for _, id := range c.order {
+		p := c.panes[id]
+		last, mark := p.lastSeq.Load(), p.bc.Watermark()
+		out.Panes = append(out.Panes, muxPaneMetrics{Pane: id, Sent: p.sent.Load(), LastSeq: last, Watermark: mark, Behind: max(mark-last, 0)})
+	}
+	return out
+}
+
+func (h *Hub) muxMetrics(w http.ResponseWriter, r *http.Request) {
+	c := h.muxes.get(r.PathValue("conn"))
+	if c == nil {
+		refuse(w, http.StatusNotFound, codeMuxUnknownConn, "this stream is not open; open a new one and subscribe again", nil)
+		return
+	}
+	writeJSON(w, c.metrics())
+}
+
 func (h *Hub) registerMuxRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /events/mux/{conn}/metrics", h.muxMetrics)
 	mux.HandleFunc("GET /events/mux", h.muxStream)
 	mux.HandleFunc("PUT /events/mux/{conn}/panes/{id}", h.muxAttach)
 	mux.HandleFunc("DELETE /events/mux/{conn}/panes/{id}", h.muxDetach)
