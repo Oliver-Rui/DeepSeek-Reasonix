@@ -5,6 +5,7 @@ import type { Env } from "./env";
 import { d1, fakeR2 } from "./feedback_testkit";
 import { purgeStaleFeedback } from "./feedback_retention";
 import { handleFeedbackRoute } from "./feedback_routes";
+import { MAX_REPLIES_PER_ITEM } from "./feedback_types";
 import feedbackMigrationSQL from "../migrate-feedback.sql?raw";
 import triageMigrationSQL from "../migrate-feedback-triage.sql?raw";
 import adoptionsMigrationSQL from "../migrate-feedback-adoptions.sql?raw";
@@ -785,10 +786,8 @@ describe("user replies", () => {
     expect(statusOf(x)).toBe("rejected");
   });
 
-  it("refuses replies on held, received, rejected, closed or someone else's feedback", async () => {
+  it("refuses replies on held, rejected, closed or someone else's feedback", async () => {
     const r = await receiptOf();
-    expect(await errCode(await reply(r, { body: "hi" }))).toBe("feedback.not_replyable");
-    await act(r, "release");
     expect(await errCode(await reply(r, { body: "hi" }))).toBe("feedback.not_replyable");
     const rej = await receiptOf();
     await act(rej, "reject", { reason: "x" });
@@ -803,6 +802,45 @@ describe("user replies", () => {
       expect(await errCode(await reply(r, { body: "hi" }))).toBe("feedback.not_replyable");
       expect(statusOf(r)).toBe(closed);
     }
+  });
+
+  describe("replying while the report waits to be filed", () => {
+    it("takes a reply from the reporter once it is released, and leaves the status alone", async () => {
+      const r = await receiptOf();
+      await act(r, "release");
+      expect(statusOf(r)).toBe("received");
+      expect((await reply(r, { body: "the answer to your question" })).status).toBe(201);
+      expect(statusOf(r)).toBe("received");
+      expect(raw.prepare("SELECT author, handled FROM feedback_replies WHERE receipt = ?").all(r)).toEqual([{ author: "user", handled: 0 }]);
+    });
+
+    it("keeps refusing a report that is still under review", async () => {
+      const r = await receiptOf();
+      expect(statusOf(r)).toBe("held");
+      expect(await errCode(await reply(r, { body: "hi" }))).toBe("feedback.not_replyable");
+      expect(raw.prepare("SELECT COUNT(*) AS n FROM feedback_replies WHERE receipt = ?").get(r)).toEqual({ n: 0 });
+    });
+
+    it("does not hand the reply to the converter before an issue exists, and hands it over once after", async () => {
+      const r = await receiptOf();
+      await act(r, "release");
+      await reply(r, { body: "waiting for an issue" });
+      expect((await json(await get("/v1/admin/feedback/replies/pending"))).items).toEqual([]);
+      await act(r, "link", { issueNumber: 42 });
+      const pending = (await json(await get("/v1/admin/feedback/replies/pending"))).items;
+      expect(pending).toHaveLength(1);
+      expect(pending[0]).toMatchObject({ receipt: r, issueNumber: 42, body: "waiting for an issue" });
+      await post(`/v1/admin/feedback/replies/${encodeURIComponent(pending[0].id)}/ack`, {}, admin);
+      expect((await json(await get("/v1/admin/feedback/replies/pending"))).items).toEqual([]);
+    });
+
+    it("still applies the hourly reply limit", async () => {
+      const r = await receiptOf();
+      await act(r, "release");
+      for (let i = 0; i < MAX_REPLIES_PER_ITEM; i++) expect((await reply(r, { body: `reply ${i}` })).status).toBe(201);
+      expect(await errCode(await reply(r, { body: "one too many" }))).toBe("feedback.rate_limited");
+      expect(raw.prepare("SELECT COUNT(*) AS n FROM feedback_replies WHERE receipt = ? AND author = 'user'").get(r)).toEqual({ n: MAX_REPLIES_PER_ITEM });
+    });
   });
 
   describe("reopening a fixed report", () => {
