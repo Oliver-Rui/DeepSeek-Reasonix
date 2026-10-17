@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -257,7 +258,8 @@ func swapAfterOpen(t *testing.T, ref provider.VideoRef, other string) {
 		t.Fatal(err)
 	}
 	afterVideoOpen = func(path string) {
-		if err := os.Rename(elsewhere, path); err != nil {
+		// Windows refuses to replace an open file, which keeps the same guarantee.
+		if err := os.Rename(elsewhere, path); err != nil && runtime.GOOS != "windows" {
 			t.Error(err)
 		}
 	}
