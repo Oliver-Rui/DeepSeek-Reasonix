@@ -27,13 +27,11 @@ func TestMuxCarriesAHundredPanesOnOneConnection(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for _, rt := range rts {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range frames {
 				rt.Events.Emit(notice(rt.ID))
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
