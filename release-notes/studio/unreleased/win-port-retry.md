@@ -1,2 +1,2 @@
-- 修复：Windows 上默认端口落在系统保留段（Hyper-V、WSL、Docker）时，网页服务现在会顺延到下一个可用端口，不再直接启动失败。见 9374e1eda。
-- Fixed: On Windows, a default port inside a range the system reserves (Hyper-V, WSL, Docker) now moves on to the next free port instead of failing to start. Seen at 9374e1eda.
+- 修复：Windows 上默认端口落在系统保留段（Hyper-V、WSL、Docker）时，网页服务现在会顺延到下一个可用端口，不再直接启动失败。关联 #13649。
+- Fixed: On Windows, when the default port falls in a range the system reserves (Hyper-V, WSL, Docker), the web server now moves on to the next free port instead of failing to start. Refs #13649.
