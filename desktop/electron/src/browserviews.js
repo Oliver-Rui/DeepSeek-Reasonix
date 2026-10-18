@@ -116,7 +116,7 @@ class BrowserViews {
       }
       onEvent(method, params);
     });
-    const entry = { view, onDownload, typed: 0, synthUntil: 0, attached: false };
+    const entry = { view, onDownload, typed: 0, synthUntil: 0, attached: false, panel: null, override: null, scale: 1 };
     this.keyboard.watch(contents, () => Date.now() < entry.synthUntil);
     this.watchLoads(targetId, entry);
     let closed = false;
@@ -140,6 +140,12 @@ class BrowserViews {
     return {
       targetId,
       send: (method, params) => {
+        if (method === "Emulation.setDeviceMetricsOverride") return this.emulate(entry, params);
+        if (method === "Emulation.clearDeviceMetricsOverride") return this.emulate(entry, null);
+        // The page reads input in the viewport it was told it has; the view
+        // draws that viewport scaled, and a point meant for the page lands
+        // where the page is drawn only after the same scaling.
+        if (method === "Input.dispatchMouseEvent" && entry.scale !== 1) params = { ...params, x: params.x * entry.scale, y: params.y * entry.scale };
         if (!method.startsWith("Input.")) return contents.debugger.sendCommand(method, params);
         entry.synthUntil = Date.now() + 250;
         return this.wake.run(() => contents.debugger.sendCommand(method, params));
@@ -164,7 +170,7 @@ class BrowserViews {
     // which during a turn is constantly, and nearly always the same rectangle:
     // re-adding the view and setting the bounds it already has is work for
     // every one of those.
-    if (this.shown === targetId && sameRect(entry.at, at)) return;
+    if (this.shown === targetId && sameRect(entry.panel, at)) return;
     this.placed++;
     for (const [id, other] of this.entries) {
       if (id !== targetId) this.putAway(other.view, other);
@@ -176,9 +182,48 @@ class BrowserViews {
     if (entry.attached && !entry.at) this.win.contentView.removeChildView(entry.view);
     this.win.contentView.addChildView(entry.view);
     entry.attached = true;
+    entry.panel = at;
+    this.fit(entry);
+    this.keepKeyboard();
+  }
+
+  // fit puts the view where its page is drawn whole and tells the page how it
+  // is scaled; a page parked out of sight is not scaled.
+  fit(entry) {
+    const { at, scale } = placement(entry.panel, entry.override && { width: entry.override.width, height: entry.override.height });
     entry.view.setBounds(at);
     entry.at = at;
-    this.keepKeyboard();
+    return this.scaled(entry, scale);
+  }
+
+  scaled(entry, scale) {
+    if (!entry.override || entry.scale === scale) return Promise.resolve();
+    entry.scale = scale;
+    return this.override(entry).catch(() => {});
+  }
+
+  override(entry) {
+    const params = entry.scale === 1 ? entry.override : { ...entry.override, scale: entry.scale };
+    return entry.view.webContents.debugger.sendCommand("Emulation.setDeviceMetricsOverride", params);
+  }
+
+  // emulate records the viewport a page was told to lay out in, which the view
+  // is then fitted to; null is the page going back to the size of its view.
+  async emulate(entry, params) {
+    entry.override = params ? { ...params } : null;
+    if (!params) {
+      entry.scale = 1;
+      if (entry.panel) this.fit(entry);
+      return entry.view.webContents.debugger.sendCommand("Emulation.clearDeviceMetricsOverride", {});
+    }
+    entry.scale = 1;
+    if (entry.panel) {
+      const { at, scale } = placement(entry.panel, entry.override);
+      entry.view.setBounds(at);
+      entry.at = at;
+      entry.scale = scale;
+    }
+    return this.override(entry);
   }
 
   // Attaching a view can leave nobody holding the keyboard, and the platform
@@ -253,7 +298,11 @@ class BrowserViews {
   putAway(view, entry) {
     const { height } = this.win.getContentBounds();
     view.setBounds({ x: 1 - AGENT_VIEWPORT.width, y: height - 1, ...AGENT_VIEWPORT });
-    if (entry) entry.at = null;
+    if (entry) {
+      entry.at = null;
+      entry.panel = null;
+      void this.scaled(entry, 1);
+    }
   }
 
   control(targetId, action) {
@@ -420,6 +469,19 @@ async function loadResult(contents, url) {
   }
 }
 
+// Where a page's view sits in the rectangle the panel gave it. A page laid out
+// in a viewport of its own is shown whole: scaled down to fit and never up,
+// centred, with the view sized to exactly what it draws.
+function placement(panel, emulated) {
+  if (!emulated) return { at: panel, scale: 1 };
+  const scale = Math.min(1, panel.width / emulated.width, panel.height / emulated.height);
+  const width = Math.max(1, Math.round(emulated.width * scale));
+  const height = Math.max(1, Math.round(emulated.height * scale));
+  const x = panel.x + Math.round((panel.width - width) / 2);
+  const y = panel.y + Math.round((panel.height - height) / 2);
+  return { at: { x, y, width, height }, scale };
+}
+
 function sameRect(a, b) {
   return !!a && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
@@ -428,4 +490,4 @@ function validRect(rect) {
   return rect && [rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) && rect.width > 0 && rect.height > 0;
 }
 
-module.exports = { BrowserViews, AGENT_VIEWPORT, LEAVE_LIMIT_MS };
+module.exports = { BrowserViews, AGENT_VIEWPORT, LEAVE_LIMIT_MS, placement };

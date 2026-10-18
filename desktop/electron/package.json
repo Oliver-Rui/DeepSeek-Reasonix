@@ -15,6 +15,7 @@
     "build:dist": "electron-builder",
     "smoke": "electron test/smoke.js",
     "browser-live": "electron test/browser_live.js",
+    "browser-fit-live": "electron test/browser_fit_live.js",
     "image-live": "electron test/image_live.js",
     "image-pane-live": "electron test/image_pane_live.js",
     "sidepanel-live": "electron test/sidepanel_live.js",

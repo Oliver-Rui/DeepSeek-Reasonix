@@ -2281,6 +2281,29 @@ test("a parked page is attached again when it is shown, and a page already on sc
   assert.deepEqual(calls, ["remove", "add", "bounds 10"], "a page put away and shown again is attached again");
 });
 
+test("a page given its own viewport is fitted whole into its panel, centred, and never enlarged", () => {
+  const Module = require("node:module");
+  const load = Module._load;
+  Module._load = function (request, ...rest) {
+    if (request === "electron") return { WebContentsView: class {}, session: { fromPartition: () => ({}) } };
+    return load.call(this, request, ...rest);
+  };
+  let placement;
+  try {
+    ({ placement } = require("../src/browserviews.js"));
+  } finally {
+    Module._load = load;
+  }
+  const panel = { x: 380, y: 60, width: 560, height: 620 };
+  assert.deepEqual(placement(panel, null), { at: panel, scale: 1 }, "a page without a viewport of its own fills the panel");
+  const wide = placement(panel, { width: 1280, height: 900 });
+  assert.equal(wide.scale, 0.4375);
+  assert.deepEqual(wide.at, { x: 380, y: 173, width: 560, height: 394 });
+  const phone = placement(panel, { width: 390, height: 844 });
+  assert.ok(phone.scale < 1 && phone.at.height <= panel.height && phone.at.width <= panel.width);
+  assert.deepEqual(placement({ x: 20, y: 20, width: 1400, height: 1000 }, { width: 1280, height: 900 }), { at: { x: 80, y: 70, width: 1280, height: 900 }, scale: 1 });
+});
+
 test("rewind notice dismissal survives the desktop preference disk round trip", (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rewind-notice-prefs-"));
   const file = path.join(dir, "prefs.json");

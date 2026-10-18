@@ -1,0 +1,2 @@
+- 修复：智能体把内置浏览器页面调成固定视口时，页面不再只露出左上角，而是整页缩小居中显示在面板里，点击位置也保持准确。关联 #13811。
+- Fixed: A built-in browser page the agent gave its own viewport is now shown whole, scaled down and centred in the panel, and its clicks still land. Refs #13811.
