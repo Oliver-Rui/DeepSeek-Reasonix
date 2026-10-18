@@ -20,6 +20,7 @@ function problemFor(error: unknown): string {
   if (error instanceof EnableRefused) {
     if (error.reason === "denied") return t("浏览器没有允许通知。请在浏览器的网站设置里允许这个页面发通知，再打开这个开关。");
     if (error.reason === "unsupported") return t("这个浏览器不能接收提醒。");
+    if (error.reason === "push_service") return t("浏览器没能向它的推送服务登记，所以这台手机暂时收不到提醒。常见原因是网络连不上浏览器厂商的推送服务。");
     return t("这台手机还没有被电脑批准。");
   }
   if (error instanceof AccountError && (error.status === 401 || error.code === "remote_reauth_required")) {

@@ -270,4 +270,5 @@ export const EN_REMOTE: Record<string, string> = {
   "这台手机还没有被电脑批准。": "This phone has not been approved by the computer yet.",
   "需要重新登录账号后再试。": "Sign in to your account again, then try again.",
   "账号服务暂时不可用，请稍后再试。": "The account service is unavailable right now; try again later.",
+  "浏览器没能向它的推送服务登记，所以这台手机暂时收不到提醒。常见原因是网络连不上浏览器厂商的推送服务。": "The browser could not register with its push service, so this phone cannot get reminders for now. A common cause is a network that cannot reach the browser maker's push service.",
 };

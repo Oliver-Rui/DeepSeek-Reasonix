@@ -100,6 +100,14 @@ describe("this phone's reminders", () => {
     expect((await master()).getAttribute("aria-checked")).toBe("false");
   });
 
+  it("says the browser could not reach its push service, not that the account is down", async () => {
+    draw({ kind: "off" }, { enable: vi.fn(async () => { throw new EnableRefused("push_service"); }) });
+    await userEvent.click(await master());
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("推送服务");
+    expect(alert.textContent).not.toContain("账号服务");
+  });
+
   it("asks for a new sign-in when the account no longer knows this session", async () => {
     draw({ kind: "off" }, { enable: vi.fn(async () => { throw new AccountError(401, "unauthorized"); }) });
     await userEvent.click(await master());

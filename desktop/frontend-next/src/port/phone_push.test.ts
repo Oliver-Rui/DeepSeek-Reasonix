@@ -68,6 +68,13 @@ describe("switching phone notifications on", () => {
     expect(b.subscribed).toEqual([]);
   });
 
+  it("names a browser that cannot reach its push service, and sends the account nothing", async () => {
+    const s = server();
+    const b = browser({ subscribe: async () => { throw new DOMException("Registration failed - permission denied", "AbortError"); } });
+    await expect(enablePush(s.account, b, async () => "", HOST, DEVICE, 7, CATEGORIES)).rejects.toMatchObject({ reason: "push_service" });
+    expect(s.calls.map((c) => c.path)).toEqual(["/me/remote-push/key"]);
+  });
+
   it("refuses a browser without push and a phone the desktop has not approved", async () => {
     const s = server();
     await expect(enablePush(s.account, browser({ supported: () => false }), async () => "", HOST, DEVICE, 7, CATEGORIES)).rejects.toBeInstanceOf(EnableRefused);

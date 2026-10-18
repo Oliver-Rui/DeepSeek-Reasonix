@@ -54,7 +54,7 @@ export function realPushBrowser(): PushBrowser {
   };
 }
 
-export type EnableRefusal = "unsupported" | "denied" | "not_active";
+export type EnableRefusal = "unsupported" | "denied" | "not_active" | "push_service";
 
 export class EnableRefused extends Error {
   constructor(readonly reason: EnableRefusal) {
@@ -75,7 +75,9 @@ export async function enablePush(
   const answer = browser.permission() === "granted" ? "granted" : await browser.requestPermission();
   if (answer !== "granted") throw new EnableRefused("denied");
   const { publicKey } = await account.call<{ publicKey: string }>("GET", "/me/remote-push/key");
-  const subscription = await browser.subscribe(fromBase64url(publicKey));
+  // Whatever the browser says when it cannot register with its own push service
+  // is its answer, not the account's.
+  const subscription = await browser.subscribe(fromBase64url(publicKey)).catch(() => { throw new EnableRefused("push_service"); });
   const { nonce } = await account.call<{ nonce: string }>("POST", "/me/remote-controllers/challenge", { host, purpose: "push" });
   const signature = await sign_(await pushMessage({
     nonce, userId, host, deviceId: device.id, endpoint: subscription.endpoint, p256dh: subscription.p256dh, auth: subscription.auth,
