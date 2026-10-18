@@ -4124,7 +4124,7 @@
 
   .slotrail {
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    padding: 4px 2px 6px; max-height: 84px; overflow-y: auto;
+    padding: 4px 5px 6px; max-height: 84px; overflow-y: auto;
   }
   .slotrail .xview { flex-direction: row; align-items: center; gap: 8px }
 
