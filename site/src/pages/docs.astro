@@ -36,6 +36,7 @@ const goVer = 'latest';
           <a href="#extensions"><strong><span class="l-en">Extensions</span><span class="l-zh">扩展与 Sidecar</span></strong><small><span class="l-en">Providers, UI, runtime hooks</span><span class="l-zh">Provider、UI、运行时拦截</span></small></a>
           <a href="#mcp"><strong><span class="l-en">Plugins</span><span class="l-zh">插件 MCP</span></strong><small><span class="l-en">Tools, prompts, resources</span><span class="l-zh">工具、提示词、资源</span></small></a>
           <a href="#acp"><strong><span class="l-en">Editor integration</span><span class="l-zh">编辑器接入</span></strong><small><span class="l-en">ACP sessions and steering</span><span class="l-zh">ACP 会话与回合中引导</span></small></a>
+          <a href="#dsh"><strong><span class="l-en">DeepSeek Harness</span><span class="l-zh">DeepSeek Harness</span></strong><small><span class="l-en">Use Reasonix as a subagent</span><span class="l-zh">把 Reasonix 用作子智能体</span></small></a>
           <a href="#surfaces"><strong><span class="l-en">Desktop &amp; bots</span><span class="l-zh">桌面端与 Bot</span></strong><small><span class="l-en">Use Reasonix from IM</span><span class="l-zh">从 IM 使用 Reasonix</span></small></a>
         </div>
         <div class="side-group">
@@ -50,6 +51,7 @@ const goVer = 'latest';
         <a href={`${repo}/blob/main-v2/docs/GUIDE.md`}><span class="l-en">Guide</span><span class="l-zh">使用指南</span></a>
         <a class="l-en" href={`${repo}/blob/main-v2/docs/ACP.md`}>ACP editor integration</a>
         <a class="l-zh" href={`${repo}/blob/main-v2/docs/ACP.zh-CN.md`}>ACP 编辑器接入</a>
+        <a href={`${repo}/blob/studio/docs/DSH.md`}><span class="l-en">Use from DeepSeek Harness</span><span class="l-zh">在 DeepSeek Harness 中使用</span></a>
         <a class="l-en" href={`${repo}/blob/main-v2/docs/EXTENSIONS.md`}>Extensions &amp; sidecars</a>
         <a class="l-zh" href={`${repo}/blob/main-v2/docs/EXTENSIONS.zh-CN.md`}>扩展与 Sidecar</a>
         <a href={`${repo}/blob/main-v2/docs/CAPABILITY_DIAGNOSTICS.md`}><span class="l-en">Capability diagnostics</span><span class="l-zh">能力诊断</span></a>
@@ -316,6 +318,25 @@ reasonix acp --model &lt;name&gt; <span class="c"># choose the startup model</sp
       </div>
       <p><span class="l-en">Reasonix also advertises the vendor method <code>_reasonix.io/session/steer</code> through <code>agentCapabilities._meta</code>. A host may call it while <code>session/prompt</code> is active to queue user guidance for the next safe model boundary without cancelling the turn. Clients must discover the method first and treat <code>InvalidRequest</code> as not queued.</span><span class="l-zh">Reasonix 还会通过 <code>agentCapabilities._meta</code> 声明厂商方法 <code>_reasonix.io/session/steer</code>。Host 可在 <code>session/prompt</code> 活动期间调用它，把用户引导排入下一个安全模型边界，而无需取消当前回合。客户端必须先发现该方法，并把 <code>InvalidRequest</code> 视为“未入队”。</span></p>
       <div class="callout"><span class="ico">i</span><span><span class="l-en">ACP steering is a namespaced ACP v1 extension, not a core <code>session/steer</code> method and not the unreleased ACP v2 <code>session/inject</code> proposal. See the <a href={`${repo}/blob/main-v2/docs/ACP.md`}>complete ACP integration guide</a> for lifecycle methods, capability negotiation, MCP transport shapes, compatibility, errors, and a client checklist.</span><span class="l-zh">ACP 回合中引导是带命名空间的 ACP v1 扩展，不是核心 <code>session/steer</code> 方法，也不是尚未发布的 ACP v2 <code>session/inject</code> 提案。生命周期方法、能力协商、MCP transport 结构、兼容性、错误处理和客户端检查清单见<a href={`${repo}/blob/main-v2/docs/ACP.zh-CN.md`}>完整 ACP 接入文档</a>。</span></span></div>
+
+      <h2 id="dsh"><span class="l-en">DeepSeek Harness</span><span class="l-zh">DeepSeek Harness</span></h2>
+      <p><span class="l-en">DeepSeek Harness (<code>dsh</code>) can hand a task to Reasonix as a subagent over ACP, with configuration only. This repository publishes a plugin index for it. Run <code>reasonix setup</code> once on the machine that runs <code>dsh</code> first.</span><span class="l-zh">DeepSeek Harness（<code>dsh</code>）可以通过 ACP 把任务交给 Reasonix 作为子智能体去做，只需要配置。本仓库为此发布了一个插件索引。先在运行 <code>dsh</code> 的机器上运行一次 <code>reasonix setup</code>。</span></p>
+      <div class="doc-choice-grid">
+        <div>
+          <strong><span class="l-en">1. Add the index</span><span class="l-zh">1. 添加索引</span></strong>
+          <p><span class="l-en">In the DSH Web UI turn on Custom plugin markets (Plugins, More), then add the index below in the Discover tab.</span><span class="l-zh">在 DSH 网页界面打开“自定义插件市场”（插件，更多），再到 Discover 页添加下面的索引。</span></p>
+        </div>
+        <div>
+          <strong><span class="l-en">2. Install</span><span class="l-zh">2. 安装</span></strong>
+          <p><span class="l-en">Select "Reasonix subagent" from the index and install it.</span><span class="l-zh">在索引中选择“Reasonix subagent”并安装。</span></p>
+        </div>
+        <div>
+          <strong><span class="l-en">3. Switch it on</span><span class="l-zh">3. 打开开关</span></strong>
+          <p><span class="l-en">Open the plugin's page and turn its switch on; the switch and both components must read Running.</span><span class="l-zh">打开这个插件的页面并把它的开关打开；开关和两个组件都要显示 Running。</span></p>
+        </div>
+      </div>
+      <div class="codeblock codeblock--copy" style="white-space: pre-wrap; overflow-wrap: anywhere"><button data-copy="https://raw.githubusercontent.com/esengine/DeepSeek-Reasonix/studio/integrations/dsh-plugin/market-index.json">Copy</button>https://raw.githubusercontent.com/esengine/DeepSeek-Reasonix/studio/integrations/dsh-plugin/market-index.json</div>
+      <div class="callout"><span class="ico">i</span><span><span class="l-en">A plugin that is installed but left off gives the model no <code>reasonix</code> tool, and the model may run <code>reasonix -p</code> in its own shell instead. That looks like a delegation and is not one. The permission policy, limits and manual setup are in <a href={`${repo}/blob/studio/docs/DSH.md`}>Using Reasonix from DeepSeek Harness</a>.</span><span class="l-zh">装好但没打开的插件不会给模型 <code>reasonix</code> 工具，模型可能改在自己的 shell 里直接运行 <code>reasonix -p</code>，看起来像委派，其实不是。权限策略、限制和手工配置见<a href={`${repo}/blob/studio/docs/DSH.md`}>在 DeepSeek Harness 中使用 Reasonix</a>。</span></span></div>
 
       <h2 id="memory"><span class="l-en">Memory &amp; rewind</span><span class="l-zh">记忆与回退</span></h2>
       <p><span class="l-en">Reasonix keeps project memory in <code>REASONIX.md</code> or <code>AGENTS.md</code>, and stores approved auto-memory facts under Reasonix home. During turns, read-only <code>history</code> and <code>memory</code> tools retrieve prior sessions, compacted archives, and saved facts on demand instead of injecting noisy dynamic state into the stable prompt prefix.</span><span class="l-zh">Reasonix 将项目记忆放在 <code>REASONIX.md</code> 或 <code>AGENTS.md</code>,并把经过批准的 auto-memory fact 存在 Reasonix home 下。运行时,只读 <code>history</code> 与 <code>memory</code> 工具按需检索历史会话、压缩归档和已保存事实,而不是把易变状态塞进稳定 prompt 前缀。</span></p>
