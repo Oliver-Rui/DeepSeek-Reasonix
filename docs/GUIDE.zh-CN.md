@@ -154,7 +154,7 @@ allow = ["Bash(go test:*)"]                  # 从不询问
 
 [peers]
 # enabled = false              # 本机你的各个会话可以互发消息；每条消息都要对方会话的用户批准；设置里也有开关，下个回合起生效（只认用户级配置）
-# dispatch = false             # 模型可用 dispatch_to_project 把任务交给你另一个项目里的会话；需要 enabled；打开就是你对这些会话的任务和回信的总同意，不再出审批卡（只认用户级配置）
+# dispatch = false             # 模型可用 dispatch_to_project 把任务交给你另一个项目里的会话；需要 enabled；打开就是你对这些会话的任务和回信的总同意，不再出审批卡；新开的会话沿用发起方的审批档位，但 YOLO 会降为 auto，目标项目自己写的“要问我”规则仍然会问（只认用户级配置）
 # max_dispatch_depth = 1       # 派发最多能连着开几层会话；0 表示不限（只认用户级配置）
 # max_dispatched_sessions = 8  # 一个会话通过派发最多同时开着几个会话；0 表示不限（只认用户级配置）
 # release_projects = []        # 这些项目收到你其它会话的消息时不弹批准卡；它们自己的审批与沙盒照旧（只认用户级配置）

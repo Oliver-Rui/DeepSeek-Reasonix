@@ -19,12 +19,15 @@ func (c *Controller) DispatchGrant() SessionGrant {
 	return SessionGrant{Model: c.ModelRef(), Preset: c.AgentPreset(), Approval: c.ToolApprovalMode(), Plan: c.PlanMode()}
 }
 
-// AdoptSessionGrant sets this session's posture to the grant's. A field the grant
-// leaves empty is left as it is; the approval posture is always the grant's when
-// it names one, whether that is stricter or looser than this session's default,
-// because the grant is the sender's own and the session must not outrank it.
+// AdoptSessionGrant sets this session's posture to the grant's; an empty field is
+// left alone. The grant is the sender's own, so the session never outranks it.
+// YOLO arrives as auto: it would also answer the ask rules the target project
+// wrote for itself, which the user never chose to waive there.
 func (c *Controller) AdoptSessionGrant(g SessionGrant) {
 	if mode, ok := ParseToolApprovalMode(g.Approval); ok {
+		if mode == ToolApprovalYolo {
+			mode = ToolApprovalAuto
+		}
 		c.SetToolApprovalMode(mode)
 	}
 	if strings.TrimSpace(g.Preset) != "" {

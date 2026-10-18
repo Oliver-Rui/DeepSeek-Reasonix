@@ -1,0 +1,2 @@
+- 变更：从 YOLO 会话派发出的新会话改用“自动”档：目标项目自己写的“要问我”规则仍会问，拒绝规则照旧；其余档位原样沿用。见 #13526。
+- Changed: a session opened by a dispatch from a YOLO session runs in auto, so the target project's own ask rules still ask and deny rules still refuse; other modes carry over as they are. See #13526.
