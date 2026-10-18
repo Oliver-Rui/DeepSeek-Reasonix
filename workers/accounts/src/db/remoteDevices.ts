@@ -148,11 +148,14 @@ export class RemoteDeviceRepo {
 
   async revoke(userId: number, deviceId: string): Promise<boolean> {
     const now = new Date().toISOString();
-    const result = await this.db.prepare(
-      `UPDATE remote_devices SET revoked_at = ?1, updated_at = ?1
-       WHERE id = ?2 AND user_id = ?3 AND revoked_at IS NULL`,
-    ).bind(now, deviceId, userId).run();
-    return (result.meta.changes ?? 0) > 0;
+    const [result] = await this.db.batch([
+      this.db.prepare(
+        `UPDATE remote_devices SET revoked_at = ?1, updated_at = ?1
+         WHERE id = ?2 AND user_id = ?3 AND revoked_at IS NULL`,
+      ).bind(now, deviceId, userId),
+      this.db.prepare("DELETE FROM remote_push_subscriptions WHERE host_device_id = ?1 AND user_id = ?2").bind(deviceId, userId),
+    ]);
+    return (result?.meta.changes ?? 0) > 0;
   }
 
   // One batch: host registrations, their pending grants and every controller
@@ -171,6 +174,7 @@ export class RemoteDeviceRepo {
         `UPDATE remote_controllers SET state = 'revoked', revoked_at = ?1
          WHERE user_id = ?2 AND state != 'revoked'`,
       ).bind(now, userId),
+      this.db.prepare("DELETE FROM remote_push_subscriptions WHERE user_id = ?1").bind(userId),
     ]);
     return (revoked?.results ?? []).map((row) => row.id);
   }

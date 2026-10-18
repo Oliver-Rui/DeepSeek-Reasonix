@@ -97,7 +97,7 @@ export const ControllerJwkSchema = z.object({
 
 export const ControllerChallengeSchema = z.object({
   host: remoteDeviceId,
-  purpose: z.enum(["enroll"]).default("enroll"),
+  purpose: z.enum(["enroll", "push"]).default("enroll"),
 }).strict();
 
 export const ControllerEnrollSchema = z.object({
@@ -182,3 +182,22 @@ export const ConfigBackupUploadSchema = z.object({
 }).strict();
 
 export const ConfigBackupIdSchema = z.string().regex(/^[0-9a-f]{64}$/);
+
+export const PushCategoriesSchema = z.object({
+  approval: z.boolean(),
+  input: z.boolean(),
+  error: z.boolean(),
+}).strict();
+
+export const PushSubscribeSchema = z.object({
+  host: remoteDeviceId,
+  nonce: z.string().regex(/^[0-9a-f]{64}$/),
+  signature: z.string().regex(/^[A-Za-z0-9_-]{86}$/),
+  subscription: z.object({
+    endpoint: z.string().min(1).max(2048),
+    keys: z.object({ p256dh: z.string().min(1).max(128), auth: z.string().min(1).max(64) }).strict(),
+  }).strict(),
+  categories: PushCategoriesSchema.default({ approval: false, input: false, error: false }),
+}).strict();
+
+export const PushCategoriesUpdateSchema = z.object({ categories: PushCategoriesSchema }).strict();

@@ -69,6 +69,20 @@ export function enrollProofMessage(input: {
   return lengthPrefixed(["enroll", input.nonce, String(input.userId), input.hostDeviceId, input.thumbprint]);
 }
 
+// What a controller signs to attach a push subscription to itself. The endpoint
+// is bound by its hash, so a proof made for one subscription cannot be spent on
+// another, and "push" keeps it from being read as an enrollment.
+export async function pushProofMessage(input: {
+  nonce: string;
+  userId: number;
+  hostDeviceId: string;
+  controllerId: string;
+  endpoint: string;
+}): Promise<Uint8Array> {
+  const endpointHash = base64url(await sha256(input.endpoint));
+  return lengthPrefixed(["push", input.nonce, String(input.userId), input.hostDeviceId, input.controllerId, endpointHash]);
+}
+
 // WebCrypto validates that the point lies on the curve; null means it does not.
 // It also accepts base64url with nonzero spare bits, so the key is re-exported
 // and the submitted coordinates must match the canonical encoding exactly:

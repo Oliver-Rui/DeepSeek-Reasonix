@@ -292,11 +292,19 @@ export class RemoteControllerRepo {
 
   async revoke(userId: number, id: string, hostDeviceId?: string, now = new Date()): Promise<RevokeOutcome> {
     const at = now.toISOString();
-    const revoked = await this.db.prepare(
-      `UPDATE remote_controllers SET state = 'revoked', revoked_at = ?3
-       WHERE id = ?1 AND user_id = ?2 AND (?4 = '' OR host_device_id = ?4) AND state != 'revoked'
-       RETURNING ${COLUMNS}`,
-    ).bind(id, userId, at, hostDeviceId ?? "").first<ControllerRow>();
+    const [revokedRows] = await this.db.batch<ControllerRow>([
+      this.db.prepare(
+        `UPDATE remote_controllers SET state = 'revoked', revoked_at = ?3
+         WHERE id = ?1 AND user_id = ?2 AND (?4 = '' OR host_device_id = ?4) AND state != 'revoked'
+         RETURNING ${COLUMNS}`,
+      ).bind(id, userId, at, hostDeviceId ?? ""),
+      // A revoked device is notified of nothing: its subscription goes in the same batch.
+      this.db.prepare(
+        `DELETE FROM remote_push_subscriptions
+         WHERE controller_id = ?1 AND user_id = ?2 AND (?3 = '' OR host_device_id = ?3)`,
+      ).bind(id, userId, hostDeviceId ?? ""),
+    ]);
+    const revoked = (revokedRows?.results ?? [])[0];
     if (revoked) return { kind: "revoked", controller: revoked };
     const existing = await this.db.prepare(
       `SELECT ${COLUMNS} FROM remote_controllers WHERE id = ?1 AND user_id = ?2 AND (?3 = '' OR host_device_id = ?3)`,
