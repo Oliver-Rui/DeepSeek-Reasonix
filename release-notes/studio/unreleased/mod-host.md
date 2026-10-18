@@ -1,0 +1,2 @@
+- 新增：设置里的“运行 Claude Code mod”（默认关）让已安装 mod 的钩子模块运行：可拒绝或确认工具调用、改写提问、在输入框上方画一条状态带。完全信任，见 #13694。
+- Added: the "Run Claude Code mods" switch (off by default) runs an installed mod's hooks module: deny or confirm tool calls, rewrite prompts, draw a band above the composer. Full trust. See #13694.

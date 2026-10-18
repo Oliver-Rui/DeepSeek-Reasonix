@@ -155,6 +155,10 @@ allow = ["Bash(go test:*)"]                  # 从不询问
 # dispatch = false             # 模型可用 dispatch_to_project 把任务交给你另一个项目里的会话；需要 enabled（只认用户级配置）
 # release_projects = []        # 这些项目收到你其它会话的消息时不弹批准卡；它们自己的审批与沙盒照旧（只认用户级配置）
 
+[mods]
+# enabled = false              # 运行已安装 Claude Code mod 的钩子模块；完全信任、不在沙盒内（只认用户级配置）
+# hook_budget_ms = 0           # 单个钩子自身的运行时限，毫秒；0 保持 10000（只认用户级配置）
+
 [serve]
 # auth_mode = "token"          # token(默认)|password|none；none 下修改与审批仍需启动令牌
 # token = ""                   # 可选固定 token；token 模式为空时启动时自动生成
