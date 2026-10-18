@@ -704,6 +704,67 @@ Plugin hooks receive these environment variables:
 - `CLAUDE_PROJECT_DIR`
 - `CLAUDE_PLUGIN_ROOT`
 
+## Claude Code mods
+
+A Claude Code mod is a plugin whose `hooks/hooks.json` names one ES module
+(`"modules": ["./register.js"]`) that exports `register(on, options)`.
+Reasonix installs it like any Claude plugin.
+
+The module runs only while **Run Claude Code mods** is on, in Settings or as
+`[mods] enabled = true` in the user file. It is off by default, and a project
+file cannot turn it on.
+
+A mod is **full trust**:
+
+- Its module runs on this machine as you, outside the sandbox.
+- It can read files, start processes and use the network.
+- The install preview says so and lists the module's events and `$` calls from
+  its syntax tree.
+- That listing is an aid, not a guarantee. Code the module imports, and names it
+  builds at run time, are not listed, and the preview shows them as such.
+
+How it runs:
+
+- The host script runs under Studio's own binary in Node mode, or under the
+  `node` on `PATH` for the terminal and `serve`. Node 22 or newer is required,
+  and a `node` inside the open project is never used.
+- `.js .mjs .cjs` modules run everywhere. `.ts .mts .cts` run where the runtime
+  strips types. `.jsx` and `.tsx` do not run.
+- The process is a tighten-only extension runtime. A mod can deny a call or ask
+  the user about it. The host refuses an `allow`, or a rewrite of a permission
+  decision, whatever the process writes.
+- A hook gets `[mods] hook_budget_ms` of its own running time, 10 s by default.
+  A hook stuck in a loop ends the process and the turn goes on without it.
+- The process restarts at the next reload. After three deaths the mod is
+  disabled, and its status says why.
+- Nothing a mod does changes the cached system prompt or the tool list. Its text
+  reaches the model only as data from the mod.
+
+Events served:
+
+- `tool.call`: `{ deny }` and argument rewrite. A `{ result }` answer is reported
+  to the model as the reason the call was answered in place of the tool.
+- `tool.check`: `deny` and `ask`. An `allow` is ignored.
+- `prompt.submit`: text rewrite and `{ drop }`.
+- `session.start`, `session.end`, `turn.start`, `command.run`, `ui.press`.
+- `ui.render` for the `AbovePrompt` band.
+
+`$` served:
+
+- `plugin`, `store`, `clock`, `env.get`, `fs`, `process.run`, `http.fetch`.
+- `state`, with `atom`, `read`, `update`, `derive` and `memberOf` imported from
+  `claude-code`.
+- `session.id`, `session.cwd`, `session.root`.
+- `tool.register/call/list` and `command.register/run/list`. Both register
+  while `session.start` runs.
+- `ui.toast`, `status`, `notice`, `log`, `ask`, `resolve`, `invalidate`.
+
+Anything else is registered and named in the mod's status as unserved. A call to
+an unserved `$` member rejects with the typed code `mod.unsupported`.
+
+`$.ui.ask` is a question from the mod, shown with its name. It can never approve
+a tool call or a permission.
+
 ## Studio HTTP routes
 
 Studio drives plugin packages through these kernel routes:

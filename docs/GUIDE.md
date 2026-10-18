@@ -149,6 +149,10 @@ allow = ["Bash(go test:*)"]                  # never prompted
 # max_dispatched_sessions = 8  # sessions one session may keep open from its dispatches; 0 removes the ceiling (user config only)
 # release_projects = []        # projects that take messages from your other sessions without the card; their own approvals and sandbox still apply (user config only)
 
+[mods]
+# enabled = false              # run the hooks module of installed Claude Code mods; full trust, no sandbox (user config only)
+# hook_budget_ms = 0           # one hook's own running time in milliseconds; 0 keeps 10000 (user config only)
+
 [serve]
 # auth_mode = "token"          # token (default)|password|none; none still requires the launch token for changes
 # token = ""                   # optional fixed token; empty token mode generates one at startup
