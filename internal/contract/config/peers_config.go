@@ -84,6 +84,7 @@ func cleanProjectPath(p string) string {
 func renderServeAndPeers(b *strings.Builder, c *Config) {
 	renderServeSection(b, c)
 	renderPeersSection(b, c)
+	renderModsSection(b, c)
 }
 
 // renderPeersSection writes [peers] only once something in it is set, so a user

@@ -219,6 +219,8 @@ var table = []Entry{
 	{ID: "remote.import_ssh_config", Class: Guarded, Effect: OnOpen},
 	{ID: "remote.hosts", Class: Guarded, Effect: OnOpen},
 	{ID: "auto_submit", Class: Preference, Effect: OnOpen},
+	{ID: "mods.enabled", Class: Elevated, Effect: OnOpen},
+	{ID: "mods.hook_budget_ms", Class: Preference, Effect: OnOpen},
 	{ID: "peers.enabled", Class: Elevated, Effect: NextTurn},
 	{ID: "peers.dispatch", Class: Elevated, Effect: NextTurn},
 	{ID: "peers.release_projects", Class: Guarded, Effect: NextTurn},

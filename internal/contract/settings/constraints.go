@@ -61,6 +61,7 @@ var constraints = map[string]Entry{
 	"desktop.appearance.zoom":                       {Free: true},
 	"agent.keep":                                    {Free: true},
 	"skills.disabled_skills":                        {Free: true},
+	"mods.hook_budget_ms":                           {Min: 0, Max: 55000, Bounded: true},
 	"agent.checkpoint_ceiling_ratio":                {Min: 0.05, Max: 1, Bounded: true},
 	"agent.compact_force_ratio":                     {Min: 0.05, Max: 1, Bounded: true},
 	"agent.soft_compact_ratio":                      {Min: 0.05, Max: 1, Bounded: true},
