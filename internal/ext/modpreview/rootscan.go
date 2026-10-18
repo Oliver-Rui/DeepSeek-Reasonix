@@ -6,14 +6,10 @@ import (
 	"github.com/tdewolff/parse/v2/js"
 )
 
-// rootScan follows one value (the `on` function in register, or `$` in a hook)
-// through a function body. The parser resolves a name to the one variable it
-// declares, so the roots are variables and not spellings: an alias is followed
-// and a shadowing parameter of the same name is not.
-//
-// Every use of a root is either understood (a call of `on`, a member chain of
-// `$`, an alias declaration) or it is an escape: the value went somewhere the
-// preview cannot follow, and the listing says so.
+// rootScan follows one value (`on` in register, or `$` in a hook) through a
+// function body. Roots are the parser's resolved variables, not spellings: an
+// alias is followed, a shadowing parameter is not. A use that is not understood
+// is an escape, and the listing says so.
 type rootScan struct {
 	a        *analysis
 	roots    map[*js.Var]bool

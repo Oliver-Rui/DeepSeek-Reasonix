@@ -254,6 +254,12 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 			}
 			continue
 		}
+		if cause := d.tightenViolation(pluginID, point, answer.Decision); cause != nil {
+			if err := d.violation(pluginID, point, cause); err != nil {
+				return nil, err
+			}
+			continue
+		}
 		switch answer.Decision {
 		case protocol.DecisionContinue:
 			// Pass the current payload to the next interceptor unchanged.
@@ -262,12 +268,6 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 			result.BlockReason = secrets.RedactCredentials(answer.Reason)
 			return result, nil
 		case protocol.DecisionReplace:
-			if point == extension.PointPermissionDecision && d.tightenOnly[pluginID] {
-				if err := d.violation(pluginID, point, fmt.Errorf("%w: it rewrote the payload", ErrLoosensDecision)); err != nil {
-					return nil, err
-				}
-				continue
-			}
 			fresh, decodeErr := decodePayload(point, answer.Replacement)
 			if decodeErr != nil {
 				if err := d.violation(pluginID, point, decodeErr); err != nil {
@@ -284,13 +284,6 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 			}
 			result.Applied = append(result.Applied, pluginID)
 		case protocol.DecisionAsk:
-			if point != extension.PointPermissionDecision || !d.tightenOnly[pluginID] {
-				err := fmt.Errorf("decision %q is only legal for a tighten-only runtime at %s", answer.Decision, extension.PointPermissionDecision)
-				if err := d.violation(pluginID, point, err); err != nil {
-					return nil, err
-				}
-				continue
-			}
 			result.Ask = true
 		case protocol.DecisionAllow, protocol.DecisionDeny:
 			if point != extension.PointPermissionDecision {
@@ -301,12 +294,6 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 				continue
 			}
 			allow := answer.Decision == protocol.DecisionAllow
-			if allow && d.tightenOnly[pluginID] {
-				if err := d.violation(pluginID, point, fmt.Errorf("%w: it answered allow", ErrLoosensDecision)); err != nil {
-					return nil, err
-				}
-				continue
-			}
 			result.Permission = &allow
 			if allow && hostDecision == "deny" {
 				result.Audit = append(result.Audit, secrets.RedactCredentials(fmt.Sprintf(
@@ -325,6 +312,28 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 		}
 	}
 	return result, nil
+}
+
+// tightenViolation says what a decision does to the contract when the runtime
+// is tighten-only: it may ask at permission.decision, and may not allow or
+// rewrite there. Everyone else may not ask at all.
+func (d *Dispatcher) tightenViolation(pluginID string, point extension.InterceptorPoint, decision protocol.InterceptDecision) error {
+	if decision == protocol.DecisionAsk {
+		if point != extension.PointPermissionDecision || !d.tightenOnly[pluginID] {
+			return fmt.Errorf("decision %q is only legal for a tighten-only runtime at %s", decision, extension.PointPermissionDecision)
+		}
+		return nil
+	}
+	if point != extension.PointPermissionDecision || !d.tightenOnly[pluginID] {
+		return nil
+	}
+	switch decision {
+	case protocol.DecisionReplace:
+		return fmt.Errorf("%w: it rewrote the payload", ErrLoosensDecision)
+	case protocol.DecisionAllow:
+		return fmt.Errorf("%w: it answered allow", ErrLoosensDecision)
+	}
+	return nil
 }
 
 // Strategy returns the client of the replacement slot's owner, or false when
