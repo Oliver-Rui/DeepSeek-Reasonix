@@ -1,7 +1,7 @@
 export const CATEGORIES = ["bug", "idea", "question", "other"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-export const STATUSES = ["held", "needs_info", "answered", "rejected", "received", "recorded", "in_progress", "fixed", "wontfix", "duplicate"] as const;
+export const STATUSES = ["held", "needs_info", "answered", "rejected", "received", "recorded", "in_progress", "fixed", "wontfix", "duplicate", "withdrawn"] as const;
 export type Status = (typeof STATUSES)[number];
 
 export const MAX_BODY_BYTES = 8192;

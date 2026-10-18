@@ -66,6 +66,7 @@ async function report(n: number, body = "the composer freezes"): Promise<string>
   return receipt;
 }
 const ask = (receipt: string) => send("POST", `/v1/admin/feedback/${receipt}/ask`, { authorization: `Bearer ${ADMIN}` }, { body: "Which version?" });
+const withdraw = async (n: number, receipt: string) => send("POST", `/v1/feedback/${receipt}/withdraw`, await proof(n), {});
 const reply = async (n: number, receipt: string) => send("POST", `/v1/feedback/${receipt}/reply`, await proof(n), { body: "v2.24.0" });
 
 beforeEach(() => {
@@ -333,6 +334,19 @@ describe("GET /v1/feedback/account/mine standing", () => {
   });
 });
 
+describe("withdrawing from a linked sibling", () => {
+  it("allows a sibling under the one ownership rule and refuses everyone else as not found", async () => {
+    const receipt = await report(1);
+    await link(1, 42);
+    await link(2, 42);
+    await link(3, 43);
+    expect(await code(await withdraw(3, receipt))).toBe("feedback.not_found");
+    expect(rows("SELECT status FROM feedback WHERE receipt = ?", receipt)[0].status).not.toBe("withdrawn");
+    expect((await withdraw(2, receipt)).status).toBe(200);
+    expect(rows("SELECT status FROM feedback WHERE receipt = ?", receipt)[0].status).toBe("withdrawn");
+  });
+});
+
 describe("replying from a linked sibling", () => {
   it("allows it, charges the calling install and uses one ownership rule", async () => {
     const receipt = await report(1);
@@ -413,6 +427,15 @@ describe("blocks follow the report's install", () => {
   const block = async (n: number, expires: string | null = null) =>
     db.prepare("INSERT INTO feedback_blocks (target, reason, created_at, expires_at) VALUES (?, 'x', '2026-10-01T00:00:00.000Z', ?)").run(`install:${await hashOf(n)}`, expires);
   const userReplies = () => rows("SELECT * FROM feedback_replies WHERE author = 'user'").length;
+
+  it("does not lend a blocked install's report to its sibling", async () => {
+    const receipt = await report(1);
+    await link(1, 42);
+    await link(2, 42);
+    await block(1);
+    expect(await code(await withdraw(2, receipt))).toBe("feedback.not_found");
+    expect(rows("SELECT status FROM feedback WHERE receipt = ?", receipt)[0].status).not.toBe("withdrawn");
+  });
 
   it("does not let an unblocked sibling reply on a blocked install's report", async () => {
     const receipt = await report(1);
@@ -644,7 +667,7 @@ describe("privacy", () => {
       .filter((f) => /from "\.\/feedback_(link|ownership)"|from "\.\.?\/[^"]*feedback_(link|ownership)"/.test(f.text))
       .map((f) => f.file)
       .sort();
-    expect(importers).toEqual(["feedback_quota.ts", "feedback_reply.ts", "feedback_routes.ts"]);
+    expect(importers).toEqual(["feedback_quota.ts", "feedback_reply.ts", "feedback_routes.ts", "feedback_withdraw.ts"]);
   });
 });
 

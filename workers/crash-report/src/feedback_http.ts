@@ -14,6 +14,7 @@ export type FeedbackCode =
   | "feedback.image_metadata"
   | "feedback.reply_limit"
   | "feedback.not_replyable"
+  | "feedback.not_withdrawable"
   | "feedback.challenge_required"
   | "feedback.adoption_tombstoned"
   | "feedback.account_required"
@@ -37,6 +38,7 @@ const STATUS: Record<FeedbackCode, number> = {
   "feedback.image_metadata": 400,
   "feedback.reply_limit": 429,
   "feedback.not_replyable": 409,
+  "feedback.not_withdrawable": 409,
   "feedback.challenge_required": 403,
   "feedback.adoption_tombstoned": 409,
   "feedback.account_required": 401,

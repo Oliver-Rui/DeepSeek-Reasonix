@@ -6,6 +6,7 @@ import { handleLinkRoute } from "./feedback_link";
 import { handlePublicFeed } from "./feedback_public";
 import { handleMine } from "./feedback_read";
 import { handleUserReply } from "./feedback_reply";
+import { handleWithdraw } from "./feedback_withdraw";
 import { servePage } from "./feedback_admin_page";
 import type { OpsWaiter } from "./ops_emit";
 import { handleSubmit } from "./feedback_submit";
@@ -24,6 +25,8 @@ export async function handleFeedbackRoute(request: Request, env: Env, ctx?: OpsW
   if (linked) return linked;
   const reply = path.match(/^\/v1\/feedback\/(FB-[0-9A-Z]{4}-[0-9A-Z]{4})\/reply$/);
   if (reply) return method === "POST" ? handleUserReply(request, env, reply[1], ctx) : refuse("feedback.method_not_allowed", "method not allowed");
+  const withdraw = path.match(/^\/v1\/feedback\/(FB-[0-9A-Z]{4}-[0-9A-Z]{4})\/withdraw$/);
+  if (withdraw) return method === "POST" ? handleWithdraw(request, env, withdraw[1], ctx) : refuse("feedback.method_not_allowed", "method not allowed");
   if (path.startsWith(ATTACHMENT_ROUTE)) {
     return method === "GET" ? serveAttachment(env, path.slice(ATTACHMENT_ROUTE.length)) : refuse("feedback.method_not_allowed", "method not allowed");
   }
