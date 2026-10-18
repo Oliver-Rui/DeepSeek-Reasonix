@@ -12,6 +12,9 @@ export const SLOTS: { id: string; label: string }[] = [
 
 export const DEFAULT_SLOT = "sidebar";
 
+// Names the protocol uses for places this frontend draws under its own name.
+const ALIASES: Record<string, string> = { above_prompt: "composer-trailing" };
+
 /** key is how a placement is addressed: one extension's two surfaces can sit
  *  in different places, so the surface is the unit, not the plugin. */
 export function key(ext: ExtensionSurface): string {
@@ -22,6 +25,7 @@ export function key(ext: ExtensionSurface): string {
  *  extension asked for, and where this frontend puts things it was told nothing
  *  about. A name none of us knows resolves to the default rather than nowhere. */
 export function placement(ext: ExtensionSurface, assigned: Record<string, string>): string {
-  const candidate = assigned[key(ext)] || ext.view?.slot || DEFAULT_SLOT;
+  const asked = ext.view?.slot ?? "";
+  const candidate = assigned[key(ext)] || ALIASES[asked] || asked || DEFAULT_SLOT;
   return SLOTS.some((s) => s.id === candidate) ? candidate : DEFAULT_SLOT;
 }
