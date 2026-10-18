@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { t } from "../i18n";
 import type { SkillEntry } from "../port/port";
 
@@ -12,7 +13,7 @@ export function SkillSpecInfo({ sk }: { sk: SkillEntry }) {
       <dl>
         {sk.license && <><dt>{t("许可")}</dt><dd>{sk.license}</dd></>}
         {sk.compatibility && <><dt>{t("运行要求")}</dt><dd>{sk.compatibility}</dd></>}
-        {meta.map(([key, value]) => <><dt key={`${key}-k`}>{key}</dt><dd key={`${key}-v`}>{value}</dd></>)}
+        {meta.map(([key, value]) => <Fragment key={key}><dt>{key}</dt><dd>{value}</dd></Fragment>)}
       </dl>
     </details>
   );

@@ -211,6 +211,7 @@ var table = []Entry{
 	{ID: "secrets.protect_credential_files", Class: Guarded, Effect: OnOpen},
 	{ID: "remote.import_ssh_config", Class: Guarded, Effect: OnOpen},
 	{ID: "remote.hosts", Class: Guarded, Effect: OnOpen},
+	{ID: "attachments.max_stream_bytes", Class: Guarded, Effect: OnOpen},
 	{ID: "auto_submit", Class: Preference, Effect: OnOpen},
 	{ID: "peers.enabled", Class: Elevated, Effect: NextTurn},
 	{ID: "peers.dispatch", Class: Elevated, Effect: NextTurn},
