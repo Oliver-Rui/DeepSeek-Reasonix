@@ -45,7 +45,13 @@ remotePush.put("/:id", async (c) => {
   if (!acceptablePushKeys(input.subscription.keys)) {
     throw new ApiError(422, "invalid_keys", "The subscription keys are not valid.");
   }
-  const key = await importControllerKey(JSON.parse(controller.public_key) as ControllerJwk);
+  let jwk: ControllerJwk;
+  try {
+    jwk = JSON.parse(controller.public_key) as ControllerJwk;
+  } catch {
+    throw new ApiError(422, "invalid_key", "The device key is not valid.");
+  }
+  const key = await importControllerKey(jwk);
   if (!key) throw new ApiError(422, "invalid_key", "The device key is not valid.");
 
   const consumed = await remoteChallenges.consume(input.nonce, {
@@ -54,7 +60,8 @@ remotePush.put("/:id", async (c) => {
   if (consumed === "expired") throw new ApiError(403, "challenge_expired", "The challenge has expired.");
   if (consumed === "invalid") throw new ApiError(403, "challenge_invalid", "The challenge is not valid.");
   const message = await pushProofMessage({
-    nonce: input.nonce, userId: user.id, hostDeviceId: input.host, controllerId: controller.id, endpoint: input.subscription.endpoint,
+    nonce: input.nonce, userId: user.id, hostDeviceId: input.host, controllerId: controller.id,
+    endpoint: input.subscription.endpoint, p256dh: input.subscription.keys.p256dh, auth: input.subscription.keys.auth,
   });
   if (!(await verifyProof(key, message, input.signature))) {
     throw new ApiError(403, "invalid_proof", "The signature does not prove possession of the key.");
