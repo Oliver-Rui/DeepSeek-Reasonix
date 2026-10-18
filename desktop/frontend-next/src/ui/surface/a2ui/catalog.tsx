@@ -32,8 +32,9 @@ const implementations: ReactComponentImplementation[] = [
   createComponentImplementation({ name: "Divider", schema: z.object({}).strict() }, () => <hr className="xv-hr" />),
   createComponentImplementation({ name: "ExtensionButton", schema: z.object({ label: z.string(), actionId: z.string() }).strict() }, ({ props }) => {
     const { onAction, inputs, disabled, actionDisabled } = useContext(SurfaceContext);
-    if (inputs) return <Button data-action="surface.action" data-target={props.actionId} disabled={disabled||actionDisabled} onClick={()=>onAction?.(props.actionId)}>{props.label}</Button>;
-    return <button className="act" data-action="extensions.invoke" onClick={() => onAction?.(props.actionId)}>{props.label}</button>;
+    const named = props.actionId !== "";
+    if (inputs) return <Button data-action="surface.action" data-target={props.actionId} disabled={disabled||actionDisabled||!named} onClick={()=>onAction?.(props.actionId)}>{props.label}</Button>;
+    return <button className="act" data-action="extensions.invoke" disabled={!named} onClick={() => onAction?.(props.actionId)}>{props.label}</button>;
   }),
   createComponentImplementation({ name: "Field", schema: z.object({ node: z.custom<ExtensionViewNode>(), value: fieldValue }).strict() }, ({ props }) => {
     const { disabled, inputs } = useContext(SurfaceContext);

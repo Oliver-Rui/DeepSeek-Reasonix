@@ -144,6 +144,7 @@ export function ExtensionCard({ ext, onInvoke, onSubmit }: Props) {
 
           {ext.form && (
             <div className="extform" data-sealed={sent ? "" : undefined} aria-busy={pending}>
+              <div className="why">{t("这是插件「{id}」的提问；回答它不会批准任何工具调用或权限。", { id: ext.pluginId })}</div>
               {ext.form.message && <div className="exttext">{ext.form.message}</div>}
               {ext.form.fields.map((f) => (
                 <Field key={f.key} f={f} value={values[f.key]} sealed={sent || pending} onChange={(v) => set(f.key, v)} />
