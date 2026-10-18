@@ -10,7 +10,6 @@ type Event struct {
 	Name string `json:"name"`
 	// Dynamic is true when the name is not a literal: it cannot be listed.
 	Dynamic bool `json:"dynamic,omitempty"`
-	Line    int  `json:"line"`
 }
 
 // Call is one `$.<namespace>.<method>` use found in the source.
@@ -18,7 +17,6 @@ type Call struct {
 	Namespace string `json:"namespace"`
 	Method    string `json:"method,omitempty"`
 	Dynamic   bool   `json:"dynamic,omitempty"`
-	Line      int    `json:"line"`
 }
 
 // Import is code the module pulls in that the preview cannot see.
@@ -26,22 +24,45 @@ type Import struct {
 	Spec string `json:"spec"`
 	// Kind is "static" (import), "require" or "dynamic" (import()).
 	Kind string `json:"kind"`
-	Line int    `json:"line"`
 }
 
 // Finding is a construct that defeats listing: eval, new Function, a computed member of the API.
 type Finding struct {
 	Kind string `json:"kind"`
-	Line int    `json:"line"`
 }
+
+// The kinds a Finding takes.
+const (
+	FindingEval            = "eval"
+	FindingFunctionCtor    = "function_ctor"
+	FindingComputedMember  = "computed_member"
+	FindingAPIEscapes      = "api_escapes"
+	FindingOnEscapes       = "on_escapes"
+	FindingDestructuredAPI = "destructured_api"
+	FindingNoRegister      = "no_register"
+)
+
+// The reasons a module is not listed at all. A module that could not be read is
+// not a module that is safe: the frontend says "not previewed", never "clean".
+const (
+	ReasonTypeScript  = "typescript"
+	ReasonTooLarge    = "too_large"
+	ReasonUnparseable = "unparseable"
+	ReasonTimeout     = "timeout"
+	ReasonUnsupported = "unsupported_module"
+)
 
 // Preview is what the install preview shows about a mod's hooks module. It
 // is an aid read from the syntax tree, not a guarantee of what the module does.
 type Preview struct {
 	Plugin string `json:"plugin"`
 	// Module is the path inside the package; SHA256 pins the exact bytes previewed.
-	Module  string   `json:"module"`
-	SHA256  string   `json:"sha256"`
+	Module string `json:"module"`
+	SHA256 string `json:"sha256"`
+	// Listed is false when the module could not be read; Reason says why and the
+	// lists below are empty.
+	Listed  bool     `json:"listed"`
+	Reason  string   `json:"reason,omitempty"`
 	Events  []Event  `json:"events"`
 	API     []Call   `json:"api"`
 	Imports []Import `json:"imports"`
