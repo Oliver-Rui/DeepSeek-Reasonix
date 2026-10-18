@@ -1,0 +1,9 @@
+.modlist { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px }
+.modlist li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--hair); border-radius: var(--r-sm); background: var(--surface) }
+.modlist .modhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px }
+.modlist b { font-weight: var(--w-med); overflow-wrap: anywhere }
+.modlist .modstate { font: var(--w-reg) var(--fs-meta) var(--ui); color: var(--muted) }
+.modlist li[data-state="running"] .modstate { color: var(--ok, var(--text)) }
+.modlist li[data-state="disabled"] .modstate { color: var(--danger, var(--text)) }
+.modlist li[data-state="restarting"] .modstate { color: var(--warn, var(--text)) }
+.modlist .ds { overflow-wrap: anywhere }

@@ -598,4 +598,11 @@ export const EN_KERNEL: Record<string, string> = {
     "The old memory file could not be backed up first, so it was not migrated and was left as it is; the detail gives the reason",
   "会话、工作区或运行时正在切换，这条消息没能立刻发出；它已排入队列，切换结束后会自动发送，不需要重发":
     "The session, workspace or runtime is switching, so this message could not be sent right away; it is queued and will be sent automatically when the switch ends - no need to send it again",
+  "「运行 Claude Code mod」没有打开，所以没有运行任何 mod": "\"Run Claude Code mods\" is off, so no mod is running",
+  "这台电脑上找不到能运行 mod 的 Node 运行时": "No Node runtime that can run mods was found on this computer",
+  "找到的 Node 运行时版本过低，不能运行这个 mod": "The Node runtime found is too old to run this mod",
+  "这个 mod 的进程崩溃了，正在按退避重新启动": "This mod's process crashed and is being restarted with backoff",
+  "它的某个钩子超过了时间预算，进程已被结束；多次发生后会被停用": "One of its hooks ran past its time budget and the process was ended; after repeats it is disabled",
+  "它的某个钩子抛出了异常": "One of its hooks threw an exception",
+  "它用到了本宿主不支持的功能": "It uses something this host does not support",
 };
