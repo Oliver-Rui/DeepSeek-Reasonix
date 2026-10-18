@@ -2304,6 +2304,32 @@ test("a page given its own viewport is fitted whole into its panel, centred, and
   assert.deepEqual(placement({ x: 20, y: 20, width: 1400, height: 1000 }, { width: 1280, height: 900 }), { at: { x: 80, y: 70, width: 1280, height: 900 }, scale: 1 });
 });
 
+test("input that carries a point is scaled with the page or refused, never sent to the wrong place", () => {
+  const Module = require("node:module");
+  const load = Module._load;
+  Module._load = function (request, ...rest) {
+    if (request === "electron") return { WebContentsView: class {}, session: { fromPartition: () => ({}) } };
+    return load.call(this, request, ...rest);
+  };
+  let scaleInput;
+  try {
+    ({ scaleInput } = require("../src/browserviews.js"));
+  } finally {
+    Module._load = load;
+  }
+  const mouse = { type: "mousePressed", x: 1200, y: 800, button: "left" };
+  assert.equal(scaleInput("Input.dispatchMouseEvent", mouse, 1), mouse, "an unscaled page gets the point as it is");
+  assert.deepEqual(scaleInput("Input.dispatchMouseEvent", mouse, 0.5), { type: "mousePressed", x: 600, y: 400, button: "left" });
+  for (const method of ["Input.dispatchTouchEvent", "Input.dispatchDragEvent", "Input.emulateTouchFromMouseEvent", "Input.synthesizeTapGesture", "Input.synthesizeScrollGesture", "Input.synthesizePinchGesture"]) {
+    const params = { x: 10, y: 20, touchPoints: [{ x: 10, y: 20 }] };
+    assert.equal(scaleInput(method, params, 1), params, `${method} passes on an unscaled page`);
+    assert.throws(() => scaleInput(method, params, 0.5), { code: "input_unscaled" }, `${method} must not reach a scaled page unscaled`);
+  }
+  const key = { type: "keyDown", key: "a" };
+  assert.equal(scaleInput("Input.dispatchKeyEvent", key, 0.5), key, "keys carry no point");
+  assert.equal(scaleInput("Input.insertText", { text: "x" }, 0.5).text, "x");
+});
+
 test("rewind notice dismissal survives the desktop preference disk round trip", (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rewind-notice-prefs-"));
   const file = path.join(dir, "prefs.json");

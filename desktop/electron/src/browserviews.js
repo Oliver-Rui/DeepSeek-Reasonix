@@ -142,10 +142,11 @@ class BrowserViews {
       send: (method, params) => {
         if (method === "Emulation.setDeviceMetricsOverride") return this.emulate(entry, params);
         if (method === "Emulation.clearDeviceMetricsOverride") return this.emulate(entry, null);
-        // The page reads input in the viewport it was told it has; the view
-        // draws that viewport scaled, and a point meant for the page lands
-        // where the page is drawn only after the same scaling.
-        if (method === "Input.dispatchMouseEvent" && entry.scale !== 1) params = { ...params, x: params.x * entry.scale, y: params.y * entry.scale };
+        try {
+          params = scaleInput(method, params, entry.scale);
+        } catch (e) {
+          return Promise.reject(e);
+        }
         if (!method.startsWith("Input.")) return contents.debugger.sendCommand(method, params);
         entry.synthUntil = Date.now() + 250;
         return this.wake.run(() => contents.debugger.sendCommand(method, params));
@@ -482,6 +483,29 @@ function placement(panel, emulated) {
   return { at: { x, y, width, height }, scale };
 }
 
+// Input that carries a point. The page reads it in the viewport it was told it
+// has, the view draws that viewport scaled, and a point meant for the page lands
+// where it is drawn only after the same scaling. The mouse is measured to; the
+// rest are not, and a point that silently lands elsewhere is worse than a
+// refusal, so they are refused while the page is scaled.
+const POINTED_INPUT = new Set([
+  "Input.dispatchTouchEvent",
+  "Input.dispatchDragEvent",
+  "Input.emulateTouchFromMouseEvent",
+  "Input.synthesizeTapGesture",
+  "Input.synthesizeScrollGesture",
+  "Input.synthesizePinchGesture",
+]);
+
+function scaleInput(method, params, scale) {
+  if (scale === 1) return params;
+  if (method === "Input.dispatchMouseEvent") return { ...params, x: params.x * scale, y: params.y * scale };
+  if (POINTED_INPUT.has(method)) {
+    throw Object.assign(new Error(`${method} is not available while the page is scaled to fit the panel`), { code: "input_unscaled" });
+  }
+  return params;
+}
+
 function sameRect(a, b) {
   return !!a && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
@@ -490,4 +514,4 @@ function validRect(rect) {
   return rect && [rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) && rect.width > 0 && rect.height > 0;
 }
 
-module.exports = { BrowserViews, AGENT_VIEWPORT, LEAVE_LIMIT_MS, placement };
+module.exports = { BrowserViews, AGENT_VIEWPORT, LEAVE_LIMIT_MS, placement, scaleInput };
