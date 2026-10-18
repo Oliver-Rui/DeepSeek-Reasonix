@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { ModPreviewBlock } from "./ModPreviewBlock";
 import { useEscape } from "./dismiss";
 import { current as language, plural, t } from "../i18n";
 import { useFileDrop } from "./filedrop";
@@ -310,6 +311,7 @@ export function Candidate({ a }: { a: PluginAction }) {
           {r.why && <span className="why">{t(r.why)}</span>}
         </div>
       ))}
+      {a.mod && <ModPreviewBlock mod={a.mod} />}
       {adds.length > 0 && (
         <div className="risk">
           <span className="lb">{t("将添加")}</span>
