@@ -151,3 +151,101 @@ export function register(on) {
 		t.Fatalf("replacement = %s, want the typed code", b)
 	}
 }
+
+const toolsMod = `
+export function register(on) {
+  on('session.start', async ($, e, next) => {
+    $.tool.register({ name: 'count_lines', description: 'Count lines', inputSchema: { type: 'object', properties: { text: { type: 'string' } } }, readOnly: true, run: async ($, input) => String(input.text.split('\n').length) });
+    $.command.register({ name: 'replay', description: 'Replay edits', run: async ($, args) => ({ text: 'replayed ' + JSON.stringify(args) }) });
+    return next(e);
+  });
+}`
+
+func TestToolsAndCommandsRegisteredAtSessionStartAreDescribedInTheHandshakeAndServed(t *testing.T) {
+	h := startHost(t, writeMod(t, "register.mjs", toolsMod), nil)
+	res := h.initialize()
+	if res["error"] != nil {
+		t.Fatalf("initialize: %v", res["error"])
+	}
+	result := res["result"].(map[string]any)
+	specs, _ := result["toolSpecs"].([]any)
+	if len(specs) != 1 || specs[0].(map[string]any)["name"] != "count_lines" || specs[0].(map[string]any)["readOnly"] != true {
+		t.Fatalf("toolSpecs = %v", result["toolSpecs"])
+	}
+	var actions []string
+	for _, a := range result["uiActions"].([]any) {
+		actions = append(actions, a.(map[string]any)["actionId"].(string))
+	}
+	if !contains(actions, "replay") || !contains(actions, "press.0") {
+		t.Fatalf("uiActions = %v", actions)
+	}
+	call := h.call("extension/tool/call", map[string]any{"name": "count_lines", "arguments": map[string]any{"text": "a\nb\nc"}, "timeoutMillis": 5000}, 10*time.Second)
+	if call["result"].(map[string]any)["content"] != "3" {
+		t.Fatalf("tool result = %v", call)
+	}
+	cmd := h.call("extension/ui/action", map[string]any{"actionId": "replay", "sessionId": "s1", "generation": 1, "args": map[string]any{"n": "2"}}, 10*time.Second)
+	if msg := cmd["result"].(map[string]any)["message"]; msg != `replayed {"n":"2"}` {
+		t.Fatalf("command result = %v", cmd)
+	}
+	// session.start ran once, in the handshake: the host's own does not run it again.
+	if got := h.intercept("session.start", map[string]any{"phase": "start"}); decision(got) != "continue" {
+		t.Fatalf("session.start = %v", got)
+	}
+}
+
+func contains(list []string, want string) bool {
+	for _, s := range list {
+		if s == want {
+			return true
+		}
+	}
+	return false
+}
+
+func TestTheBandIsPublishedAsAViewAndAButtonPressRedrawsIt(t *testing.T) {
+	mod := writeMod(t, "register.mjs", `
+import { atom, read, update } from 'claude-code';
+const count = atom({ plugin: 'demo', key: 'count' }, 0);
+export function register(on) {
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const { Box, Text, Button } = $.ui.resolve(e);
+    const n = await read($, count);
+    return Box({ flexDirection: 'row', children: [Text({ color: 'green', children: ['Count: ' + n] }), Button({ key: 'more', label: 'Add', onPress: () => update($, count, (v) => v + 1) })] });
+  });
+}`)
+	h := startHost(t, mod, nil)
+	h.initialize()
+	first := waitPublish(t, h)
+	body := first["payload"].(map[string]any)
+	if first["kind"] != "view" || body["slot"] != "above_prompt" {
+		t.Fatalf("published = %v", first)
+	}
+	row := body["body"].([]any)[0].(map[string]any)
+	if row["kind"] != "row" {
+		t.Fatalf("root = %v", row)
+	}
+	kids := row["children"].([]any)
+	if kids[0].(map[string]any)["value"] != "Count: 0" || kids[0].(map[string]any)["tone"] != "ok" || kids[1].(map[string]any)["actionId"] != "press.0" {
+		t.Fatalf("children = %v", kids)
+	}
+	pressed := h.call("extension/ui/action", map[string]any{"actionId": "press.0", "sessionId": "s1", "generation": 1}, 10*time.Second)
+	if pressed["result"].(map[string]any)["accepted"] != true {
+		t.Fatalf("press = %v", pressed)
+	}
+	second := waitPublish(t, h)
+	again := second["payload"].(map[string]any)["body"].([]any)[0].(map[string]any)["children"].([]any)
+	if again[0].(map[string]any)["value"] != "Count: 1" {
+		t.Fatalf("after the press: %v", again)
+	}
+}
+
+func waitPublish(t *testing.T, h *fakeHost) map[string]any {
+	t.Helper()
+	select {
+	case m := <-h.published:
+		return m
+	case <-time.After(10 * time.Second):
+		t.Fatalf("nothing was published; stderr:\n%s", h.stderr.String())
+		return nil
+	}
+}

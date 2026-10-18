@@ -10,7 +10,6 @@ import { register as registerLoader } from "node:module";
 
 const [, , MODULE, PLUGIN_ROOT, PLUGIN_NAME, CONFIG_JSON] = process.argv;
 const CONFIG = JSON.parse(CONFIG_JSON || "{}");
-const DESCRIBE = CONFIG.mode === "describe";
 const LIMITS = { hookMs: CONFIG.hookMs ?? 10_000, catchMs: CONFIG.catchMs ?? 1_000, fileBytes: 4 << 20, httpBytes: 4 << 20, storeBytes: 4 << 20, processMs: 30_000, processMaxMs: 600_000, redirects: 5, fetchMs: 30_000 };
 
 // The mod's console and stdout must never reach the wire.
@@ -116,7 +115,8 @@ const stateDir = CONFIG.stateDir ?? path.join(PLUGIN_ROOT, ".state");
 const session = { id: CONFIG.sessionId ?? "", cwd: CONFIG.workspaceRoot ?? process.cwd(), root: CONFIG.workspaceRoot ?? process.cwd(), model: "", turns: 0 };
 const registeredTools = new Map();
 const registeredCommands = new Map();
-let redrawHooks = new Set();
+let registering = false;
+let startRan = false;
 
 const rejectUnsupported = (ns) => new Proxy({}, { get: (_, member) => (typeof member === "string" ? async () => { throw unsupported(`$.${ns}.${member}`); } : undefined) });
 
@@ -209,7 +209,7 @@ const $ = {
   },
   tool: {
     register: (spec) => {
-      if (!DESCRIBE && !registeredTools.has(spec?.name)) throw new ModError("mod.late_register", "a tool is registered while the module loads, in session.start; it cannot be added later");
+      if (!registering) throw new ModError("mod.late_register", "a tool is registered while the module loads, in session.start; it cannot be added later");
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(spec?.name ?? "")) throw new ModError("mod.bad_call", "a tool name is letters, digits, _ and -, up to 64");
       registeredTools.set(spec.name, spec);
     },
@@ -219,7 +219,7 @@ const $ = {
   },
   command: {
     register: (spec) => {
-      if (!DESCRIBE && !registeredCommands.has(spec?.name)) throw new ModError("mod.late_register", "a command is registered while the module loads, in session.start; it cannot be added later");
+      if (!registering) throw new ModError("mod.late_register", "a command is registered while the module loads, in session.start; it cannot be added later");
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(spec?.name ?? "")) throw new ModError("mod.bad_call", "a command name is letters, digits, _ and -, up to 64");
       registeredCommands.set(spec.name, spec);
     },
@@ -369,7 +369,7 @@ const intercepts = {
     if (final && typeof final.text === "string" && final.text !== p.text && final.text.trim() !== "") return { decision: "replace", replacement: { text: final.text } };
     return pass;
   },
-  "session.start": async () => { await runChain("session.start", {}, () => ({})); return pass; },
+  "session.start": async () => { if (startRan) return pass; startRan = true; await runChain("session.start", {}, () => ({})); return pass; },
   "session.end": async () => { await runChain("session.end", { reason: "other" }, () => ({})); return pass; },
   "agent.before_start": async () => { session.turns++; await runChain("turn.start", {}, () => ({})); scheduleRedraw(); return pass; },
 };
@@ -406,6 +406,14 @@ async function handle(m) {
     }
     case "extension/event": return;
     case "extension/ui/action": {
+      const cmd = registeredCommands.get(m.params.actionId);
+      if (cmd) {
+        try {
+          const out = await runChain("command.run", { name: cmd.name, args: m.params.args ?? {} }, async (ev) => cmd.run?.($, ev.args));
+          const text = typeof out === "string" ? out : out?.text;
+          return reply(m.id, { accepted: true, message: typeof text === "string" ? text.slice(0, 2000) : undefined });
+        } catch (e) { return reply(m.id, { accepted: false, message: String(e?.message ?? e) }); }
+      }
       const slot = Number(String(m.params.actionId).replace("press.", ""));
       try { await drawing[slot]?.({ surface: "desktop" }); } catch (e) { diag("mod.hook_threw", String(e)); }
       scheduleRedraw();
@@ -429,7 +437,10 @@ async function init(m) {
     const mod = await import(pathToFileURL(MODULE).href);
     if (typeof mod.register !== "function" && typeof mod.default !== "function") throw new ModError("mod.no_register", "the module does not export register(on, options)");
     await (mod.register ?? mod.default)(on, CONFIG.options ?? {});
-    for (const r of regs.get("session.start") ?? []) void r; // run below once the handshake is answered
+    // Tools and commands are registered in session.start; it runs once, here,
+    // so the handshake can describe them and the host sends no second one.
+    registering = true;
+    try { await intercepts["session.start"](); } finally { registering = false; }
   } catch (e) {
     diag(e?.code ?? "mod.crashed", String(e?.message ?? e));
     return fail(m.id, -32000, String(e?.message ?? e), "activation_failed");
@@ -438,19 +449,8 @@ async function init(m) {
   reply(m.id, {
     protocolVersion: m.params.protocolVersion, name: PLUGIN_NAME, version: "0.0.0-mod", stateSchemaVersion: 0,
     subscriptions: Object.keys(intercepts).filter((p) => CONFIG.intercepts?.includes(p) ?? true),
-    uiActions: Array.from({ length: MAX_BUTTONS }, (_, i) => ({ actionId: `press.${i}`, label: `press ${i}` })),
+    uiActions: [...Array.from({ length: MAX_BUTTONS }, (_, i) => ({ actionId: `press.${i}`, label: `press ${i}` })), ...[...registeredCommands.values()].map((c) => ({ actionId: c.name, label: c.description ?? c.name }))],
     tools: [...registeredTools.keys()],
+    toolSpecs: [...registeredTools.values()].map((t) => ({ name: t.name, description: String(t.description ?? t.name), inputSchema: t.inputSchema ?? { type: "object" }, readOnly: Boolean(t.readOnly) })),
   });
-}
-
-if (DESCRIBE) {
-  // Describe pass: load the module, run session.start once with the real API,
-  // report what it registered and exit. Nothing is sent to a host.
-  (async () => {
-    const mod = await import(pathToFileURL(MODULE).href);
-    await (mod.register ?? mod.default)(on, CONFIG.options ?? {});
-    await runChain("session.start", {}, () => ({}));
-    wire(JSON.stringify({ events: [...regs.keys()].sort(), unserved: [...unserved].sort(), tools: [...registeredTools.values()].map((t) => ({ name: t.name, description: t.description ?? "", inputSchema: t.inputSchema ?? { type: "object" }, readOnly: Boolean(t.readOnly) })), commands: [...registeredCommands.values()].map((c) => ({ name: c.name, description: c.description ?? "" })) }) + "\n");
-    process.exit(0);
-  })().catch((e) => { console.error(String(e?.stack ?? e)); process.exit(2); });
 }

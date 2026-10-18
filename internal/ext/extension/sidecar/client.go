@@ -409,6 +409,9 @@ func (c *Client) validateHandshakeResult(result protocol.InitializeResult) error
 	if len(result.UIActions) > 0 && !containsString(rt.Capabilities, "ui") {
 		return capabilityErr("extension %s declared UI actions without the ui capability", c.pluginID)
 	}
+	if err := c.validateDynamicTools(result); err != nil {
+		return err
+	}
 	if err := c.validateTools(result.Tools); err != nil {
 		return err
 	}
@@ -417,6 +420,30 @@ func (c *Client) validateHandshakeResult(result protocol.InitializeResult) error
 	// stay Unavailable (no forge) — callers read Status via the lifecycle registry.
 	if err := validateProvidesCeiling(c.provides, result.Provides); err != nil {
 		return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: err.Error()}
+	}
+	return nil
+}
+
+// validateDynamicTools holds the tools a dynamic runtime described at the
+// handshake to the checks a manifest tool gets. A runtime that is not dynamic
+// may not describe any.
+func (c *Client) validateDynamicTools(result protocol.InitializeResult) error {
+	if len(result.ToolSpecs) == 0 {
+		return nil
+	}
+	if !c.rt.DynamicTools {
+		return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s described tools without the dynamicTools manifest flag", c.pluginID)}
+	}
+	seen := map[string]bool{}
+	for _, spec := range result.ToolSpecs {
+		tool := pluginpkg.RuntimeTool{Name: spec.Name, Description: spec.Description, InputSchema: spec.InputSchema, ReadOnly: spec.ReadOnly}
+		if err := pluginpkg.ValidateRuntimeTool(tool); err != nil {
+			return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s tool: %v", c.pluginID, err)}
+		}
+		if seen[spec.Name] {
+			return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s described tool %q twice", c.pluginID, spec.Name)}
+		}
+		seen[spec.Name] = true
 	}
 	return nil
 }
@@ -544,6 +571,9 @@ func (c *Client) Intercept(ctx context.Context, event protocol.InterceptEvent, p
 	raw, err := c.conn.Request(tctx, string(protocol.MethodExtensionIntercept), params)
 	if err != nil {
 		if errors.Is(tctx.Err(), context.DeadlineExceeded) && ctx.Err() == nil {
+			if c.rt.KillOnTimeout {
+				go c.proc.kill()
+			}
 			return protocol.InterceptResult{}, &protocol.ProtocolError{
 				Reason:  protocol.ErrInterceptTimeout,
 				Message: fmt.Sprintf("extension %s did not answer %s within %s", c.pluginID, event, timeout),
