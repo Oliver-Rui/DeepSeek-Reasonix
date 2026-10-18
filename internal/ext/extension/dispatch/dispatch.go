@@ -67,6 +67,9 @@ type Result struct {
 	Blocked bool
 	// BlockReason is the extension's user-visible reason, credential-redacted.
 	BlockReason string
+	// Ask is set when a tighten-only runtime put the call to the user; the caller
+	// asks even where the host allowed it. It is never set by an allow or a deny.
+	Ask bool
 	// Permission carries the terminal allow/deny ruling at permission.decision;
 	// nil means every interceptor continued and the host decision stands. The
 	// CALLER combines it with the host verdict (host deny + extension allow →
@@ -280,6 +283,15 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 				return nil, fmt.Errorf("dispatch: marshal %s replacement: %w", point, err)
 			}
 			result.Applied = append(result.Applied, pluginID)
+		case protocol.DecisionAsk:
+			if point != extension.PointPermissionDecision || !d.tightenOnly[pluginID] {
+				err := fmt.Errorf("decision %q is only legal for a tighten-only runtime at %s", answer.Decision, extension.PointPermissionDecision)
+				if err := d.violation(pluginID, point, err); err != nil {
+					return nil, err
+				}
+				continue
+			}
+			result.Ask = true
 		case protocol.DecisionAllow, protocol.DecisionDeny:
 			if point != extension.PointPermissionDecision {
 				err := fmt.Errorf("decision %q is only legal at %s", answer.Decision, extension.PointPermissionDecision)

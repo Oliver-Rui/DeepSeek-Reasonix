@@ -97,3 +97,38 @@ func TestARequiredTightenOnlyRuntimeThatLoosensFailsTheOperationWithATypedCause(
 		t.Fatalf("err = %v, want a ViolationError wrapping ErrLoosensDecision", err)
 	}
 }
+
+func TestAnAskFromATightenOnlyRuntimeIsRecordedAndNotMistakenForAnAllow(t *testing.T) {
+	point := extension.PointPermissionDecision
+	d := tightenOnlyDispatcher("mod-x", protocol.InterceptResult{Decision: protocol.DecisionAsk}, &warnRecorder{})
+	result, err := d.Intercept(context.Background(), point, &PermissionPayload{Name: "bash", HostDecision: "allow"})
+	if err != nil || !result.Ask || result.Permission != nil {
+		t.Fatalf("result = %+v, %v; want Ask set and no allow/deny", result, err)
+	}
+}
+
+// ask is the tighten-only runtimes' own ruling; another runtime, or any other
+// point, answering it breaks the dispatch rules.
+func TestAnAskFromAnyoneElseOrAnywhereElseIsAViolation(t *testing.T) {
+	ask := &fakeClient{interceptFn: func(protocol.InterceptEvent, json.RawMessage) (protocol.InterceptResult, error) {
+		return protocol.InterceptResult{Decision: protocol.DecisionAsk}, nil
+	}}
+	for name, tc := range map[string]struct {
+		point extension.InterceptorPoint
+		tight map[string]bool
+		pay   any
+	}{
+		"not tighten-only": {extension.PointPermissionDecision, nil, &PermissionPayload{Name: "bash", HostDecision: "allow"}},
+		"other point":      {extension.PointToolBefore, map[string]bool{"mod-x": true}, &ToolBeforePayload{Name: "bash", Arguments: "{}"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			warns := &warnRecorder{}
+			d := New(map[extension.InterceptorPoint][]extension.Contribution{tc.point: {interceptor("mod-x", tc.point, 0)}}, nil,
+				func(string) Client { return ask }, nil, Options{Warn: warns.warn, TightenOnly: tc.tight})
+			result, err := d.Intercept(context.Background(), tc.point, tc.pay)
+			if err != nil || result.Ask || warns.count() != 1 {
+				t.Fatalf("result = %+v, %v, warnings %d; want the ask refused with one warning", result, err, warns.count())
+			}
+		})
+	}
+}

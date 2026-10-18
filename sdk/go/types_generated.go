@@ -276,6 +276,7 @@ const (
 	DecisionReplace  InterceptDecision = "replace"
 	DecisionAllow    InterceptDecision = "allow"
 	DecisionDeny     InterceptDecision = "deny"
+	DecisionAsk      InterceptDecision = "ask"
 )
 
 // ProviderCatalogParams is a generated Extension Protocol v2 wire DTO.

@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -12,6 +13,7 @@ import (
 	"reasonix/internal/ext/extension"
 	"reasonix/internal/ext/extension/dispatch"
 	"reasonix/internal/ext/extension/providerconv"
+	"reasonix/internal/safety/permission"
 )
 
 // Extension Protocol v2 agent-side wiring. The agent consults the
@@ -348,6 +350,32 @@ func (a *Agent) interceptExtensionPermission(ctx context.Context, plan *toolCall
 		}, true
 	case result.Permission != nil && *result.Permission:
 		*allow = true
+	}
+	if result.Ask && *allow {
+		return a.confirmAskedByExtension(ctx, plan)
+	}
+	return toolOutcome{}, false
+}
+
+// confirmAskedByExtension puts a call the host allowed to the user because a
+// tighten-only extension asked. A gate that cannot ask refuses: an ask is never
+// quietly dropped.
+func (a *Agent) confirmAskedByExtension(ctx context.Context, plan *toolCallPlan) (toolOutcome, bool) {
+	refuse := func(msg string) (toolOutcome, bool) {
+		return toolOutcome{output: "blocked: " + msg, blocked: true, errMsg: "blocked by extension permission policy"}, true
+	}
+	c, ok := a.svc.gate.(interface {
+		Confirm(context.Context, string, json.RawMessage, string) (permission.Verdict, error)
+	})
+	if !ok {
+		return refuse("an extension required approval for this call and this session has no way to ask")
+	}
+	v, err := c.Confirm(ctx, plan.permName, plan.permArgs, "an extension")
+	if err != nil {
+		return refuse(err.Error())
+	}
+	if !v.Allow {
+		return refuse(v.Reason)
 	}
 	return toolOutcome{}, false
 }
