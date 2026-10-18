@@ -88,6 +88,9 @@ const (
 	DecisionReplace  InterceptDecision = "replace"
 	DecisionAllow    InterceptDecision = "allow"
 	DecisionDeny     InterceptDecision = "deny"
+	// DecisionAsk, legal only at permission.decision and only for a runtime that
+	// may merely tighten, puts the call to the user even where the host allowed it.
+	DecisionAsk InterceptDecision = "ask"
 )
 
 // UIHostKind identifies which host UI surface family renders extension UI.

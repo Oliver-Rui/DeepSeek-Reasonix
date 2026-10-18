@@ -280,3 +280,70 @@ func TestEffectAModThatCrashesOrHangsDoesNotFailTheTurn(t *testing.T) {
 		})
 	}
 }
+
+// A mod's ask puts the call to the person even in a posture that approves
+// everything, and the answer covers that one call. YOLO does not answer it.
+func TestEffectAModsAskIsAFreshHumanApprovalThatYoloDoesNotAnswer(t *testing.T) {
+	for _, approve := range []bool{true, false} {
+		name := "declined"
+		if approve {
+			name = "approved"
+		}
+		t.Run(name, func(t *testing.T) {
+			_, workspace, prov := installMod(t, `
+export function register(on) {
+  on('tool.check', async ($, e, next) => (e.input.command.includes('ASKME') ? { decision: 'ask' } : next(e)));
+}`)
+			setModsSwitch(t, true)
+			prov.command = "touch asked-" + name + ".txt # ASKME"
+			var mu sync.Mutex
+			var cards []event.Approval
+			sink := event.FuncSink(func(e event.Event) {
+				if e.Kind == event.ApprovalRequest {
+					mu.Lock()
+					cards = append(cards, e.Approval)
+					mu.Unlock()
+				}
+			})
+			res, err := BuildRuntime(t.Context(), Options{Sink: sink})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer res.Controller.Close()
+			res.Controller.EnableInteractiveApproval()
+			res.Controller.SetToolApprovalMode(control.ToolApprovalYolo)
+			done := make(chan error, 1)
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				done <- res.Controller.Run(ctx, "run it")
+			}()
+			var card event.Approval
+			waitFor(t, "the approval card", func() bool {
+				mu.Lock()
+				defer mu.Unlock()
+				for _, c := range cards {
+					if c.Tool == "mod_check" {
+						card = c
+						return true
+					}
+				}
+				return false
+			})
+			if !strings.Contains(card.Subject, "bash") {
+				t.Fatalf("the card does not show the call: %+v", card)
+			}
+			if _, err := os.Stat(filepath.Join(workspace, "asked-"+name+".txt")); err == nil {
+				t.Fatal("the call ran before the person answered")
+			}
+			res.Controller.Approve(card.ID, approve, false, false)
+			if err := <-done; err != nil {
+				t.Fatalf("Run: %v", err)
+			}
+			_, statErr := os.Stat(filepath.Join(workspace, "asked-"+name+".txt"))
+			if (statErr == nil) != approve {
+				t.Fatalf("approve=%t but the file exists=%t; results:\n%s", approve, statErr == nil, strings.Join(prov.toolResults(), "\n"))
+			}
+		})
+	}
+}

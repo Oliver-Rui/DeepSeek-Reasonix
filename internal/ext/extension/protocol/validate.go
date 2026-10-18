@@ -32,7 +32,7 @@ var enumTypes = map[reflect.Type][]string{
 	reflect.TypeFor[Direction]():         values(DirectionHostToExtensionRequest, DirectionExtensionToHostRequest, DirectionHostToExtensionNotification, DirectionExtensionToHostNotification),
 	reflect.TypeFor[OperationClass]():    values(ClassLifecycle, ClassIntercept, ClassObservation, ClassProvider, ClassUI, ClassContent),
 	reflect.TypeFor[InterceptEvent]():    interceptEventValues(),
-	reflect.TypeFor[InterceptDecision](): values(DecisionContinue, DecisionBlock, DecisionReplace, DecisionAllow, DecisionDeny),
+	reflect.TypeFor[InterceptDecision](): values(DecisionContinue, DecisionBlock, DecisionReplace, DecisionAllow, DecisionDeny, DecisionAsk),
 	reflect.TypeFor[UIHostKind]():        values(UIHostTUI, UIHostDesktop, UIHostACP, UIHostHeadless),
 	reflect.TypeFor[UISurfaceKind]():     values(UISurfaceStatus, UISurfaceCard, UISurfaceForm, UISurfaceNotification, UISurfacePanel, UISurfaceView),
 	reflect.TypeFor[UINodeKind]():        values(UINodeText, UINodeMarkdown, UINodeRow, UINodeStack, UINodeKV, UINodeMeter, UINodePip, UINodeButton, UINodeDivider),

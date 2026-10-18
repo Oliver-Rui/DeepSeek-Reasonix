@@ -159,6 +159,34 @@ func (g *Gate) denial(ruleReason string) Verdict {
 	}
 }
 
+// ConfirmTool names the approval a stricter party opens on a call the policy
+// allowed. It is a fresh decision: a person answers it, never a posture such as
+// YOLO or auto, and the answer covers this one call.
+const ConfirmTool = "mod_check"
+
+// Confirm puts a call the policy allowed to the user anyway, on behalf of who
+// (a Claude Code mod that may only tighten). It cannot loosen anything: the
+// verdict is Allow only when a person approved, and a gate with nobody to ask
+// refuses.
+func (g *Gate) Confirm(ctx context.Context, toolName string, args json.RawMessage, who string) (Verdict, error) {
+	if g.Approver == nil {
+		return Verdict{Reason: who + " asked for approval of this call and nobody can give it, so it was refused.", Code: RefusalUnattended}, nil
+	}
+	subject := who + " asks you to approve: " + toolName + " " + Subject(args)
+	allow, _, reason, err := g.approve(ctx, ConfirmTool, subject, args, who+" requires approval for this call")
+	if err != nil {
+		return Verdict{Reason: "approval aborted"}, err
+	}
+	if !allow {
+		v := Verdict{Reason: "the user declined this tool call — do not retry it; ask how they would like to proceed or choose another approach.", Code: RefusalDeclined}
+		if reason != "" {
+			v.Reason = reason
+		}
+		return v, nil
+	}
+	return Verdict{Allow: true}, nil
+}
+
 // Checker is any gate a tool call is put to.
 type Checker interface {
 	Check(ctx context.Context, toolName string, args json.RawMessage, readOnly bool) (bool, string, error)
