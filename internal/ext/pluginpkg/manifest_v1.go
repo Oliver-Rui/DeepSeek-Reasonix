@@ -30,14 +30,17 @@ const PluginRootEnvVar = "${REASONIX_PLUGIN_ROOT}"
 // the expansion happens at launch time (see ExpandRuntimeCommand for the
 // diagnostics-time equivalent).
 type RuntimeSpec struct {
-	Command      string            `json:"command"`
-	Args         []string          `json:"args,omitempty"`
-	Env          map[string]string `json:"env,omitempty"`
-	Required     bool              `json:"required,omitempty"`
-	Priority     int               `json:"priority,omitempty"`
-	Intercepts   []string          `json:"intercepts,omitempty"`
-	Replaces     []string          `json:"replaces,omitempty"`
-	Capabilities []string          `json:"capabilities,omitempty"`
+	Command  string            `json:"command"`
+	Args     []string          `json:"args,omitempty"`
+	Env      map[string]string `json:"env,omitempty"`
+	Required bool              `json:"required,omitempty"`
+	// TightenOnly restricts this runtime's permission rulings to making a
+	// decision stricter; the host refuses an allow or a rewrite from it.
+	TightenOnly  bool     `json:"tightenOnly,omitempty"`
+	Priority     int      `json:"priority,omitempty"`
+	Intercepts   []string `json:"intercepts,omitempty"`
+	Replaces     []string `json:"replaces,omitempty"`
+	Capabilities []string `json:"capabilities,omitempty"`
 	// TimeoutMillis optionally tunes this runtime's synchronous intercept
 	// budget. Zero keeps the host's per-point defaults; the host clamps any
 	// value to its 60s ceiling at dispatch time.

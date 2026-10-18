@@ -31,6 +31,7 @@ const (
 	tsLookFile      = "desktop/frontend-next/src/port/look.ts"
 	tsHubFile       = "desktop/frontend-next/src/port/hub.ts"
 	tsMuxFile       = "desktop/frontend-next/src/port/mux.ts"
+	tsPluginFile    = "desktop/frontend-next/src/port/plugin.ts"
 	tsChartFile     = "desktop/frontend-next/src/ui/chart/spec.ts"
 	tsSurfaceFile   = "desktop/frontend-next/src/ui/surface/spec.ts"
 )
@@ -130,6 +131,14 @@ var mirroredWireTypes = []wireMirror{
 	{"internal/session/control/plan_approval_settings.go", "PlanApprovalSettings", tsBoundaryFile, "PlanApprovalSettings"},
 	{"internal/session/control/peer_settings.go", "PeersSettings", tsBoundaryFile, "PeersSettings"},
 	{"internal/session/control/peer_settings.go", "PeerReleased", tsBoundaryFile, "PeerProject"},
+	{"internal/session/control/mods.go", "ModStatus", tsBoundaryFile, "ModStatus"},
+	{"internal/session/control/mods.go", "ModRuntime", tsBoundaryFile, "ModRuntime"},
+	{"internal/session/control/mods.go", "ModHookStats", tsBoundaryFile, "ModHookStats"},
+	{"internal/ext/modpreview/types.go", "Preview", tsPluginFile, "ModPreview"},
+	{"internal/ext/modpreview/types.go", "Event", tsPluginFile, "ModPreviewEvent"},
+	{"internal/ext/modpreview/types.go", "Call", tsPluginFile, "ModPreviewCall"},
+	{"internal/ext/modpreview/types.go", "Import", tsPluginFile, "ModPreviewImport"},
+	{"internal/ext/modpreview/types.go", "Finding", tsPluginFile, "ModPreviewFinding"},
 	// The MCP row: a status the host answered with and the page cannot read is a
 	// row that goes back to reading the server's own prose for it.
 	{"internal/frontend/serve/catalog.go", "mcpEntry", tsMcpFile, "McpEntry"},

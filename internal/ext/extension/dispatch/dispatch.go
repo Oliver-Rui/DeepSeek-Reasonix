@@ -49,6 +49,9 @@ type Options struct {
 	// SidecarDown receives, once per extension, an optional extension skipped
 	// because its sidecar is not running. Nil routes that case through Warn.
 	SidecarDown func(pluginID string, point extension.InterceptorPoint)
+	// TightenOnly names runtimes whose permission rulings may only make a
+	// decision stricter; the host refuses the rest of what such a process says.
+	TightenOnly map[string]bool
 }
 
 func (o Options) warnFunc() func(string) {
@@ -84,7 +87,16 @@ type ViolationError struct {
 	Plugin string
 	Point  extension.InterceptorPoint
 	Detail string
+	// Cause is the typed reason, when there is one.
+	Cause error
 }
+
+// ErrLoosensDecision is the cause of a violation by a tighten-only runtime that
+// answered allow, or rewrote the payload, at permission.decision.
+var ErrLoosensDecision = errors.New("a tighten-only runtime may only make a permission decision stricter")
+
+// Unwrap returns the typed cause.
+func (e *ViolationError) Unwrap() error { return e.Cause }
 
 // Error returns the redacted violation description.
 func (e *ViolationError) Error() string {
@@ -138,6 +150,7 @@ type Dispatcher struct {
 	slotOwners   map[string]bool
 	warn         func(string)
 	sidecarDown  func(string, extension.InterceptorPoint)
+	tightenOnly  map[string]bool
 
 	warnedMu sync.Mutex
 	warned   map[string]struct{}
@@ -171,6 +184,7 @@ func New(chain map[extension.InterceptorPoint][]extension.Contribution, replacem
 		slotOwners:   slotOwners,
 		warn:         opts.warnFunc(),
 		sidecarDown:  opts.SidecarDown,
+		tightenOnly:  maps.Clone(opts.TightenOnly),
 		warned:       map[string]struct{}{},
 	}
 }
@@ -178,7 +192,7 @@ func New(chain map[extension.InterceptorPoint][]extension.Contribution, replacem
 // Options returns the reporting this dispatcher was built with, so a successor
 // built after a rebuild reports through the same channels.
 func (d *Dispatcher) Options() Options {
-	return Options{Warn: d.warn, SidecarDown: d.sidecarDown}
+	return Options{Warn: d.warn, SidecarDown: d.sidecarDown, TightenOnly: maps.Clone(d.tightenOnly)}
 }
 
 // Intercepts reports whether a sidecar sits on point: a plugin-backed
@@ -245,6 +259,12 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 			result.BlockReason = secrets.RedactCredentials(answer.Reason)
 			return result, nil
 		case protocol.DecisionReplace:
+			if point == extension.PointPermissionDecision && d.tightenOnly[pluginID] {
+				if err := d.violation(pluginID, point, fmt.Errorf("%w: it rewrote the payload", ErrLoosensDecision)); err != nil {
+					return nil, err
+				}
+				continue
+			}
 			fresh, decodeErr := decodePayload(point, answer.Replacement)
 			if decodeErr != nil {
 				if err := d.violation(pluginID, point, decodeErr); err != nil {
@@ -269,6 +289,12 @@ func (d *Dispatcher) Intercept(ctx context.Context, point extension.InterceptorP
 				continue
 			}
 			allow := answer.Decision == protocol.DecisionAllow
+			if allow && d.tightenOnly[pluginID] {
+				if err := d.violation(pluginID, point, fmt.Errorf("%w: it answered allow", ErrLoosensDecision)); err != nil {
+					return nil, err
+				}
+				continue
+			}
 			result.Permission = &allow
 			if allow && hostDecision == "deny" {
 				result.Audit = append(result.Audit, secrets.RedactCredentials(fmt.Sprintf(
@@ -436,7 +462,7 @@ func (d *Dispatcher) failure(pluginID string, point extension.InterceptorPoint, 
 // rules. Required extensions fail the operation; optional extensions warn
 // once and their ruling is skipped.
 func (d *Dispatcher) violation(pluginID string, point extension.InterceptorPoint, detail error) error {
-	violation := &ViolationError{Plugin: pluginID, Point: point, Detail: secrets.RedactCredentials(detail.Error())}
+	violation := &ViolationError{Plugin: pluginID, Point: point, Detail: secrets.RedactCredentials(detail.Error()), Cause: detail}
 	if d.isRequired(pluginID) {
 		return violation
 	}
