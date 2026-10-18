@@ -10,6 +10,7 @@ import me from "./routes/me";
 import users from "./routes/users";
 import remote from "./routes/remote";
 import hostControllers from "./routes/hostControllers";
+import hostPush from "./routes/hostPush";
 
 const app = new Hono<AppEnv>();
 
@@ -26,5 +27,6 @@ app.route("/me", me);
 app.route("/u", users);
 app.route("/remote", remote);
 app.route("/host/controllers", hostControllers);
+app.route("/host/push", hostPush);
 
 export default app;

@@ -43,6 +43,11 @@ export interface PushTarget {
   authSecret: string;
 }
 
+// A host has at most a few phones; the cap keeps one notification from fanning out without bound.
+const MAX_TARGETS = 16;
+export const BACKOFF_BASE_MS = 60_000;
+export const BACKOFF_MAX_MS = 6 * 60 * 60 * 1000;
+
 const COLUMNS = `controller_id, user_id, host_device_id, endpoint, p256dh, auth_secret, notify_approval, notify_input, notify_error,
   created_at, updated_at, last_success_at, last_failure_at, last_failure_status, failure_count, next_attempt_at`;
 
@@ -114,5 +119,52 @@ export class RemotePushRepo {
       "DELETE FROM remote_push_subscriptions WHERE controller_id = ?1 AND user_id = ?2",
     ).bind(controllerId, userId).run();
     return (result.meta.changes ?? 0) > 0;
+  }
+
+  // Who a notification of one category for one host may go to: an active
+  // controller on an active host that turned the category on and is not waiting
+  // out a failure. The join is what keeps a row that outlived a revocation from
+  // receiving anything.
+  async targets(userId: number, hostDeviceId: string, category: "approval" | "input" | "error", now: Date): Promise<PushTarget[]> {
+    const column = category === "approval" ? "notify_approval" : category === "input" ? "notify_input" : "notify_error";
+    const result = await this.db.prepare(
+      `SELECT p.controller_id AS controller_id, p.endpoint AS endpoint, p.p256dh AS p256dh, p.auth_secret AS auth_secret
+       FROM remote_push_subscriptions p
+       JOIN remote_controllers c ON c.id = p.controller_id AND c.user_id = p.user_id AND c.host_device_id = p.host_device_id
+       JOIN remote_devices d ON d.id = p.host_device_id AND d.user_id = p.user_id
+       WHERE p.user_id = ?1 AND p.host_device_id = ?2 AND p.${column} = 1
+         AND c.state = 'active' AND d.revoked_at IS NULL
+         AND (p.next_attempt_at IS NULL OR p.next_attempt_at <= ?3)
+       ORDER BY p.controller_id LIMIT ?4`,
+    ).bind(userId, hostDeviceId, now.toISOString(), MAX_TARGETS).all<{ controller_id: string; endpoint: string; p256dh: string; auth_secret: string }>();
+    return (result.results ?? []).map((row) => ({ controllerId: row.controller_id, endpoint: row.endpoint, p256dh: row.p256dh, authSecret: row.auth_secret }));
+  }
+
+  async recordSuccess(controllerId: string, now: Date): Promise<void> {
+    await this.db.prepare(
+      `UPDATE remote_push_subscriptions SET last_success_at = ?2, failure_count = 0, last_failure_at = NULL,
+         last_failure_status = NULL, next_attempt_at = NULL WHERE controller_id = ?1`,
+    ).bind(controllerId, now.toISOString()).run();
+  }
+
+  // A delivery that failed but might work later. The wait doubles with each
+  // consecutive failure up to six hours, so a dead endpoint is tried rarely
+  // instead of on every notification.
+  async recordFailure(controllerId: string, status: number, now: Date): Promise<void> {
+    await this.db.prepare(
+      `UPDATE remote_push_subscriptions SET failure_count = failure_count + 1, last_failure_at = ?2, last_failure_status = ?3,
+         next_attempt_at = ?4 WHERE controller_id = ?1`,
+    ).bind(controllerId, now.toISOString(), status, new Date(now.getTime() + (await this.backoffMs(controllerId))).toISOString()).run();
+  }
+
+  private async backoffMs(controllerId: string): Promise<number> {
+    const row = await this.db.prepare("SELECT failure_count FROM remote_push_subscriptions WHERE controller_id = ?1").bind(controllerId).first<{ failure_count: number }>();
+    const failures = (row?.failure_count ?? 0) + 1;
+    return Math.min(BACKOFF_BASE_MS * 2 ** (failures - 1), BACKOFF_MAX_MS);
+  }
+
+  // The push service said the subscription is gone for good.
+  async removeGone(controllerId: string): Promise<void> {
+    await this.db.prepare("DELETE FROM remote_push_subscriptions WHERE controller_id = ?1").bind(controllerId).run();
   }
 }
