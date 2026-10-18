@@ -46,7 +46,7 @@ import type { ExecutionGraphRead, TrajectoryRead, WireEvent } from "./wire";
 import type { PluginExport, PluginInstallRequest, PluginPackage, PluginPlan } from "./plugin";
 import type { MarketDetail, MarketList, MarketOwnRequest, MarketPackage, MarketPlan, MarketPublished, MarketQuery, MarketRequest, MarketSubmission, MarketVote } from "./market";
 import type { Appearance, ThemeImport, ThemePack } from "./look";
-import type { AskTimeoutSettings, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, BrowserToolsSettings, SubagentClaimsSettings, WriteLeaseSettings, PlanApprovalSettings, PeerReceipt, PeersState, PeersSettings, PeersSettingsEdit, PeerRemember, ConfigProblem, ConfigRepair, DisplayCurrencyMode, DisplayCurrencySettings, PermissionLists, PermissionRules, ProgressWatchSettings, SandboxSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
+import type { AskTimeoutSettings, ModStatus, ModsSettings, ModsSettingsEdit, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, BrowserToolsSettings, SubagentClaimsSettings, WriteLeaseSettings, PlanApprovalSettings, PeerReceipt, PeersState, PeersSettings, PeersSettingsEdit, PeerRemember, ConfigProblem, ConfigRepair, DisplayCurrencyMode, DisplayCurrencySettings, PermissionLists, PermissionRules, ProgressWatchSettings, SandboxSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
 import type { Protocol, ProviderCheck, ProviderCheckDraft, ProviderDraft, ProviderEdit, ProviderEntry, ProviderModelCheck, ProviderModelCheckRequest, ProviderProbe, ProviderSetup, ProviderRemoval, ProviderPreset, ProviderPresetInstall } from "./provider";
 export type { ModelEffort, ModelLimit, ModelRate, Protocol, ProviderCheck, ProviderCheckDraft, ProviderDraft, ProviderEdit, ProviderEntry, ProviderModelCheck, ProviderModelCheckRequest, ProviderProbe, ProviderSetup, ProviderRemoval, ProviderPreset, ProviderPresetInstall } from "./provider";
 import type { StoragePlan, StorageQuery, StorageState } from "./storage";
@@ -291,6 +291,9 @@ export interface AgentPort {
   resolvePeerMessage(id: string, approve: boolean, remember?: PeerRemember): Promise<void>;
   peersSettings(): Promise<PeersSettings>;
   savePeersSettings(edit: PeersSettingsEdit): Promise<PeersSettings>;
+  mods(): Promise<ModStatus[]>;
+  modsSettings(): Promise<ModsSettings>;
+  saveModsSettings(edit: ModsSettingsEdit): Promise<ModsSettings>;
   displayCurrency(): Promise<DisplayCurrencySettings>;
   // Applies live: the kernel announces it and every ledger rebinds; no rebuild.
   saveDisplayCurrency(mode: DisplayCurrencyMode): Promise<DisplayCurrencySettings>;

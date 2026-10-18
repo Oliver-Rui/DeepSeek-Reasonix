@@ -34,6 +34,7 @@ import { Compaction } from "./Compaction";
 import { Sandbox } from "./Sandbox";
 import { BrowserTools } from "./BrowserTools";
 import { AskTimeout } from "./AskTimeout";
+import { ModHost } from "./ModHost";
 import { WebAccess } from "./WebAccess";
 import { ProgressWatch } from "./ProgressWatch";
 import { DisplaySettings } from "./DisplaySettings";
@@ -644,6 +645,7 @@ export function Settings({ hub, onError, port, networkPort, localWorkspacePort, 
                 >
                   {reload.note}
                 </Group>
+                <ModHost port={port} />
                 <Group id="plugins"
                   title={t("插件包")}
                   now={packages.length ? t("{n} 个", { n: packages.length }) : undefined}

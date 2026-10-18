@@ -1,6 +1,6 @@
 import { SseShell } from "./sse_shell";
 import type { Adjudications, BrowserToolsSettings, SubagentClaimsSettings, WriteLeaseSettings, PlanApprovalSettings, PeerReceipt, PeersState, PeersSettings, PeersSettingsEdit, PeerRemember, ConfigProblem, ConfigRepair, PermissionLists, PermissionRules, SandboxSettings } from "./port";
-import type { AskTimeoutSettings, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, DisplayCurrencyMode, DisplayCurrencySettings, ProgressWatchSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
+import type { AskTimeoutSettings, ModStatus, ModsSettings, ModsSettingsEdit, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, DisplayCurrencyMode, DisplayCurrencySettings, ProgressWatchSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
 
 // Where the agent may reach: the permission rules a call is matched against and
 // the sandbox the shell runs in.
@@ -70,6 +70,15 @@ export class SseBoundary extends SseShell {
   }
   savePeersSettings(edit: PeersSettingsEdit) {
     return this.post0<PeersSettings>("/peers/settings", edit);
+  }
+  async mods() {
+    return (await this.get<{ mods: ModStatus[] }>("/mods")).mods ?? [];
+  }
+  modsSettings() {
+    return this.get<ModsSettings>("/mods/settings");
+  }
+  saveModsSettings(edit: ModsSettingsEdit) {
+    return this.post0<ModsSettings>("/mods/settings", edit);
   }
   saveSubagentClaims(optimistic: boolean) {
     return this.post0<SubagentClaimsSettings>("/subagent-claims", { optimistic });

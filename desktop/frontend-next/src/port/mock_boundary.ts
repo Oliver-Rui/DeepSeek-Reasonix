@@ -1,5 +1,6 @@
 import type { Adjudications, BrowserToolsSettings, SubagentClaimsSettings, WriteLeaseSettings, PlanApprovalSettings, PeerReceipt, PeersState, PeersSettings, PeersSettingsEdit, PeerRemember, ConfigProblem, ConfigRepair, PermissionLists, PermissionRules, SandboxSettings, UpdateMode } from "./port";
-import type { AskTimeoutSettings, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, DisplayCurrencyMode, DisplayCurrencySettings, ProgressWatchSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
+import { mockMods } from "./mock_mods";
+import type { AskTimeoutSettings, ModStatus, ModsSettings, ModsSettingsEdit, AutoArchiveSettings, ChangedFilesSettings, FoldWorkSettings, TurnNarrationSettings, WebAccessPatch, WebAccessSettings, DisplayCurrencyMode, DisplayCurrencySettings, ProgressWatchSettings, WorkspaceRoots, ReceiptSettings } from "./boundary";
 import { HttpError } from "./http_error";
 import { MockShell } from "./mock_shell";
 
@@ -184,6 +185,22 @@ export class MockBoundary extends MockShell {
 
   async resolvePeerMessage(id: string, _approve: boolean, _remember: PeerRemember = "none"): Promise<void> {
     this.peerState = { ...this.peerState, held: this.peerState.held.filter((h) => h.id !== id) };
+  }
+
+  protected modConfig: ModsSettings = { enabled: false, hook_budget_ms: 0, path: "/Users/you/.reasonix/config.toml", applies: "next_session" };
+
+  async modsSettings(): Promise<ModsSettings> {
+    return { ...this.modConfig };
+  }
+
+  async saveModsSettings(edit: ModsSettingsEdit): Promise<ModsSettings> {
+    if (edit.hook_budget_ms !== undefined && (edit.hook_budget_ms < 0 || edit.hook_budget_ms > 55000)) throw new Error("a hook budget is 0 to 55000 milliseconds");
+    this.modConfig = { ...this.modConfig, enabled: edit.enabled ?? this.modConfig.enabled, hook_budget_ms: edit.hook_budget_ms ?? this.modConfig.hook_budget_ms };
+    return this.modsSettings();
+  }
+
+  async mods(): Promise<ModStatus[]> {
+    return mockMods(this.modConfig.enabled);
   }
 
   protected peerSettings: PeersSettings = { enabled: false, dispatch: false, release_projects: [], path: "/Users/you/.reasonix/config.toml", applies: "next_turn", pending: false, available: true };
