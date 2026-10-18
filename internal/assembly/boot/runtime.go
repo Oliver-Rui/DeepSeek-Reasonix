@@ -168,7 +168,8 @@ func preflightExtensionRuntimes(ctx context.Context, home string, ext extensionB
 	if strings.TrimSpace(home) == "" {
 		return nil, nil
 	}
-	packages, loadWarnings := sidecar.LoadRuntimePackages(home)
+	ensureModHost()
+	packages, loadWarnings := sidecar.LoadRuntimePackagesFor(home, ext.session.WorkspaceRoot)
 	if len(packages) == 0 {
 		// No v2 runtime packages: surface the installed-state warnings exactly
 		// as the in-assembly StartPackages call did, and take the untouched
@@ -189,6 +190,7 @@ func preflightExtensionRuntimes(ctx context.Context, home string, ext extensionB
 	for _, warning := range warnings {
 		ext.warn(warning)
 	}
+	reconcileMods(mgr)
 	if err != nil {
 		// A required runtime failed: the Manager already shut down whatever
 		// started. The call site treats *RequiredStartError as fatal.

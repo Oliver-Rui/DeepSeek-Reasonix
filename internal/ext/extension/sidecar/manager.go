@@ -55,6 +55,12 @@ func (e *RequiredStartError) Unwrap() error { return e.Err }
 // native runtime. This is the only enumeration the Manager ever launches from —
 // see the package doc for the authorization invariant.
 func LoadRuntimePackages(home string) ([]pluginpkg.InstalledPackage, []string) {
+	return LoadRuntimePackagesFor(home, "")
+}
+
+// LoadRuntimePackagesFor is LoadRuntimePackages for the session of workspace, which
+// a package source uses to refuse a runtime that lives inside the project.
+func LoadRuntimePackagesFor(home, workspace string) ([]pluginpkg.InstalledPackage, []string) {
 	installed, warnings := pluginpkg.LoadInstalled(home)
 	var out []pluginpkg.InstalledPackage
 	for _, item := range installed {
@@ -63,7 +69,7 @@ func LoadRuntimePackages(home string) ([]pluginpkg.InstalledPackage, []string) {
 		}
 	}
 	if src := extraPackages.Load(); src != nil {
-		extra, more := (*src)(home, installed)
+		extra, more := (*src)(home, workspace, installed)
 		out = append(out, extra...)
 		warnings = append(warnings, more...)
 	}
@@ -73,7 +79,7 @@ func LoadRuntimePackages(home string) ([]pluginpkg.InstalledPackage, []string) {
 // PackageSource contributes runtime packages the host itself derives from the
 // installed ones (a Claude Code mod becomes a runtime that way). It sees only
 // the installed state, so it cannot launch anything the user did not install.
-type PackageSource func(home string, installed []pluginpkg.InstalledPackage) ([]pluginpkg.InstalledPackage, []string)
+type PackageSource func(home, workspace string, installed []pluginpkg.InstalledPackage) ([]pluginpkg.InstalledPackage, []string)
 
 var extraPackages atomic.Pointer[PackageSource]
 

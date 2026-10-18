@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reasonix/internal/ext/modhost"
+	"reasonix/internal/ext/modpreview"
 	"regexp"
 	"slices"
 	"sort"
@@ -333,7 +335,7 @@ func (t *Tool) pluginPackageAction(req request, pkg pluginpkg.Package, source st
 	}
 	skills, commands, hooks, mcp := pkg.CapabilityCounts()
 	agents := pkg.Inventory().Agents
-	if pkg.ManifestKind != "reasonix" && skills+commands+hooks+mcp+len(agents) == 0 {
+	if pkg.ManifestKind != "reasonix" && skills+commands+hooks+mcp+len(agents)+len(pkg.Manifest.Mods) == 0 {
 		return action{}, newErr(ErrNoCompatibleCapabilities, "plugin %q has no Reasonix-compatible capabilities; skipped: %v", name, pkg.Compatibility.Skipped)
 	}
 	agentNames := make([]string, 0, len(agents))
@@ -384,9 +386,28 @@ func (t *Tool) pluginPackageAction(req request, pkg pluginpkg.Package, source st
 		a.RiskLevel = RiskHigh
 		a.RiskReasons = append(a.RiskReasons, "FULL TRUST: declares a runtime process that runs inside Reasonix — it can read the full session and environment, bypass permissions, and operate this machine directly. Command: "+hostLiteral(pluginpkg.RuntimeCommandLine(pkg.Manifest.Runtime)))
 	}
+	if len(pkg.Manifest.Mods) > 0 {
+		a.RiskLevel = RiskHigh
+		a.RiskReasons = append(a.RiskReasons, "FULL TRUST: a Claude Code mod — its hooks module runs on this machine as you, with no sandbox, when \"Run Claude Code mods\" is on; the listing below is read from the module's syntax tree and is not a guarantee of what it does")
+		a.Mod = modPreview(pkg)
+	}
 	slices.Sort(a.Skills)
 	slices.Sort(a.Agents)
 	return a, nil
+}
+
+// modPreview lists the mod's hooks module for the plan, or says why it could not.
+func modPreview(pkg pluginpkg.Package) *modpreview.Preview {
+	mods, _ := modhost.Discover([]pluginpkg.InstalledPackage{{Installed: pluginpkg.InstalledPlugin{Name: pkg.Manifest.Name}, Package: pkg}})
+	if len(mods) != 1 {
+		p := modpreview.Preview{Plugin: pkg.Manifest.Name, Reason: modpreview.ReasonUnsupported, Events: []modpreview.Event{}, API: []modpreview.Call{}, Imports: []modpreview.Import{}, Findings: []modpreview.Finding{}, Unserved: []string{}}
+		return &p
+	}
+	p, err := modhost.Preview(mods[0])
+	if err != nil {
+		p = modpreview.Preview{Plugin: pkg.Manifest.Name, Module: mods[0].Rel, Reason: modpreview.ReasonUnparseable, Events: []modpreview.Event{}, API: []modpreview.Call{}, Imports: []modpreview.Import{}, Findings: []modpreview.Finding{}, Unserved: []string{}}
+	}
+	return &p
 }
 
 // runtimePlanInfo converts a manifest runtime declaration into its plan
@@ -469,7 +490,7 @@ func (t *Tool) applyInstallPluginPackage(ctx context.Context, req request, act *
 	}
 	if pkg.ManifestKind != "reasonix" {
 		skills, commands, hooks, mcp := pkg.CapabilityCounts()
-		if skills+commands+hooks+mcp+pkg.AgentCount() == 0 {
+		if skills+commands+hooks+mcp+pkg.AgentCount()+len(pkg.Manifest.Mods) == 0 {
 			return newErr(ErrInvalidManifest, "plugin %q no longer has any Reasonix-compatible capabilities", act.Name)
 		}
 	}

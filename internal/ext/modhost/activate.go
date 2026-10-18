@@ -86,7 +86,7 @@ func Packages(ctx context.Context, d Deps, installed []pluginpkg.InstalledPackag
 			reg.Set(Status{Plugin: m.Plugin, State: StateInactive, Code: CodeUnsupportedType, Detail: "JSX and TSX modules need a transform this host does not run"})
 			continue
 		}
-		reg.Set(Status{Plugin: m.Plugin, State: StateStarting, Runtime: &rt})
+		reg.Starting(m.Plugin, rt)
 		out = append(out, Synthesize(d, m, rt, script))
 	}
 	return out, warnings

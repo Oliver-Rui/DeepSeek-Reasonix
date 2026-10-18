@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -44,8 +45,42 @@ type Resolver struct {
 	Probe    func(ctx context.Context, path string, env []string) (string, error)
 }
 
+type cachedRuntime struct {
+	at  time.Time
+	rt  Runtime
+	err error
+}
+
+var (
+	runtimeMu    sync.Mutex
+	runtimeCache = map[string]cachedRuntime{}
+)
+
+// runtimeTTL is how long a resolved runtime is trusted without asking the
+// binary for its version again: a build loads packages several times.
+const runtimeTTL = time.Minute
+
 // Resolve returns the runtime to use, preferring the embedder's own Electron.
+// A resolver with no test seams remembers its answer for a minute.
 func (r Resolver) Resolve(ctx context.Context) (Runtime, error) {
+	if r.LookPath != nil || r.Probe != nil {
+		return r.resolve(ctx)
+	}
+	key := r.Electron + "\x00" + r.Workspace
+	runtimeMu.Lock()
+	if c, ok := runtimeCache[key]; ok && time.Since(c.at) < runtimeTTL {
+		runtimeMu.Unlock()
+		return c.rt, c.err
+	}
+	runtimeMu.Unlock()
+	rt, err := r.resolve(ctx)
+	runtimeMu.Lock()
+	runtimeCache[key] = cachedRuntime{at: time.Now(), rt: rt, err: err}
+	runtimeMu.Unlock()
+	return rt, err
+}
+
+func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 	probe := r.Probe
 	if probe == nil {
 		probe = probeVersion

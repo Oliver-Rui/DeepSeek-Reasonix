@@ -150,8 +150,12 @@ type Manifest struct {
 	// Commands are directories of flat <name>.md slash-command prompt templates
 	// (rendered with $ARGUMENTS/$1..$N on /<name>). Declared explicitly in a
 	// manifest or adopted from a Claude plugin's conventional commands/ dir.
-	Commands   []string
-	Hooks      map[string][]Hook
+	Commands []string
+	Hooks    map[string][]Hook
+	// Mods are the hooks modules a Claude Code package declares in
+	// hooks/hooks.json (paths relative to that file). They run only while the
+	// user's mods switch is on.
+	Mods       []string
 	MCPServers map[string]MCPServer
 	// Prompts are directories of flat <name>.md prompt templates, invoked the
 	// same way as commands: /<plugin>:<name>. A path listed under both is read

@@ -68,6 +68,18 @@ func (r *Registry) Set(s Status) {
 	r.status[s.Plugin] = &s
 }
 
+// Starting records that a mod is about to start, without taking a running mod
+// back to starting: a build loads its packages more than once.
+func (r *Registry) Starting(plugin string, rt Runtime) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if cur := r.status[plugin]; cur != nil && (cur.State == StateRunning || cur.State == StateRestarting) {
+		cur.Runtime = &rt
+		return
+	}
+	r.status[plugin] = &Status{Plugin: plugin, State: StateStarting, Runtime: &rt, Restarts: r.crashes[plugin]}
+}
+
 // Crashed counts one death of a mod's process and reports whether the mod has
 // now used up its crashes.
 func (r *Registry) Crashed(plugin string) (exhausted bool) {
