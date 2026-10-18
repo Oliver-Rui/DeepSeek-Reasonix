@@ -55,7 +55,7 @@ async function addPhone(s: Awaited<ReturnType<typeof setup>>, hostId: string, la
   const authSecret = new Uint8Array(16).fill(label.length);
   const endpoint = `https://fcm.googleapis.com/fcm/send/${label}`;
   const nonce = (await s.world.call("POST", "/me/remote-controllers/challenge", { cookie: s.owner.cookie, body: { host: hostId, purpose: "push" } })).body.nonce;
-  const message = await pushProofMessage({ nonce, userId: s.owner.id, hostDeviceId: hostId, controllerId, endpoint });
+  const message = await pushProofMessage({ nonce, userId: s.owner.id, hostDeviceId: hostId, controllerId, endpoint, p256dh: base64url(browser.publicKey), auth: base64url(authSecret) });
   const response = await s.world.call("PUT", `/me/remote-push/${controllerId}`, {
     cookie: s.owner.cookie,
     body: { host: hostId, nonce, signature: await phone.sign(message), subscription: { endpoint, keys: { p256dh: base64url(browser.publicKey), auth: base64url(authSecret) } }, categories },
