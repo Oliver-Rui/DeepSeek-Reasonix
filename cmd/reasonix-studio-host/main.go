@@ -142,7 +142,7 @@ func main() {
 		os.Exit(stripPackageGrants(os.Stdout, os.Stderr, *studioApp))
 	}
 	// Studio's own binary runs a Claude Code mod's module as Node.
-	modhost.SetEmbedder(*studioApp)
+	modhost.SetEmbedder(*studioApp, os.Environ())
 	// Which launches are the same Studio is Reasonix's question, not a shell's:
 	// the answer is the canonicalized data home, and a shell asks for it rather
 	// than working it out from an environment it does not resolve.

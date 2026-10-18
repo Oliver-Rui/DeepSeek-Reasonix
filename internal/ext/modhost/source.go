@@ -9,16 +9,29 @@ import (
 	"reasonix/internal/ext/pluginpkg"
 )
 
-var embedder atomic.Pointer[string]
+var (
+	embedder   atomic.Pointer[string]
+	processEnv atomic.Pointer[[]string]
+)
 
-// SetEmbedder names the application binary this host runs inside; Studio's own
-// Electron runs mods as Node, so nothing extra is installed.
-func SetEmbedder(path string) {
+// SetEmbedder names the application binary this host runs inside, and the
+// environment the host read at start. Studio's own Electron runs mods as Node, so
+// nothing extra is installed. A host that has no embedder passes "" and its
+// environment is inherited.
+func SetEmbedder(path string, environ []string) {
+	processEnv.Store(&environ)
 	if path == "" {
 		embedder.Store(nil)
 		return
 	}
 	embedder.Store(&path)
+}
+
+func hostEnviron() []string {
+	if e := processEnv.Load(); e != nil {
+		return *e
+	}
+	return nil
 }
 
 func embedderPath() string {
@@ -34,7 +47,7 @@ func Source(settings func() Settings) sidecar.PackageSource {
 	return func(home, workspace string, installed []pluginpkg.InstalledPackage) ([]pluginpkg.InstalledPackage, []string) {
 		d := Deps{
 			Settings:  settings(),
-			Resolver:  Resolver{Electron: embedderPath(), Workspace: workspace},
+			Resolver:  Resolver{Electron: embedderPath(), Workspace: workspace, Env: hostEnviron()},
 			StateRoot: filepath.Join(home, "mods"),
 			Registry:  Default,
 		}

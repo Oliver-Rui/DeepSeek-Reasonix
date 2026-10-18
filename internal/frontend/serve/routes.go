@@ -86,6 +86,7 @@ func (s *Server) routes() http.Handler {
 	s.registerShellRoutes(mux)
 	s.registerBoundaryRoutes(mux)
 	s.registerPeerRoutes(mux)
+	s.registerModRoutes(mux)
 	mux.HandleFunc("GET /hooks", s.hooks)
 	mux.HandleFunc("POST /hooks", s.saveHooks)
 	mux.HandleFunc("POST /hooks/dry-run", s.dryRunHook)

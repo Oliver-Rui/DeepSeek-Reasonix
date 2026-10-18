@@ -401,6 +401,14 @@ type PeerMail interface {
 	SavePeersSettings(patch PeersPatch) (PeersSettings, error)
 }
 
+// Mods is Claude Code mods: which are installed and what became of each, and the
+// user's switch and budget for running them.
+type Mods interface {
+	Mods() []ModStatus
+	ModsSettings() ModsSettings
+	SaveModsSettings(patch ModsPatch) (ModsSettings, error)
+}
+
 // DiffRendering reports the session's diff-rendering choices, resolved once at
 // build. A frontend rebuilding a transcript (e.g. the HTTP server answering
 // /history) reads them here instead of reloading config per request.
@@ -519,6 +527,7 @@ type SessionAPI interface {
 	BackgroundJobs
 	ToolCallStopper
 	PeerMail
+	Mods
 	MCPSignIn
 	LocalShell
 	DiffRendering
@@ -557,6 +566,7 @@ var (
 	_ BackgroundJobs     = (*Controller)(nil)
 	_ ToolCallStopper    = (*Controller)(nil)
 	_ PeerMail           = (*Controller)(nil)
+	_ Mods               = (*Controller)(nil)
 	_ MCPSignIn          = (*Controller)(nil)
 	_ SessionHistory     = (*Controller)(nil)
 	_ MemoryControl      = (*Controller)(nil)
