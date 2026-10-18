@@ -1,0 +1,53 @@
+---
+import Community from "../../layouts/Community.astro";
+---
+<Community title="Contributors · Reasonix Community" description="The people whose suggestions shipped in Reasonix, by release." active="board">
+  <div class="wrap board">
+    <header class="board-head">
+      <h1><span class="l-en">Contributors</span><span class="l-zh">贡献榜</span></h1>
+      <p class="board-lead">
+        <span class="l-en">People whose feedback was adopted and shipped in a release. A release has a ranking; all releases together are listed by name, not ranked. Only people who chose to appear are here.</span>
+        <span class="l-zh">反馈被采纳并发布的人。每个版本有名次；全部版本只按名字排序，不比高低。只有自己选择加入的人才会出现。</span>
+      </p>
+      <label class="board-pick">
+        <span class="l-en">Release</span><span class="l-zh">版本</span>
+        <select id="board-release"><option value="" data-l-en="All releases" data-l-zh="全部版本">All releases</option></select>
+      </label>
+    </header>
+    <ol id="board-list" class="board-list" aria-live="polite"></ol>
+    <p id="board-empty" class="board-note" hidden>
+      <span class="l-en">Nobody is listed for this release yet.</span><span class="l-zh">这个版本还没有人上榜。</span>
+    </p>
+    <p id="board-off" class="board-note" hidden>
+      <span class="l-en">The contributor board is not open yet.</span><span class="l-zh">贡献榜还没有开放。</span>
+    </p>
+    <p id="board-error" class="board-note" hidden>
+      <span class="l-en">The board could not be loaded. Try again in a moment.</span><span class="l-zh">榜单暂时读不出来，稍后再试。</span>
+    </p>
+    <p class="board-note">
+      <span class="l-en">A ranking depends on what the maintainers chose to ship: a good report that was declined earns nothing. To appear, link your install to your account and turn the board on in Studio's feedback panel; you can leave at any time.</span>
+      <span class="l-zh">名次取决于维护者选择发布的内容：被婉拒的好反馈不计入。想上榜，在 Studio 的反馈面板里把这台电脑关联到账号并打开贡献榜；随时可以退出。</span>
+    </p>
+  </div>
+  <script>import "../../scripts/board.js";</script>
+</Community>
+
+<style is:global>
+  .board { max-width: 760px; margin: 0 auto; padding: 32px 16px 56px; }
+  .board-head { display: grid; gap: 10px; margin-bottom: 18px; }
+  .board-head h1 { margin: 0; font-size: 28px; letter-spacing: -0.01em; }
+  .board-lead { margin: 0; color: var(--ink-3); line-height: 1.6; }
+  .board-pick { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 14px; }
+  .board-pick select { min-width: 160px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: inherit; font: inherit; }
+  .board-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .board-list li { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--line); }
+  .board-list li:first-child { border-top: 0; }
+  .board-rank { flex: none; width: 28px; text-align: right; font: 600 14px ui-monospace, "JetBrains Mono Variable", monospace; color: var(--ink-3); }
+  .board-list[data-ranked] li:nth-child(-n+3) .board-rank { color: var(--accent); }
+  .board-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .board-credits { flex: none; color: var(--ink-3); font-size: 14px; }
+  .board-where { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .board-chip { padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; white-space: nowrap; }
+  .board-note { margin: 14px 2px 0; color: var(--ink-3); font-size: 14px; line-height: 1.6; }
+  @media (max-width: 560px) { .board-where { display: none; } .board-list li { padding: 10px 12px; } }
+</style>
