@@ -364,6 +364,8 @@ export const EN_KERNEL: Record<string, string> = {
   "会话间消息没能完成：{detail}": "The message between sessions did not go through: {detail}",
   "放行的项目必须是一个绝对路径的文件夹": "A released project must be a folder given as an absolute path",
   "只有批准才能记住，拒绝只对这一条生效": "Only an approval can be remembered; a denial applies to this message alone",
+  "单个钩子的运行时限是 0 到 55000 毫秒，0 表示默认的 10 秒": "A hook's running time is 0 to 55000 milliseconds; 0 keeps the default 10 seconds",
+  "这个客户端不能修改 mod 设置": "This client cannot change the mod settings",
   "会话间消息的设置没能保存：{detail}": "The messaging settings could not be saved: {detail}",
   "地址换了域名，已保存的密钥不会发过去；请填入这个地址对应的密钥": "The address moved to another origin, so the saved key is not sent there; enter the key for this address",
   "请先写下要问的内容": "Write the question first",
