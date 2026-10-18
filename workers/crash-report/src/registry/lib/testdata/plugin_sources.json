@@ -1,0 +1,31 @@
+{
+  "accept": [
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/plugins/demo",
+    "git:github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "git:github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/plugins/demo/"
+  ],
+  "reject": [
+    "https://github.com/o/r/tree/34ba5aaad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://github.com/o/r/tree/34ba5aa",
+    "https://github.com/o/r/tree/34BA5AAD19F0CB228965C01056B0A86C8EF5DD02",
+    "https://github.com/o/r/tree/34ga5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://github.com/o/r/tree/main",
+    "https://github.com/o/r/tree/v2.1.11",
+    "https://github.com/o/r",
+    "git:github.com/o/r/tree/main/plugins/demo",
+    "http://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://example.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://user@github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://github.com:443/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02?tab=readme",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02#readme",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/../outside",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/%2e%2e/outside",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/%2Ftmp",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/%5Ctmp",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02//demo",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/demo%20plugin",
+    "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/demo%00plugin"
+  ]
+}

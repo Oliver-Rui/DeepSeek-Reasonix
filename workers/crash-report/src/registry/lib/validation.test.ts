@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import pluginSources from "./testdata/plugin_sources.json";
 import { ListQuerySchema, PublishSchema } from "./validation";
 
 const base = { kind: "skill", name: "demo", source: "https://example.com/SKILL.md" };
@@ -48,24 +49,25 @@ describe("PublishSchema source", () => {
     }
   });
 
-  it("accepts plugin repositories and the explicit plugin install kind", () => {
-    for (const source of [
-      "https://github.com/o/r",
-      "https://github.com/o/r/",
-      "https://github.com/o/r/tree/main/plugins/demo",
-      "git:github.com/o/r",
-      "git:github.com/o/r/tree/main/plugins/demo",
-    ]) {
-      const result = parse({ kind: "plugin", installKind: "plugin", source });
+  it.each(["plugin", "theme"])("requires a commit-pinned source for %s", (kind) => {
+    for (const source of pluginSources.accept) {
+      const result = parse({ kind, installKind: "plugin", source });
       expect(result.success, source).toBe(true);
       if (result.success) expect(result.data.installKind).toBe("plugin");
+    }
+    for (const source of pluginSources.reject) {
+      const result = parse({ kind, source });
+      expect(result.success, source).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.find((issue) => issue.path[0] === "source")?.message).toContain("40");
+      }
     }
   });
 
   it("pins omitted and auto installers to every submission's declared kind", () => {
     for (const [kind, source] of [
       ["skill", "https://github.com/o/r/tree/main/skills/demo"],
-      ["plugin", "https://github.com/o/r"],
+      ["plugin", "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02"],
       ["mcp", "https://github.com/o/r"],
     ] as const) {
       for (const installKind of [undefined, "auto"] as const) {
@@ -152,7 +154,7 @@ describe("PublishSchema source", () => {
 describe("PublishSchema theme", () => {
   it("accepts a GitHub plugin package and stores the plugin installer", () => {
     for (const installKind of [undefined, "auto", "plugin"] as const) {
-      const result = parse({ kind: "theme", source: "https://github.com/o/themes/tree/main/dusk", ...(installKind ? { installKind } : {}) });
+      const result = parse({ kind: "theme", source: "https://github.com/o/themes/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02/dusk", ...(installKind ? { installKind } : {}) });
       expect(result.success, installKind ?? "omitted").toBe(true);
       if (result.success) {
         expect(result.data.kind).toBe("theme");
