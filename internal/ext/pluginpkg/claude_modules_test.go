@@ -2,6 +2,7 @@ package pluginpkg
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -57,8 +58,11 @@ func TestParseClaudeModulesKeepsClassicHooks(t *testing.T) {
 	if len(pkg.Manifest.Hooks["PostToolUse"]) != 1 {
 		t.Fatalf("classic hook not mapped: %#v", pkg.Manifest.Hooks)
 	}
-	if pkg.Compatibility.Status != "partial" || len(modulesIssues(pkg)) != 1 {
-		t.Fatalf("status = %q issues = %+v, want partial with one modules issue", pkg.Compatibility.Status, pkg.Compatibility.Skipped)
+	if pkg.Compatibility.Status != "full" || len(modulesIssues(pkg)) != 0 || !slices.Contains(pkg.Compatibility.Mapped, "mods") {
+		t.Fatalf("status = %q mapped = %v issues = %+v, want full with mods mapped", pkg.Compatibility.Status, pkg.Compatibility.Mapped, pkg.Compatibility.Skipped)
+	}
+	if len(pkg.Manifest.Mods) != 1 || pkg.Manifest.Mods[0] != "./register.ts" {
+		t.Fatalf("mods = %v", pkg.Manifest.Mods)
 	}
 }
 

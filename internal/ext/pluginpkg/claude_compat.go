@@ -157,7 +157,9 @@ func appendClaudeHooksFile(root, rel string, manifest *Manifest) ([]string, []Co
 	}
 	var warnings []string
 	var issues []CompatibilityIssue
-	if reason, declared := claudeModulesGap(raw.Modules); declared {
+	if mods, ok := claudeModulesList(raw.Modules); ok {
+		manifest.Mods = append(manifest.Mods, mods...)
+	} else if reason, declared := claudeModulesGap(raw.Modules); declared {
 		warnings = append(warnings, rel+": "+reason)
 		issues = append(issues, CompatibilityIssue{Capability: "modules", Path: rel, Reason: reason})
 	}
@@ -281,21 +283,30 @@ func appendClaudeHookMap(rel string, raw claudeHookDocument, manifest *Manifest)
 	return uniqueSorted(warnings), issues
 }
 
-// claudeModulesGap reports a declared Claude Code "modules" list. Reasonix has
-// no JS/TS module host, so a declared module never runs; the reason carries no
-// package-controlled text.
+// claudeModulesList reads a well-formed modules list: exactly one non-empty path.
+// That is a mod, which runs when the user turns mods on.
+func claudeModulesList(raw json.RawMessage) ([]string, bool) {
+	var list []string
+	if err := json.Unmarshal(raw, &list); err != nil || len(list) != 1 || strings.TrimSpace(list[0]) == "" {
+		return nil, false
+	}
+	return list, true
+}
+
+// claudeModulesGap reports a declared Claude Code "modules" entry the host cannot
+// read: not a list of exactly one path. The reason carries no package-controlled text.
 func claudeModulesGap(raw json.RawMessage) (string, bool) {
 	var list []json.RawMessage
 	if err := json.Unmarshal(raw, &list); err == nil {
 		if len(list) == 0 {
 			return "", false
 		}
-		return fmt.Sprintf("the package declares %d Claude Code module(s) that Reasonix cannot load, so they will never run", len(list)), true
+		return fmt.Sprintf("the package declares %d Claude Code module(s) in a form Reasonix cannot read (a mod names exactly one module), so they will never run", len(list)), true
 	}
 	if len(raw) == 0 || string(raw) == "null" {
 		return "", false
 	}
-	return "the package declares a Claude Code \"modules\" entry that is not a list; Reasonix cannot load modules, so they will never run", true
+	return "the package declares a Claude Code \"modules\" entry that is not a list; a mod names exactly one module, so it will never run", true
 }
 
 func appendUniqueHook(hooks []Hook, candidate Hook) []Hook {
@@ -497,6 +508,9 @@ func compatibilityFor(pkg Package, issues []CompatibilityIssue) Compatibility {
 	}
 	if mcp > 0 {
 		mapped = append(mapped, "mcp")
+	}
+	if len(pkg.Manifest.Mods) > 0 {
+		mapped = append(mapped, "mods")
 	}
 	status := "full"
 	if len(mapped) == 0 && pkg.ManifestKind != "reasonix" {

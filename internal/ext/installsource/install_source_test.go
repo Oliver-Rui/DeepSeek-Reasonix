@@ -2709,20 +2709,27 @@ func TestPlanMCPJSONAlwaysLoadCarriesToTheEntry(t *testing.T) {
 	}
 }
 
-func TestPlanClaudeModsPackageIsPartial(t *testing.T) {
+func TestPlanClaudeModsPackageCarriesTheModAndItsFullTrustWarning(t *testing.T) {
 	project := testenv.TempDir(t)
 	home := testenv.TempDir(t)
 	src := filepath.Join(testenv.TempDir(t), "mod-pack")
 	writeFile(t, filepath.Join(src, ".claude-plugin", "plugin.json"), `{"name":"mod-pack"}`)
 	writeFile(t, filepath.Join(src, "skills", "greet", "SKILL.md"), "---\nname: greet\ndescription: Greets\n---\nSay hi.")
-	writeFile(t, filepath.Join(src, "hooks", "hooks.json"), `{"modules":["./register.ts"]}`)
+	writeFile(t, filepath.Join(src, "hooks", "hooks.json"), `{"modules":["./register.mjs"]}`)
+	writeFile(t, filepath.Join(src, "hooks", "register.mjs"), "export function register(on) { on('tool.call', async ($, e, next) => next(e)); $.unused; }")
 
 	planned := execInstall(t, NewTool(Options{ProjectRoot: project, HomeDir: home}), map[string]any{"source": src, "kind": "plugin"})
 	if len(planned.Actions) != 1 {
 		t.Fatalf("actions = %+v", planned.Actions)
 	}
 	a := planned.Actions[0]
-	if a.Compatibility != "partial" || len(a.SkippedCapabilities) != 1 || a.SkippedCapabilities[0].Capability != "modules" {
-		t.Fatalf("action = %+v, want partial with a skipped modules capability", a)
+	if a.Compatibility != "full" || !slices.Contains(a.MappedCapabilities, "mods") || a.RiskLevel != RiskHigh {
+		t.Fatalf("action = %+v, want a full, high-risk plan that maps mods", a)
+	}
+	if a.Mod == nil || !a.Mod.Listed || len(a.Mod.Events) != 1 || a.Mod.Events[0].Name != "tool.call" {
+		t.Fatalf("mod preview = %+v", a.Mod)
+	}
+	if !strings.Contains(strings.Join(a.RiskReasons, "\n"), "FULL TRUST: a Claude Code mod") {
+		t.Fatalf("risk reasons = %v", a.RiskReasons)
 	}
 }
