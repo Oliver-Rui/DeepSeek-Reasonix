@@ -446,6 +446,10 @@ func (c *Client) PluginID() string { return c.pluginID }
 // required:true — the dispatcher treats such extensions as required-class.
 func (c *Client) Required() bool { return c.rt.Required }
 
+// TightenOnly reports whether the runtime's permission rulings may only make a
+// decision stricter.
+func (c *Client) TightenOnly() bool { return c.rt.TightenOnly }
+
 // Handshake returns the sidecar's validated initialize result — its declared
 // subscriptions, replacements, providers, and UI actions.
 func (c *Client) Handshake() protocol.InitializeResult {

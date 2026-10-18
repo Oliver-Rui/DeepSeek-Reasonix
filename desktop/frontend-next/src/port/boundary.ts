@@ -279,3 +279,35 @@ export interface ProgressWatchSettings {
   defaultTokenMultiple: number;
   path: string;
 }
+
+/** Where a Claude Code mod's hooks module stands in this session. */
+export type ModState = "inactive" | "starting" | "running" | "restarting" | "disabled";
+
+export interface ModRuntime {
+  // "electron" for Studio's own binary in Node mode, "node" for one found on PATH.
+  kind: string;
+  path: string;
+  version: string;
+}
+
+export interface ModHookStats {
+  calls: number;
+  timeouts: number;
+  threw: number;
+}
+
+/** One installed mod. `code` is the typed cause when it is not running
+ *  (mod.switch_off, mod.runtime_missing, mod.crashed, ...); a frontend maps it
+ *  to its own words and never reads `detail` to decide anything. */
+export interface ModStatus {
+  plugin: string;
+  state: ModState;
+  code?: string;
+  detail?: string;
+  restarts: number;
+  runtime?: ModRuntime;
+  // Literal event names the module registered; `unserved` are the ones this host never raises.
+  events?: string[];
+  unserved?: string[];
+  hooks: ModHookStats;
+}

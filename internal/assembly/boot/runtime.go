@@ -309,7 +309,7 @@ func assembleLegacySnapshot(ctx context.Context, in legacyAssembly, generation u
 		}
 		required := requiredRuntimeSet(managed)
 		clients := sidecarClientResolver(managed)
-		dispatchOpts := dispatch.Options{Warn: ext.warn, SidecarDown: ext.onSidecarDown}
+		dispatchOpts := dispatch.Options{Warn: ext.warn, SidecarDown: ext.onSidecarDown, TightenOnly: tightenOnlyRuntimeSet(managed)}
 		// system_prompt.build strategy: the slot's owner rules on the
 		// composed prompt before the snapshot freezes. Skipped on no-op plans
 		// so CacheHash stays stable across rebuilds.
@@ -376,6 +376,16 @@ func resolveReplacementClaims(groups ...[]extension.Contribution) (map[extension
 
 // requiredRuntimeSet marks every started sidecar whose manifest declared the
 // runtime required:true, the dispatcher's required-class input.
+func tightenOnlyRuntimeSet(mgr *sidecar.Manager) map[string]bool {
+	out := map[string]bool{}
+	for _, client := range mgr.Clients() {
+		if client.TightenOnly() {
+			out[client.PluginID()] = true
+		}
+	}
+	return out
+}
+
 func requiredRuntimeSet(mgr *sidecar.Manager) map[string]bool {
 	clients := mgr.Clients()
 	out := make(map[string]bool, len(clients))

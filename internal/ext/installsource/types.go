@@ -2,6 +2,7 @@ package installsource
 
 import (
 	"encoding/json"
+	"reasonix/internal/ext/modpreview"
 
 	"reasonix/internal/base/secrets"
 	"reasonix/internal/contract/config"
@@ -125,11 +126,14 @@ type action struct {
 	// Runtime carries a plugin package's declared runtime process so
 	// frontends can render the full-trust implications before approval.
 	// Purely additive: older consumers ignore it.
-	Runtime   *RuntimePlanInfo `json:"runtime,omitempty"`
-	Warnings  []string         `json:"warnings,omitempty"`
-	Error     string           `json:"error,omitempty"`
-	ErrorCode string           `json:"errorCode,omitempty"`
-	Next      string           `json:"next,omitempty"`
+	Runtime *RuntimePlanInfo `json:"runtime,omitempty"`
+	// Mod describes the hooks module of a Claude Code mod from its syntax tree.
+	// It is a listing, not a guarantee, and the frontend says so.
+	Mod       *modpreview.Preview `json:"mod,omitempty"`
+	Warnings  []string            `json:"warnings,omitempty"`
+	Error     string              `json:"error,omitempty"`
+	ErrorCode string              `json:"errorCode,omitempty"`
+	Next      string              `json:"next,omitempty"`
 	// PreviewTruncated is set when the projection cut any field or list above.
 	PreviewTruncated bool `json:"previewTruncated,omitempty"`
 

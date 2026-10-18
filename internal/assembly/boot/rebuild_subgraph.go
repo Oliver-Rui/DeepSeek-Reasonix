@@ -234,6 +234,7 @@ func stageDispatcher(res *BuildResult) error {
 	if res.Dispatcher != nil {
 		opts = res.Dispatcher.Options()
 	}
+	opts.TightenOnly = tightenOnlyRuntimeSet(res.Extensions)
 	res.Dispatcher = dispatch.New(res.Snapshot.InterceptorChain(), res.Snapshot.Replacements(), clients, required, opts)
 	return nil
 }
