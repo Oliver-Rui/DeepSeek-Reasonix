@@ -120,7 +120,7 @@ export function buildBoard(rows: Credit[], release: string | null): Entry[] {
   return list.map((p) => p.entry).slice(0, MAX_ENTRIES);
 }
 
-async function readBoard(request: Request, env: Env, url: URL): Promise<Response> {
+async function boardBody(request: Request, env: Env, url: URL): Promise<Response> {
   const now = new Date();
   const limited = await throttle(request, env, "", now);
   if (limited) return limited;
@@ -131,6 +131,16 @@ async function readBoard(request: Request, env: Env, url: URL): Promise<Response
   const seconds = boardCacheSeconds(env);
   const cache = seconds === 0 ? "no-store" : `public, max-age=${seconds}, s-maxage=${seconds}`;
   return jsonResponse({ view: release === null ? "all" : "release", release, entries }, 200, { "cache-control": cache });
+}
+
+// The public read is the one answer a page on another origin may read: a plain GET
+// with no credentials. Nothing else in this module, nor any other route, carries
+// the header.
+async function readBoard(request: Request, env: Env, url: URL): Promise<Response> {
+  const res = await boardBody(request, env, url);
+  const headers = new Headers(res.headers);
+  headers.set("access-control-allow-origin", "*");
+  return new Response(res.body, { status: res.status, headers });
 }
 
 async function callerAccount(request: Request, env: Env, writes: boolean): Promise<{ accountHash: string; now: Date } | Response> {

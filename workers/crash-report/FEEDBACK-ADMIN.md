@@ -217,6 +217,7 @@ Off by default (`FEEDBACK_BOARD = "false"`) and absent unless account linking is
 - Responses are cacheable for `FEEDBACK_BOARD_CACHE_SECONDS` (default 300, at most 900, 0 = `no-store`), so a person who
   leaves is gone from the next uncached read and from caches within that window. Unlinking the last install and
   account deletion remove the entry with the link.
+- `GET /v1/feedback/board` is the only route that answers `access-control-allow-origin: *` (no credentials, also on its refusals), so the site can read the public list; own state, opt-in, opt-out, the admin routes and every other route carry no CORS header.
 - Admin: `GET /v1/admin/feedback/board` lists names; `POST /v1/admin/feedback/board/delist {displayName}` removes an
   entry and stops that account listing again until `DELETE` on the same path restores it.
 - Typed audit events: `board.link_confirmed`, `board.unlinked`, `board.opted_in`, `board.opted_out`, `board.delisted`,

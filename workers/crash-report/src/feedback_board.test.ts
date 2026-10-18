@@ -330,6 +330,39 @@ describe("delisting", () => {
   });
 });
 
+describe("cross-origin reads", () => {
+  it("lets any origin read the public board, without credentials, and refusals of that read too", async () => {
+    const ok = await board();
+    expect(ok.headers.get("access-control-allow-origin")).toBe("*");
+    expect(ok.headers.get("access-control-allow-credentials")).toBeNull();
+    const bad = await board("?release=latest");
+    expect(bad.status).toBe(400);
+    expect(bad.headers.get("access-control-allow-origin")).toBe("*");
+    expect(bad.headers.get("access-control-allow-credentials")).toBeNull();
+  });
+
+  it("gives no other route the header: own state, opt-in, opt-out, the admin routes, the link routes", async () => {
+    await link(1, 42);
+    const answers: Response[] = [
+      await mine(42),
+      await optIn(42, "Ada"),
+      await optIn(42, "Reasonix"),
+      await optOut(42),
+      await send("GET", "/v1/admin/feedback/board", admin),
+      await send("POST", "/v1/admin/feedback/board/delist", admin, { displayName: "Nobody" }),
+      await send("DELETE", "/v1/admin/feedback/board/delist", admin, { displayName: "Nobody" }),
+      await send("GET", "/v1/admin/feedback/board", {}),
+      await send("GET", "/v1/feedback/link", { ...(await proof(1)), ...(await acct(42)) }),
+      await send("GET", "/v1/feedback/account/mine", await acct(42)),
+      await send("POST", "/v1/feedback/board", {}),
+    ];
+    for (const res of answers) {
+      expect(res.headers.get("access-control-allow-origin")).toBeNull();
+      expect(res.headers.get("access-control-allow-credentials")).toBeNull();
+    }
+  });
+});
+
 describe("migration", () => {
   it("is re-runnable and rolls back to nothing", () => {
     db.exec(boardMigrationSQL);
