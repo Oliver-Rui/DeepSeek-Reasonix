@@ -40,8 +40,13 @@ type safeBuf struct {
 	b  []byte
 }
 
-func (s *safeBuf) Write(p []byte) (int, error) { s.mu.Lock(); s.b = append(s.b, p...); s.mu.Unlock(); return len(p), nil }
-func (s *safeBuf) String() string               { s.mu.Lock(); defer s.mu.Unlock(); return string(s.b) }
+func (s *safeBuf) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	s.b = append(s.b, p...)
+	s.mu.Unlock()
+	return len(p), nil
+}
+func (s *safeBuf) String() string { s.mu.Lock(); defer s.mu.Unlock(); return string(s.b) }
 
 func startHost(t *testing.T, module string, cfg map[string]any) *fakeHost {
 	t.Helper()
