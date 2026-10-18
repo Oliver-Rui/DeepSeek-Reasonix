@@ -144,6 +144,7 @@ jobs:
           node perf/jump-ends.mjs
           node perf/modelrows.mjs
           node perf/explorersize.mjs
+          node perf/mod-ui.mjs
           node perf/codeeditor-size.mjs
           node perf/rowhit.mjs
           node perf/tab-pip.mjs
