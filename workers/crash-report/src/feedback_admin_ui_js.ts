@@ -6,7 +6,7 @@ export const APP_JS = String.raw`(function () {
   var BASE = "/v1/admin/feedback";
   var STATUS = {
     held: "待审", needs_info: "待补充", answered: "已回答", rejected: "已拒绝", received: "已放行",
-    recorded: "已转 issue", in_progress: "处理中", fixed: "已修复", wontfix: "不修", duplicate: "重复"
+    recorded: "已转 issue", in_progress: "处理中", fixed: "已修复", wontfix: "不修", duplicate: "重复", withdrawn: "已撤回"
   };
   var CATEGORY = { bug: "缺陷", idea: "建议", question: "提问", other: "其他" };
   var token = "";

@@ -28,7 +28,7 @@ function replyStatements(env: Env, receipt: string, body: string, status?: strin
 }
 
 // Objects are deleted before the row forgets them, so a failure leaves a retryable trace.
-async function dropAttachments(env: Env, row: FeedbackRow): Promise<void> {
+export async function dropAttachments(env: Env, row: FeedbackRow): Promise<void> {
   await withdrawAttachments(env, row.receipt, await allAttachmentsOf(env, row));
   await env.DB.batch([
     env.DB.prepare("UPDATE feedback SET attachments_json = '[]' WHERE receipt = ?").bind(row.receipt),
