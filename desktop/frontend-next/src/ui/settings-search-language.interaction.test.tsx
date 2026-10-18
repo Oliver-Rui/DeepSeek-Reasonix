@@ -71,7 +71,7 @@ it("finds extension blocks by the displayed section name without mounting them",
   const reads = [...calls];
   await userEvent.type(find(), "Extension");
   const hits = screen.getAllByRole<HTMLButtonElement>("option");
-  expect(hits.map((hit) => hit.dataset.target)).toEqual(SETTINGS.filter((entry) => entry.section === "ext").map((entry) => entry.anchor));
+  expect(hits.map((hit) => hit.dataset.target)).toEqual(SETTINGS.filter((entry) => entry.section === "ext" && !entry.hidden).map((entry) => entry.anchor));
   expect(hits.every((hit) => hit.querySelector(".where")?.textContent === "Extension")).toBe(true);
   expect(calls).toEqual(reads);
   expect(block("plugins")).toBeNull();
