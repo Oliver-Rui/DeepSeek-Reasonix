@@ -96,3 +96,5 @@ scripts/official-theme-art/__pycache__/
 *.exe
 *.exe~
 /relayfake
+
+/tools/acp-conformance/.scratch-*

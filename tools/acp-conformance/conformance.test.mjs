@@ -168,9 +168,9 @@ describe("additional workspace roots", () => {
   it("accepts a folder outside the built-in write roots and lists it with the session", async () => {
     const a = await agent();
     const { mkdtempSync, realpathSync, rmSync } = await import("node:fs");
-    const { homedir } = await import("node:os");
     const { join } = await import("node:path");
-    const extra = realpathSync(mkdtempSync(join(homedir(), ".acp-conformance-")));
+    // The system temp directory is itself a write root and would be refused as an overlap.
+    const extra = realpathSync(mkdtempSync(join(import.meta.dirname, ".scratch-")));
     try {
       const { sessionId } = await a.conn.newSession({ cwd: a.work, mcpServers: [], additionalDirectories: [extra] });
       const listed = await a.conn.listSessions({ cwd: a.work });
