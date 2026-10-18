@@ -2,6 +2,7 @@ package modhost
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -193,14 +194,7 @@ func TestToolsAndCommandsRegisteredAtSessionStartAreDescribedInTheHandshakeAndSe
 	}
 }
 
-func contains(list []string, want string) bool {
-	for _, s := range list {
-		if s == want {
-			return true
-		}
-	}
-	return false
-}
+func contains(list []string, want string) bool { return slices.Contains(list, want) }
 
 func TestTheBandIsPublishedAsAViewAndAButtonPressRedrawsIt(t *testing.T) {
 	mod := writeMod(t, "register.mjs", `

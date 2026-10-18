@@ -84,7 +84,7 @@ func confine(root, rel string) (string, error) {
 	abs := filepath.Join(root, filepath.FromSlash(rel))
 	realRoot, err := filepath.EvalSymlinks(root)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrBadModule, err)
+		return "", fmt.Errorf("%w: %w", ErrBadModule, err)
 	}
 	real, err := filepath.EvalSymlinks(abs)
 	if err != nil {

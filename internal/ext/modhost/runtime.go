@@ -91,7 +91,7 @@ func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 		env := map[string]string{"ELECTRON_RUN_AS_NODE": "1"}
 		version, err := probe(ctx, r.Electron, envList(r.Env, env))
 		if err != nil {
-			return Runtime{}, fmt.Errorf("%w: %v", ErrRuntimeMissing, err)
+			return Runtime{}, fmt.Errorf("%w: %w", ErrRuntimeMissing, err)
 		}
 		return checkVersion(Runtime{Kind: "electron", Path: r.Electron, Version: version, Env: env})
 	}
@@ -101,7 +101,7 @@ func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 	}
 	path, err := look("node")
 	if err != nil {
-		return Runtime{}, fmt.Errorf("%w: %v", ErrRuntimeMissing, err)
+		return Runtime{}, fmt.Errorf("%w: %w", ErrRuntimeMissing, err)
 	}
 	if !filepath.IsAbs(path) {
 		return Runtime{}, fmt.Errorf("%w: %q is not an absolute path", ErrRuntimeMissing, path)
@@ -111,7 +111,7 @@ func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 	}
 	version, err := probe(ctx, path, r.Env)
 	if err != nil {
-		return Runtime{}, fmt.Errorf("%w: %v", ErrRuntimeMissing, err)
+		return Runtime{}, fmt.Errorf("%w: %w", ErrRuntimeMissing, err)
 	}
 	return checkVersion(Runtime{Kind: "node", Path: path, Version: version})
 }

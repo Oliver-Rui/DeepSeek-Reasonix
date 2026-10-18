@@ -1,12 +1,12 @@
 package hook
 
+import "maps"
+
 // ClaudeToolNames is the table that gives a Reasonix tool the name Claude Code
 // knows it by, for a consumer that renders it outside this package.
 func ClaudeToolNames() map[string]string {
 	out := make(map[string]string, len(claudeToolNames))
-	for k, v := range claudeToolNames {
-		out[k] = v
-	}
+	maps.Copy(out, claudeToolNames)
 	return out
 }
 
@@ -15,11 +15,7 @@ func ClaudeToolNames() map[string]string {
 func ClaudeToolInputRenames() map[string]map[string]string {
 	out := make(map[string]map[string]string, len(claudeToolInputKeyRenames))
 	for tool, keys := range claudeToolInputKeyRenames {
-		cp := make(map[string]string, len(keys))
-		for k, v := range keys {
-			cp[k] = v
-		}
-		out[tool] = cp
+		out[tool] = maps.Clone(keys)
 	}
 	return out
 }

@@ -85,7 +85,7 @@ func (a *analysis) finding(kind string) {
 }
 
 func (a *analysis) run(ast *js.AST) {
-	for _, stmt := range ast.BlockStmt.List {
+	for _, stmt := range ast.List {
 		a.collectDecl(stmt)
 	}
 	js.Walk(&moduleScan{a: a}, ast)
@@ -122,7 +122,7 @@ func (a *analysis) collectDecl(stmt js.IStmt) {
 }
 
 func (a *analysis) findRegister(ast *js.AST) js.INode {
-	for _, stmt := range ast.BlockStmt.List {
+	for _, stmt := range ast.List {
 		ex, ok := stmt.(*js.ExportStmt)
 		if !ok {
 			continue
