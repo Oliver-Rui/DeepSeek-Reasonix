@@ -27,17 +27,22 @@ async function setup(options: { vapid?: boolean } = {}) {
 
 async function subscribe(
   s: Awaited<ReturnType<typeof setup>>,
-  options: { endpoint?: string; keys?: { p256dh: string; auth: string }; categories?: Record<string, boolean>; phone?: Phone; nonce?: string; signedEndpoint?: string; controllerId?: string; hostId?: string } = {},
+  options: { endpoint?: string; keys?: { p256dh: string; auth: string }; signedKeys?: { p256dh: string; auth: string }; categories?: Record<string, boolean>; phone?: Phone; nonce?: string; signedEndpoint?: string; controllerId?: string; hostId?: string } = {},
 ) {
   const endpoint = options.endpoint ?? ENDPOINT;
   const hostId = options.hostId ?? s.host.id;
   const nonce = options.nonce ?? (await s.world.call("POST", "/me/remote-controllers/challenge", { cookie: s.owner.cookie, body: { host: hostId, purpose: "push" } })).body.nonce;
-  const message = await pushProofMessage({ nonce, userId: s.owner.id, hostDeviceId: hostId, controllerId: options.controllerId ?? s.controllerId, endpoint: options.signedEndpoint ?? endpoint });
+  const keys = options.keys ?? browserKeys();
+  const signedKeys = options.signedKeys ?? keys;
+  const message = await pushProofMessage({
+    nonce, userId: s.owner.id, hostDeviceId: hostId, controllerId: options.controllerId ?? s.controllerId,
+    endpoint: options.signedEndpoint ?? endpoint, p256dh: signedKeys.p256dh, auth: signedKeys.auth,
+  });
   return s.world.call("PUT", `/me/remote-push/${options.controllerId ?? s.controllerId}`, {
     cookie: s.owner.cookie,
     body: {
       host: hostId, nonce, signature: await (options.phone ?? s.phone).sign(message),
-      subscription: { endpoint, keys: options.keys ?? browserKeys() },
+      subscription: { endpoint, keys },
       ...(options.categories ? { categories: options.categories } : {}),
     },
   });
@@ -105,6 +110,29 @@ describe("attaching a subscription to a controller", () => {
     expect((await subscribe(s, { signedEndpoint: "https://fcm.googleapis.com/fcm/send/other" })).body.error.code).toBe("invalid_proof");
     expect(s.world.rows("SELECT 1 FROM remote_push_subscriptions")).toHaveLength(0);
     expect((await subscribe(s)).status).toBe(200);
+  });
+
+  it("refuses a signature that is right for the endpoint when the keys sent are not the ones signed", async () => {
+    const s = await setup();
+    const signed = browserKeys();
+    const attacker = { p256dh: signed.p256dh, auth: base64url(new Uint8Array(16).fill(200)) };
+    const attackerPoint = new Uint8Array(65).fill(11);
+    attackerPoint[0] = 4;
+    for (const keys of [attacker, { p256dh: base64url(attackerPoint), auth: signed.auth }, { p256dh: base64url(attackerPoint), auth: attacker.auth }]) {
+      const response = await subscribe(s, { keys, signedKeys: signed });
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe("invalid_proof");
+    }
+    expect(s.world.rows("SELECT 1 FROM remote_push_subscriptions")).toHaveLength(0);
+    expect((await subscribe(s, { keys: signed })).status).toBe(200);
+  });
+
+  it("answers a stored key that cannot be read with a typed refusal, not an error page", async () => {
+    const s = await setup();
+    s.world.store.raw.prepare("UPDATE remote_controllers SET public_key = 'not json' WHERE id = ?1").run(s.controllerId);
+    const response = await subscribe(s);
+    expect(response.status).toBe(422);
+    expect(response.body.error.code).toBe("invalid_key");
   });
 
   it("burns the challenge on use and keeps an enrollment challenge from being spent here", async () => {
