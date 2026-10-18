@@ -55,6 +55,9 @@ MARKET_MIRROR_ORIGIN = "https://dl.reasonix.io"
 # read and replies from linked sibling installs; anything else leaves them absent.
 # Needs the FEEDBACK_ACCOUNT_SECRET secret, shared with the accounts worker.
 FEEDBACK_ACCOUNT_LINK = "false"
+# Contribution board; needs account linking. Public responses are cached for at most FEEDBACK_BOARD_CACHE_SECONDS.
+FEEDBACK_BOARD = "false"
+FEEDBACK_BOARD_CACHE_SECONDS = "300"
 TELEMETRY_QUEUE_ENABLED = "true"
 # CLI/Studio reads and writes use the isolated telemetry database. `dual` and
 # `legacy` remain available as rollback modes; the verified legacy copy is kept

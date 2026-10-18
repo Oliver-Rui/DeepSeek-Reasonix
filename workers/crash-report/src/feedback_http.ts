@@ -20,7 +20,12 @@ export type FeedbackCode =
   | "feedback.account_required"
   | "feedback.account_unavailable"
   | "feedback.link_conflict"
-  | "feedback.link_limit";
+  | "feedback.link_limit"
+  | "feedback.board_name_invalid"
+  | "feedback.board_name_reserved"
+  | "feedback.board_name_taken"
+  | "feedback.board_delisted"
+  | "feedback.board_no_link";
 
 const STATUS: Record<FeedbackCode, number> = {
   "feedback.too_large": 413,
@@ -45,6 +50,11 @@ const STATUS: Record<FeedbackCode, number> = {
   "feedback.account_unavailable": 503,
   "feedback.link_conflict": 409,
   "feedback.link_limit": 409,
+  "feedback.board_name_invalid": 400,
+  "feedback.board_name_reserved": 400,
+  "feedback.board_name_taken": 409,
+  "feedback.board_delisted": 403,
+  "feedback.board_no_link": 409,
 };
 
 export function jsonResponse(body: unknown, status = 200, headers: Record<string, string> = {}): Response {

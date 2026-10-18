@@ -201,3 +201,28 @@ address out of the whole admin API for the rest of the window, a correct token
 included. The lock lifts by itself after the 15-minute window; to clear it sooner, delete the `af:%` rows from `feedback_quota` (`wrangler d1 execute reasonix-crash --remote --command "DELETE FROM feedback_quota WHERE bucket LIKE 'af:%'"`). User text is only ever written with `textContent`, the page ships a
 strict CSP (`script-src 'self'`, no inline script or style), `noindex`, and
 `no-store`. The page and its assets contain no feedback data.
+
+## Contribution board
+
+Off by default (`FEEDBACK_BOARD = "false"`) and absent unless account linking is also on. Migration:
+`migrate-feedback-board.sql` (`feedback_board_optin`, `feedback_board_delisted`); `migrate-feedback-board.down.sql` drops both.
+
+- A signed-in account lists itself with `PUT /v1/feedback/board/optin {displayName}` and leaves with `DELETE`.
+  It needs a linked install. A name is 2 to 30 letters, digits, spaces, `_` or `-` (no `@`, no `.`), unique after case,
+  width and punctuation are folded, and not equal to, starting with or ending with a name in `RESERVED_BOARD_NAMES`.
+- `GET /v1/feedback/board?release=all|vX.Y.Z` is public. Credits come only from untombstoned `feedback_adoptions` rows of
+  the account's linked installs, once per item; revoked or blocked installs and delisted accounts count for nothing.
+  A release view ranks (ties share a rank); the all-time view is alphabetical with no rank. The response is built from a
+  whitelist: `displayName`, `credits`, `rank`, `releases[].{version,count}`.
+- Responses are cacheable for `FEEDBACK_BOARD_CACHE_SECONDS` (default 300, at most 900, 0 = `no-store`), so a person who
+  leaves is gone from the next uncached read and from caches within that window. Unlinking the last install and
+  account deletion remove the entry with the link.
+- Admin: `GET /v1/admin/feedback/board` lists names; `POST /v1/admin/feedback/board/delist {displayName}` removes an
+  entry and stops that account listing again until `DELETE` on the same path restores it.
+- Typed audit events: `board.link_confirmed`, `board.unlinked`, `board.opted_in`, `board.opted_out`, `board.delisted`,
+  `board.restored`. Details hold a name key or a short install prefix, never a full hash.
+- Turning `FEEDBACK_BOARD` off hides the board but keeps the tables; entries are removed only by opt-out, unlinking the
+  last install, account deletion or delisting, so rows of people who listed stay until one of those happens.
+- The reserved-name rule rejects a name that equals, starts with or ends with a reserved name after folding; a name that
+  merely contains one in the middle is allowed, and a name must be written in one of Latin, Cyrillic or Greek.
+- The board module is the one named exception to "only link code reads `feedback_account_links`".

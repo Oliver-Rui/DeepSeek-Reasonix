@@ -1,7 +1,8 @@
 import type { Env } from "./env";
 import { ERASE_LABEL, USER_ID, accountLinkEnabled, verifyAssertion } from "./feedback_account";
 import { verifyInstall } from "./feedback_auth";
-import { isBlocked } from "./feedback_blocks";
+import { audit, isBlocked } from "./feedback_blocks";
+import { boardEnabled, dropBoardEntry } from "./feedback_board";
 import { readCappedText } from "./feedback_body";
 import { accountHash, constantTimeEqual, ipPrefix, sign } from "./feedback_crypto";
 import { jsonResponse, refuse, windowDetails, type FeedbackLimit } from "./feedback_http";
@@ -71,7 +72,10 @@ async function createLink(request: Request, env: Env): Promise<Response> {
      SELECT ?, ?, ? WHERE (SELECT COUNT(*) FROM feedback_account_links WHERE account_hash = ?) < ?
      ON CONFLICT (install_hash) DO NOTHING`,
   ).bind(caller.installHash, caller.accountHash, caller.now.toISOString(), caller.accountHash, MAX_LINKS_PER_ACCOUNT).run();
-  if ((res.meta?.changes ?? 0) > 0) return jsonResponse({ linked: true }, 201);
+  if ((res.meta?.changes ?? 0) > 0) {
+    if (boardEnabled(env)) await audit(env, "board.link_confirmed", `install:${(caller.installHash ?? "").slice(0, 12)}`);
+    return jsonResponse({ linked: true }, 201);
+  }
   const held = await env.DB.prepare("SELECT account_hash FROM feedback_account_links WHERE install_hash = ?").bind(caller.installHash).first<{ account_hash: string }>();
   if (held) {
     return held.account_hash === caller.accountHash ? jsonResponse({ linked: true }) : refuse("feedback.link_conflict", "this install is already linked to another account");
@@ -87,10 +91,12 @@ async function removeLink(request: Request, env: Env, shortId: string | null): P
   if (shortId !== null && !SHORT_ID.test(shortId)) return refuse("feedback.invalid", "install id must be the 12 character short id");
   const refused = await spend(env, caller, writeSteps(caller));
   if (refused) return refused;
-  if (shortId === null) {
-    await env.DB.prepare("DELETE FROM feedback_account_links WHERE install_hash = ? AND account_hash = ?").bind(caller.installHash, caller.accountHash).run();
-  } else {
-    await env.DB.prepare("DELETE FROM feedback_account_links WHERE account_hash = ? AND substr(install_hash, 1, 12) = ?").bind(caller.accountHash, shortId).run();
+  const removed = shortId === null
+    ? await env.DB.prepare("DELETE FROM feedback_account_links WHERE install_hash = ? AND account_hash = ?").bind(caller.installHash, caller.accountHash).run()
+    : await env.DB.prepare("DELETE FROM feedback_account_links WHERE account_hash = ? AND substr(install_hash, 1, 12) = ?").bind(caller.accountHash, shortId).run();
+  if (boardEnabled(env)) {
+    await dropBoardEntry(env, caller.accountHash, true);
+    if ((removed.meta?.changes ?? 0) > 0) await audit(env, "board.unlinked", "account");
   }
   return jsonResponse({ ok: true });
 }
@@ -150,7 +156,9 @@ export async function handleErase(request: Request, env: Env): Promise<Response>
     sub = undefined;
   }
   if (typeof sub !== "string" || !USER_ID.test(sub)) return refuse("feedback.invalid", "sub must be a numeric account id");
-  await env.DB.prepare("DELETE FROM feedback_account_links WHERE account_hash = ?").bind(await accountHash(env.FEEDBACK_TOKEN_SECRET ?? "", sub)).run();
+  const erased = await accountHash(env.FEEDBACK_TOKEN_SECRET ?? "", sub);
+  await env.DB.prepare("DELETE FROM feedback_account_links WHERE account_hash = ?").bind(erased).run();
+  await dropBoardEntry(env, erased, false);
   return jsonResponse({ ok: true });
 }
 
