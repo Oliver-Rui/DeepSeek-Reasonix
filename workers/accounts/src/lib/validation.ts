@@ -201,3 +201,8 @@ export const PushSubscribeSchema = z.object({
 }).strict();
 
 export const PushCategoriesUpdateSchema = z.object({ categories: PushCategoriesSchema }).strict();
+
+export const HostPushNotifySchema = z.object({
+  type: z.enum(["approval", "input", "error"]),
+  count: z.number().int().min(1).max(99).default(1),
+}).strict();

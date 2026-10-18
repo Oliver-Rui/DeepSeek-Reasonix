@@ -5,7 +5,8 @@ import { repos } from "../db";
 import { toControllerView, toHostControllerView } from "../db/remoteControllers";
 import type { ControllerState } from "../db/remoteControllers";
 import { ApiError } from "../http/errors";
-import { enforceRateLimit, recordRateEvent } from "../http/d1RateLimit";
+import { recordRateEvent } from "../http/d1RateLimit";
+import { authenticateHost } from "../http/hostAuth";
 import {
   parseBody,
   parseQuery,
@@ -18,18 +19,6 @@ import { REMOTE_RATE_RULES } from "../config";
 // Resolving requires the desktop's own device credential, not an account
 // session. Nothing reads the outcome yet, so this is bookkeeping, not a gate.
 const hostControllers = new Hono<AppEnv>();
-
-async function authenticateHost(c: Context<AppEnv>): Promise<{ userId: number; hostId: string }> {
-  const deviceId = c.req.header("x-reasonix-device-id") ?? "";
-  const credential = c.req.header("x-reasonix-device-credential") ?? "";
-  if (!/^[0-9a-f]{64}$/.test(deviceId) || !/^[0-9a-f]{64}$/.test(credential)) {
-    throw new ApiError(401, "invalid_device", "The device credential is invalid or revoked.");
-  }
-  const authenticated = await repos(c.env).remoteDevices.authenticate(deviceId, credential);
-  if (!authenticated) throw new ApiError(401, "invalid_device", "The device credential is invalid or revoked.");
-  await enforceRateLimit(c.env, REMOTE_RATE_RULES.hostControllers, deviceId);
-  return { userId: authenticated.userId, hostId: deviceId };
-}
 
 const controllerNotFound = () => new ApiError(404, "controller_not_found", "That device is unavailable.");
 
