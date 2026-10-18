@@ -50,3 +50,22 @@ func renderModsSection(b *strings.Builder, c *Config) {
 	}
 	b.WriteString("\n")
 }
+
+// UpdateUserMods applies change to the [mods] table of the user file and saves
+// it. A repository's file is never touched: the table is the user's alone.
+func UpdateUserMods(change func(*ModsConfig) error) (ModsConfig, error) {
+	path := UserConfigPath()
+	edit := LoadForEdit(path)
+	next := edit.Mods
+	if err := change(&next); err != nil {
+		return edit.Mods, err
+	}
+	edit.Mods = next
+	if err := edit.SaveTo(path); err != nil {
+		return edit.Mods, err
+	}
+	return next, nil
+}
+
+// UserMods is the [mods] table as the user file holds it now.
+func UserMods() ModsConfig { return LoadForEdit(UserConfigPath()).Mods }

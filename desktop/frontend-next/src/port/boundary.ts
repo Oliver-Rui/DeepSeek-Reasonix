@@ -295,12 +295,6 @@ export interface ModRuntime {
   version: string;
 }
 
-export interface ModHookStats {
-  calls: number;
-  timeouts: number;
-  threw: number;
-}
-
 /** One installed mod. `code` is the typed cause when it is not running
  *  (mod.switch_off, mod.runtime_missing, mod.crashed, ...); a frontend maps it
  *  to its own words and never reads `detail` to decide anything. */
@@ -314,5 +308,19 @@ export interface ModStatus {
   // Literal event names the module registered; `unserved` are the ones this host never raises.
   events?: string[];
   unserved?: string[];
-  hooks: ModHookStats;
+}
+
+/** The user file's [mods] table. Turning `enabled` on is Elevated: the module
+ *  of an installed mod then runs on this machine with the user's trust. */
+export interface ModsSettings {
+  enabled: boolean;
+  // One hook's own running time in milliseconds; 0 keeps Claude Code's 10000.
+  hook_budget_ms: number;
+  path: string;
+  applies: "next_session";
+}
+
+export interface ModsSettingsEdit {
+  enabled?: boolean;
+  hook_budget_ms?: number;
 }

@@ -133,7 +133,7 @@ var mirroredWireTypes = []wireMirror{
 	{"internal/session/control/peer_settings.go", "PeerReleased", tsBoundaryFile, "PeerProject"},
 	{"internal/session/control/mods.go", "ModStatus", tsBoundaryFile, "ModStatus"},
 	{"internal/session/control/mods.go", "ModRuntime", tsBoundaryFile, "ModRuntime"},
-	{"internal/session/control/mods.go", "ModHookStats", tsBoundaryFile, "ModHookStats"},
+	{"internal/session/control/mods.go", "ModsSettings", tsBoundaryFile, "ModsSettings"},
 	{"internal/ext/modpreview/types.go", "Preview", tsPluginFile, "ModPreview"},
 	{"internal/ext/modpreview/types.go", "Event", tsPluginFile, "ModPreviewEvent"},
 	{"internal/ext/modpreview/types.go", "Call", tsPluginFile, "ModPreviewCall"},

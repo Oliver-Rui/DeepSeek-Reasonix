@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,6 +40,8 @@ type Resolver struct {
 	Electron string
 	// Workspace is the open project: a node found inside it is never used.
 	Workspace string
+	// Env is the process environment as the host read it; nil lets a child inherit.
+	Env []string
 	// LookPath and Probe replace exec.LookPath and the version probe in tests.
 	LookPath func(string) (string, error)
 	Probe    func(ctx context.Context, path string, env []string) (string, error)
@@ -87,7 +89,7 @@ func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 	}
 	if r.Electron != "" {
 		env := map[string]string{"ELECTRON_RUN_AS_NODE": "1"}
-		version, err := probe(ctx, r.Electron, envList(env))
+		version, err := probe(ctx, r.Electron, envList(r.Env, env))
 		if err != nil {
 			return Runtime{}, fmt.Errorf("%w: %v", ErrRuntimeMissing, err)
 		}
@@ -107,7 +109,7 @@ func (r Resolver) resolve(ctx context.Context) (Runtime, error) {
 	if inside(r.Workspace, path) {
 		return Runtime{}, fmt.Errorf("%w: the node on PATH sits inside the open project (%s) and is not used", ErrRuntimeMissing, path)
 	}
-	version, err := probe(ctx, path, os.Environ())
+	version, err := probe(ctx, path, r.Env)
 	if err != nil {
 		return Runtime{}, fmt.Errorf("%w: %v", ErrRuntimeMissing, err)
 	}
@@ -162,8 +164,8 @@ func resolved(p string) string {
 	return p
 }
 
-func envList(extra map[string]string) []string {
-	out := os.Environ()
+func envList(base []string, extra map[string]string) []string {
+	out := slices.Clone(base)
 	for k, v := range extra {
 		out = append(out, k+"="+v)
 	}

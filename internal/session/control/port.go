@@ -409,6 +409,14 @@ type SubagentView interface {
 	SubagentTranscript(ref string, after, limit int) (delegation.RunTranscript, error)
 }
 
+// Mods is Claude Code mods: which are installed and what became of each, and the
+// user's switch and budget for running them.
+type Mods interface {
+	Mods() []ModStatus
+	ModsSettings() ModsSettings
+	SaveModsSettings(patch ModsPatch) (ModsSettings, error)
+}
+
 // DiffRendering reports the session's diff-rendering choices, resolved once at
 // build. A frontend rebuilding a transcript (e.g. the HTTP server answering
 // /history) reads them here instead of reloading config per request.
@@ -528,6 +536,7 @@ type SessionAPI interface {
 	ToolCallStopper
 	SubagentView
 	PeerMail
+	Mods
 	MCPSignIn
 	LocalShell
 	DiffRendering
@@ -567,6 +576,7 @@ var (
 	_ ToolCallStopper    = (*Controller)(nil)
 	_ SubagentView       = (*Controller)(nil)
 	_ PeerMail           = (*Controller)(nil)
+	_ Mods               = (*Controller)(nil)
 	_ MCPSignIn          = (*Controller)(nil)
 	_ SessionHistory     = (*Controller)(nil)
 	_ MemoryControl      = (*Controller)(nil)
