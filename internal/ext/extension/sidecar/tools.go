@@ -13,7 +13,7 @@ import (
 // validateTools holds the tools a runtime activated at initialize to the ones
 // its manifest declares: the model is shown the manifest's schemas, so a tool
 // the manifest does not describe has nothing the model could have called.
-func (c *Client) validateTools(served []string) error {
+func (c *Client) validateTools(served []string, specs []protocol.ToolSpec) error {
 	if len(served) == 0 {
 		return nil
 	}
@@ -22,7 +22,7 @@ func (c *Client) validateTools(served []string) error {
 	}
 	for _, name := range served {
 		if c.rt.DynamicTools {
-			if _, ok := c.dynamicSpec(name); !ok {
+			if !hasSpec(specs, name) {
 				return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s served tool %q without describing it in toolSpecs", c.pluginID, name)}
 			}
 			continue
@@ -34,14 +34,13 @@ func (c *Client) validateTools(served []string) error {
 	return nil
 }
 
-// dynamicSpec is the handshake description of a tool a dynamic runtime registered.
-func (c *Client) dynamicSpec(name string) (protocol.ToolSpec, bool) {
-	for _, spec := range c.initResult.ToolSpecs {
+func hasSpec(specs []protocol.ToolSpec, name string) bool {
+	for _, spec := range specs {
 		if spec.Name == name {
-			return spec, true
+			return true
 		}
 	}
-	return protocol.ToolSpec{}, false
+	return false
 }
 
 func (c *Client) declaresTool(name string) bool {

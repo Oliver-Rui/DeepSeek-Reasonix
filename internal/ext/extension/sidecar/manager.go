@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"reasonix/internal/base/secrets"
 	"reasonix/internal/ext/extension"
@@ -61,7 +62,39 @@ func LoadRuntimePackages(home string) ([]pluginpkg.InstalledPackage, []string) {
 			out = append(out, item)
 		}
 	}
+	if src := extraPackages.Load(); src != nil {
+		extra, more := (*src)(home, installed)
+		out = append(out, extra...)
+		warnings = append(warnings, more...)
+	}
 	return out, warnings
+}
+
+// PackageSource contributes runtime packages the host itself derives from the
+// installed ones (a Claude Code mod becomes a runtime that way). It sees only
+// the installed state, so it cannot launch anything the user did not install.
+type PackageSource func(home string, installed []pluginpkg.InstalledPackage) ([]pluginpkg.InstalledPackage, []string)
+
+var extraPackages atomic.Pointer[PackageSource]
+
+// SetPackageSource installs the source LoadRuntimePackages consults; nil removes it.
+func SetPackageSource(src PackageSource) {
+	if src == nil {
+		extraPackages.Store(nil)
+		return
+	}
+	extraPackages.Store(&src)
+}
+
+var crashObservers atomic.Pointer[func(pluginID string, err error)]
+
+// OnCrash installs an observer told when any started sidecar dies unexpectedly.
+func OnCrash(f func(pluginID string, err error)) {
+	if f == nil {
+		crashObservers.Store(nil)
+		return
+	}
+	crashObservers.Store(&f)
 }
 
 // Manager owns every sidecar started for one runtime generation. It is the
@@ -106,6 +139,9 @@ func startLoadedPackages(ctx context.Context, packages []pluginpkg.InstalledPack
 			UI:        clientUI,
 			OnCrash: func(err error) {
 				slog.Warn("extension sidecar crashed", "plugin", pluginID, "err", secrets.RedactError(err))
+				if obs := crashObservers.Load(); obs != nil {
+					(*obs)(pluginID, err)
+				}
 				if binder != nil {
 					binder.ClientCrashed(pluginID)
 				}

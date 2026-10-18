@@ -412,7 +412,7 @@ func (c *Client) validateHandshakeResult(result protocol.InitializeResult) error
 	if err := c.validateDynamicTools(result); err != nil {
 		return err
 	}
-	if err := c.validateTools(result.Tools); err != nil {
+	if err := c.validateTools(result.Tools, result.ToolSpecs); err != nil {
 		return err
 	}
 	// Manifest provides is the capability ceiling: handshake must not claim
