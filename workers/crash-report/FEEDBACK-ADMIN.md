@@ -221,4 +221,8 @@ Off by default (`FEEDBACK_BOARD = "false"`) and absent unless account linking is
   entry and stops that account listing again until `DELETE` on the same path restores it.
 - Typed audit events: `board.link_confirmed`, `board.unlinked`, `board.opted_in`, `board.opted_out`, `board.delisted`,
   `board.restored`. Details hold a name key or a short install prefix, never a full hash.
+- Turning `FEEDBACK_BOARD` off hides the board but keeps the tables; entries are removed only by opt-out, unlinking the
+  last install, account deletion or delisting, so rows of people who listed stay until one of those happens.
+- The reserved-name rule rejects a name that equals, starts with or ends with a reserved name after folding; a name that
+  merely contains one in the middle is allowed, and a name must be written in one of Latin, Cyrillic or Greek.
 - The board module is the one named exception to "only link code reads `feedback_account_links`".

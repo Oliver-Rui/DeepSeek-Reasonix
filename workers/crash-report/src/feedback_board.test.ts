@@ -112,6 +112,21 @@ describe("display names", () => {
     expect(checkBoardName(name)).toEqual({ ok: false, reason: "reserved" });
   });
 
+  it.each([
+    ["Cyrillic е and о spelling esengine", "\u0435s\u0435ngin\u0435"],
+    ["Cyrillic о and а spelling reasonix", "re\u0430s\u043enix"],
+    ["Cyrillic а spelling admin", "\u0430dmin"],
+    ["Greek ο spelling reasonix", "reasonix".replace("o", "\u03bf")],
+    ["Cyrillic and Greek together", "\u0430\u03b1 team"],
+    ["Latin with one Cyrillic letter", "Ada \u0412"],
+  ])("refuses a name that mixes scripts: %s", (_n, name) => {
+    expect(checkBoardName(name)).toEqual({ ok: false, reason: "invalid" });
+  });
+
+  it.each(["Иван Петров", "Αλέξανδρος", "张三 2", "Ada 42", "Zoë 3"])("allows a name written in one script: %s", (name) => {
+    expect(checkBoardName(name)).toMatchObject({ ok: true });
+  });
+
   it("takes the reserved list from one declared table", () => {
     for (const reserved of RESERVED_BOARD_NAMES) expect(checkBoardName(reserved.toUpperCase()).ok).toBe(false);
   });

@@ -176,12 +176,22 @@ async function optIn(request: Request, env: Env): Promise<Response> {
   if (!(await env.DB.prepare("SELECT 1 AS x FROM feedback_account_links WHERE account_hash = ? LIMIT 1").bind(caller.accountHash).first())) {
     return refuse("feedback.board_no_link", "link an install to this account first");
   }
-  const res = await env.DB.prepare(
+  const insert = () => env.DB.prepare(
     `INSERT INTO feedback_board_optin (account_hash, display_name, name_key, opted_in_at)
      SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM feedback_board_optin WHERE name_key = ? AND account_hash <> ?)
      ON CONFLICT (account_hash) DO UPDATE SET display_name = excluded.display_name, name_key = excluded.name_key`,
   ).bind(caller.accountHash, checked.name, checked.key, caller.now.toISOString(), checked.key, caller.accountHash).run();
-  if ((res.meta?.changes ?? 0) === 0) return refuse("feedback.board_name_taken", "another person already uses this name");
+  const nameHeldByAnother = () =>
+    env.DB.prepare("SELECT 1 AS x FROM feedback_board_optin WHERE name_key = ? AND account_hash <> ?").bind(checked.key, caller.accountHash).first();
+  let changes = 0;
+  try {
+    changes = (await insert()).meta?.changes ?? 0;
+  } catch (err) {
+    // A concurrent claim of the same name loses at the unique index; the stored state, not the
+    // error, says whether that is what happened.
+    if (!(await nameHeldByAnother())) throw err;
+  }
+  if (changes === 0) return refuse("feedback.board_name_taken", "another person already uses this name");
   await audit(env, "board.opted_in", `name:${checked.key}`);
   return jsonResponse({ listed: true, displayName: checked.name });
 }
