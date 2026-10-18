@@ -45,27 +45,23 @@ export interface ModPreviewEvent {
   name: string;
   // Not a literal: the name cannot be listed.
   dynamic?: boolean;
-  line: number;
 }
 
 export interface ModPreviewCall {
   namespace: string;
   method?: string;
   dynamic?: boolean;
-  line: number;
 }
 
 // Code the module pulls in that the listing cannot see.
 export interface ModPreviewImport {
   spec: string;
   kind: "static" | "require" | "dynamic";
-  line: number;
 }
 
 // eval, new Function, a computed member of the API: parts of the module are unlistable.
 export interface ModPreviewFinding {
   kind: string;
-  line: number;
 }
 
 export interface ModPreview {
@@ -73,6 +69,10 @@ export interface ModPreview {
   // The module's path inside the package, and the hash of the bytes previewed.
   module: string;
   sha256: string;
+  // False when the module could not be read (typescript | too_large | unparseable | timeout |
+  // unsupported_module): say "not previewed", never "clean".
+  listed: boolean;
+  reason?: string;
   events: ModPreviewEvent[];
   api: ModPreviewCall[];
   imports: ModPreviewImport[];

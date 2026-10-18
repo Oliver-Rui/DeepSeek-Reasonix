@@ -21,11 +21,27 @@ func (c *Client) validateTools(served []string) error {
 		return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s served tools without the tools capability", c.pluginID)}
 	}
 	for _, name := range served {
+		if c.rt.DynamicTools {
+			if _, ok := c.dynamicSpec(name); !ok {
+				return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s served tool %q without describing it in toolSpecs", c.pluginID, name)}
+			}
+			continue
+		}
 		if !c.declaresTool(name) {
 			return &protocol.ProtocolError{Reason: protocol.ErrCapabilityNotDeclared, Message: fmt.Sprintf("extension %s served tool %q which its manifest does not declare", c.pluginID, name)}
 		}
 	}
 	return nil
+}
+
+// dynamicSpec is the handshake description of a tool a dynamic runtime registered.
+func (c *Client) dynamicSpec(name string) (protocol.ToolSpec, bool) {
+	for _, spec := range c.initResult.ToolSpecs {
+		if spec.Name == name {
+			return spec, true
+		}
+	}
+	return protocol.ToolSpec{}, false
 }
 
 func (c *Client) declaresTool(name string) bool {
@@ -67,5 +83,12 @@ func (c *Client) CallTool(ctx context.Context, name string, args json.RawMessage
 
 // DeclaredTools returns the tools this runtime's manifest declares.
 func (c *Client) DeclaredTools() []pluginpkg.RuntimeTool {
-	return append([]pluginpkg.RuntimeTool(nil), c.rt.Tools...)
+	out := append([]pluginpkg.RuntimeTool(nil), c.rt.Tools...)
+	if !c.rt.DynamicTools {
+		return out
+	}
+	for _, spec := range c.initResult.ToolSpecs {
+		out = append(out, pluginpkg.RuntimeTool{Name: spec.Name, Description: spec.Description, InputSchema: spec.InputSchema, ReadOnly: spec.ReadOnly})
+	}
+	return out
 }

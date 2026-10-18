@@ -207,6 +207,7 @@ type InitializeResult struct {
 	Providers          []ProviderDescriptor `json:"providers,omitempty"`
 	UIActions          []UIActionDecl       `json:"uiActions,omitempty"`
 	Tools              []string             `json:"tools,omitempty"`
+	ToolSpecs          []ToolSpec           `json:"toolSpecs,omitempty"`
 	Requires           []RequirementWire    `json:"requires,omitempty"`
 	Provides           []CapabilityWire     `json:"provides,omitempty"`
 	StateSchemaVersion int                  `json:"stateSchemaVersion" validate:"min=0"`
@@ -236,6 +237,14 @@ type ProviderDescriptor struct {
 type UIActionDecl struct {
 	ActionID string `json:"actionId" validate:"nonempty"`
 	Label    string `json:"label,omitempty"`
+}
+
+// ToolSpec is a generated Extension Protocol v2 wire DTO.
+type ToolSpec struct {
+	Name        string          `json:"name" validate:"nonempty"`
+	Description string          `json:"description" validate:"nonempty"`
+	InputSchema json.RawMessage `json:"inputSchema"`
+	ReadOnly    bool            `json:"readOnly,omitempty"`
 }
 
 // InitializedParams is a generated Extension Protocol v2 wire DTO.

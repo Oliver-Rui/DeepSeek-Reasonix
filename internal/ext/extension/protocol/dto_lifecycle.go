@@ -74,18 +74,30 @@ type HostCapabilities struct {
 // InitializeResult is the sidecar's handshake answer: its identity plus the
 // contributions it actually activated for this session.
 type InitializeResult struct {
-	ProtocolVersion    string               `json:"protocolVersion" validate:"nonempty"`
-	Name               string               `json:"name" validate:"nonempty"`
-	Version            string               `json:"version" validate:"nonempty"`
-	ComponentID        string               `json:"componentId,omitempty"`
-	Subscriptions      []string             `json:"subscriptions,omitempty"`
-	Replaces           []string             `json:"replaces,omitempty"`
-	Providers          []ProviderDescriptor `json:"providers,omitempty"`
-	UIActions          []UIActionDecl       `json:"uiActions,omitempty"`
-	Tools              []string             `json:"tools,omitempty"`
-	Requires           []RequirementWire    `json:"requires,omitempty"`
-	Provides           []CapabilityWire     `json:"provides,omitempty"`
-	StateSchemaVersion int                  `json:"stateSchemaVersion" validate:"min=0"`
+	ProtocolVersion string               `json:"protocolVersion" validate:"nonempty"`
+	Name            string               `json:"name" validate:"nonempty"`
+	Version         string               `json:"version" validate:"nonempty"`
+	ComponentID     string               `json:"componentId,omitempty"`
+	Subscriptions   []string             `json:"subscriptions,omitempty"`
+	Replaces        []string             `json:"replaces,omitempty"`
+	Providers       []ProviderDescriptor `json:"providers,omitempty"`
+	UIActions       []UIActionDecl       `json:"uiActions,omitempty"`
+	Tools           []string             `json:"tools,omitempty"`
+	// ToolSpecs describes the tools a runtime whose manifest sets dynamicTools
+	// registers while it starts; the host uses them in place of manifest tools.
+	ToolSpecs          []ToolSpec        `json:"toolSpecs,omitempty"`
+	Requires           []RequirementWire `json:"requires,omitempty"`
+	Provides           []CapabilityWire  `json:"provides,omitempty"`
+	StateSchemaVersion int               `json:"stateSchemaVersion" validate:"min=0"`
+}
+
+// ToolSpec is one tool a dynamic runtime registered at startup: what the model
+// reads to choose it, and the schema of its arguments.
+type ToolSpec struct {
+	Name        string          `json:"name" validate:"nonempty"`
+	Description string          `json:"description" validate:"nonempty"`
+	InputSchema json.RawMessage `json:"inputSchema"`
+	ReadOnly    bool            `json:"readOnly,omitempty"`
 }
 
 // InitializedParams carries no payload; the notification only signals the
