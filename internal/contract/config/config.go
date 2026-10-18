@@ -53,6 +53,8 @@ type Config struct {
 	AutoSubmit bool `toml:"auto_submit"`
 	// Peers governs messages between sessions; see PeersConfig.
 	Peers PeersConfig `toml:"peers"`
+	// Mods governs Claude Code mods; see ModsConfig.
+	Mods ModsConfig `toml:"mods"`
 	// Storage relocates the movable roots, keyed by RootID. User/global only.
 	Storage map[string]string `toml:"storage"`
 
