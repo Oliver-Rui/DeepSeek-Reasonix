@@ -34,6 +34,10 @@ export interface Env {
   // and sibling replies. The shared secret verifies account assertions and erasure calls.
   FEEDBACK_ACCOUNT_LINK?: string;
   FEEDBACK_ACCOUNT_SECRET?: string;
+  // Contribution board kill switch: only "true" (with account linking on) serves the board routes.
+  // The seconds a public response may be cached by browsers and the CDN; unset or invalid uses the default.
+  FEEDBACK_BOARD?: string;
+  FEEDBACK_BOARD_CACHE_SECONDS?: string;
   // Ops-events relay; feedback emits compact events only when both are set.
   OPS_EVENTS_URL?: string;
   OPS_EMIT_TOKEN?: string;

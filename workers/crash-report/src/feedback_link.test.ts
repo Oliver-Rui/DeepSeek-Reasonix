@@ -14,6 +14,7 @@ import triageMigrationSQL from "../migrate-feedback-triage.sql?raw";
 import adoptionsMigrationSQL from "../migrate-feedback-adoptions.sql?raw";
 import linksMigrationSQL from "../migrate-feedback-account-links.sql?raw";
 import linksRollbackSQL from "../migrate-feedback-account-links.down.sql?raw";
+import boardMigrationSQL from "../migrate-feedback-board.sql?raw";
 
 const ADMIN = "admin-secret";
 const TOKEN_SECRET = "token-secret";
@@ -71,7 +72,7 @@ const reply = async (n: number, receipt: string) => send("POST", `/v1/feedback/$
 
 beforeEach(() => {
   db = new DatabaseSync(":memory:");
-  for (const sql of [feedbackMigrationSQL, triageMigrationSQL, adoptionsMigrationSQL, linksMigrationSQL]) db.exec(sql);
+  for (const sql of [feedbackMigrationSQL, triageMigrationSQL, adoptionsMigrationSQL, linksMigrationSQL, boardMigrationSQL]) db.exec(sql);
   ipAllowed = true;
   seq = 0;
   env = {
@@ -659,7 +660,7 @@ describe("privacy", () => {
 
   it("mentions the link table only in the link code, anywhere under src", () => {
     const users = sources().filter((f) => f.text.includes("account_links")).map((f) => f.file).sort();
-    expect(users).toEqual(["feedback_link.ts", "feedback_ownership.ts"]);
+    expect(users).toEqual(["feedback_board.ts", "feedback_link.ts", "feedback_ownership.ts"]);
   });
 
   it("lets only the routing, reply and quota code reach the link and ownership modules", () => {
