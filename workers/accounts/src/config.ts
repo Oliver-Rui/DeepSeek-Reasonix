@@ -47,6 +47,7 @@ export const REMOTE_RATE_RULES = {
   challenge: { name: "challenge", limit: 30, windowMs: 60 * 1000 },
   enroll: { name: "enroll", limit: 5, windowMs: 60 * 60 * 1000 },
   revoke: { name: "revoke", limit: 30, windowMs: 60 * 1000 },
+  pushSubscribe: { name: "push-subscribe", limit: 10, windowMs: 60 * 60 * 1000 },
   hostControllers: { name: "host-controllers", limit: 60, windowMs: 60 * 1000 },
   pendingRejects: { name: "pending-rejects", limit: REMOTE_PENDING_REJECT_LIMIT, windowMs: REMOTE_PENDING_LOCK_MS },
 } as const;

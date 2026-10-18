@@ -29,6 +29,12 @@ export interface Bindings {
   SESSION_PEPPER?: string;
   RESEND_API_KEY?: string;
   REMOTE_GATEWAY_TOKEN?: string;
+  // Web Push application server identity (RFC 8292). The public point is served
+  // to the phone page; the private scalar never leaves the worker. Absent until
+  // set, and the push routes answer 503 rather than failing on a missing key.
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
+  VAPID_SUBJECT?: string;
   // Shared with the feedback worker: signs feedback assertions and erase calls.
   FEEDBACK_ACCOUNT_SECRET?: string;
 }

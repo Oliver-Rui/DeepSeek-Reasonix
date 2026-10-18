@@ -1,6 +1,6 @@
 import { generateToken, hashToken } from "../auth/crypto";
 
-export type ChallengePurpose = "enroll";
+export type ChallengePurpose = "enroll" | "push";
 
 export interface ChallengeBinding {
   userId: number;

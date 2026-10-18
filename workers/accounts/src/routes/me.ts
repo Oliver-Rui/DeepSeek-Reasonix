@@ -27,6 +27,7 @@ import { enforceRateLimit } from "../http/d1RateLimit";
 import { fetchFeedbackOverview, mintFeedbackAssertion, notifyFeedbackErasure } from "../feedbackLink";
 import backups from "./backups";
 import remoteControllers from "./remoteControllers";
+import remotePush from "./remotePush";
 import { ConfigBackupRepo } from "../db/configBackups";
 
 const me = new Hono<AppEnv>();
@@ -53,6 +54,7 @@ me.get("/feedback", async (c) => {
 
 me.route("/backups", backups);
 me.route("/remote-controllers", remoteControllers);
+me.route("/remote-push", remotePush);
 
 me.get("/devices", async (c) => {
   const user = currentUser(c);

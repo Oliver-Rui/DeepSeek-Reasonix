@@ -7,6 +7,7 @@ import { RemoteDeviceRepo } from "./remoteDevices";
 import { RemoteAttachmentRepo } from "./remoteAttachments";
 import { RemoteControllerRepo } from "./remoteControllers";
 import { RemoteChallengeRepo } from "./remoteChallenges";
+import { RemotePushRepo } from "./remotePush";
 import { RateCounterRepo } from "./rateCounters";
 import { FeedbackErasureRepo } from "./feedbackErasures";
 
@@ -19,6 +20,7 @@ export interface Repos {
   remoteAttachments: RemoteAttachmentRepo;
   remoteControllers: RemoteControllerRepo;
   remoteChallenges: RemoteChallengeRepo;
+  remotePush: RemotePushRepo;
   rateCounters: RateCounterRepo;
   feedbackErasures: FeedbackErasureRepo;
 }
@@ -36,6 +38,7 @@ export function repos(env: Bindings): Repos {
     remoteAttachments: new RemoteAttachmentRepo(env.DB, pepper),
     remoteControllers: new RemoteControllerRepo(env.DB),
     remoteChallenges: new RemoteChallengeRepo(env.DB, pepper),
+    remotePush: new RemotePushRepo(env.DB),
     rateCounters: new RateCounterRepo(env.DB),
     feedbackErasures: new FeedbackErasureRepo(env.DB),
   };
