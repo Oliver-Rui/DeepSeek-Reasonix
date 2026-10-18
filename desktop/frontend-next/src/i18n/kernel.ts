@@ -469,6 +469,8 @@ const SAID: Record<string, string> = {
   "peer.invalid_project": "放行的项目必须是一个绝对路径的文件夹",
   "peer.invalid_ceiling": "派发上限是 0 或更大的整数，0 表示不限制",
   "peer.remember_denied": "只有批准才能记住，拒绝只对这一条生效",
+  "mods.invalid_budget": "单个钩子的运行时限是 0 到 55000 毫秒，0 表示默认的 10 秒",
+  "mods.editing_disabled": "这个客户端不能修改 mod 设置",
   "peer.settings_unwritable": "会话间消息的设置没能保存：{detail}",
   "provider.key_origin_changed": "地址换了域名，已保存的密钥不会发过去；请填入这个地址对应的密钥",
   "write_lease.no_choice": "本次请求未说明选择，未做任何修改",
