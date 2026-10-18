@@ -11,7 +11,7 @@ export function useSettingsSearch(query: string, shown: (id: Section) => boolean
   return useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
-    return SETTINGS.filter((e) => shown(e.section) && (e.anchor !== "graphics" || shell !== null) && settingMatches(e, q));
+    return SETTINGS.filter((e) => !e.hidden && shown(e.section) && (e.anchor !== "graphics" || shell !== null) && settingMatches(e, q));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, shownKey, shell]);
 }

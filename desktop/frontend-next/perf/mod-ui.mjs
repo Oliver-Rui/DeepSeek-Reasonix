@@ -4,6 +4,7 @@ import { chromium } from "playwright";
 
 const BASE = process.env.PERF_URL ?? "http://localhost:4399/perf.html";
 const shotDir = process.env.SHOTS;
+const SHOWN = process.env.MODS_SHOWN === "1";
 const fails = [];
 const check = (name, ok, detail = "") => {
   console.log(`${ok ? "  ok" : "FAIL"}  ${name}${detail ? "  — " + detail : ""}`);
@@ -15,6 +16,15 @@ const band = { kind: "extension_surface", extension: { pluginId: "statusline-clo
 ] } } };
 const ask = { kind: "extension_surface", extension: { pluginId: "git-guard", surfaceId: "mod-ask", kind: "form", sessionId: "s", generation: 1, form: { title: "git-guard asks", message: "要删除已经合并的分支 old-spike 吗？", fields: [{ key: "answer", label: "回答", kind: "input" }] } } };
 
+// The pane attaches to its stream a moment after the page is up, and an event fed earlier is lost; feed again until it lands.
+async function feedUntil(page, ev, seen) {
+  for (let i = 0; i < 20; i++) {
+    await page.evaluate((e) => window.__feed(e), ev);
+    if (await seen().then(() => true, () => false)) return;
+  }
+  await seen();
+}
+
 const browser = await chromium.launch();
 for (const scheme of ["light", "dark"]) {
   for (const width of [1280, 420]) {
@@ -24,8 +34,7 @@ for (const scheme of ["light", "dark"]) {
     await page.goto(`${BASE}?pref=zh&turns=2`, { waitUntil: "networkidle" });
     await page.waitForSelector(".app");
 
-    await page.evaluate((ev) => window.__feed(ev), band);
-    await page.getByRole("button", { name: "稍后提醒" }).waitFor();
+    await feedUntil(page, band, () => page.getByRole("button", { name: "稍后提醒" }).waitFor({ timeout: 500 }));
     const at = await page.evaluate(() => {
       const s = document.querySelector(".slotted").getBoundingClientRect();
       const c = document.querySelector('[aria-label="任务输入"]').getBoundingClientRect();
@@ -45,8 +54,7 @@ for (const scheme of ["light", "dark"]) {
     await page.evaluate(() => document.activeElement?.blur());
     if (shotDir) { await page.mouse.move(width - 5, 895); await page.waitForTimeout(300); await page.screenshot({ path: `${shotDir}/${scheme}-${width}-band.png`, clip: { x: 0, y: 760, width, height: 540 } }); }
 
-    await page.evaluate((ev) => window.__feed(ev), ask);
-    await page.waitForSelector('.call[data-k="extension"] .extform');
+    await feedUntil(page, ask, () => page.waitForSelector('.call[data-k="extension"] .extform', { timeout: 500 }));
     const card = await page.evaluate(() => {
       const form = document.querySelector(".extform");
       return { note: form.querySelector(".why")?.textContent ?? "", tag: document.querySelector('.call[data-k="extension"] .tag')?.textContent ?? "" };
@@ -57,23 +65,33 @@ for (const scheme of ["light", "dark"]) {
     await page.evaluate(() => document.querySelector('[data-action="chrome.settings"]')?.click());
     await page.waitForSelector(".prefs-nav button");
     await page.evaluate(() => [...document.querySelectorAll(".prefs-nav button")].find((b) => b.textContent.trim().startsWith("扩展"))?.click());
-    await page.waitForSelector("#set-mods");
-    const off = await page.evaluate(() => {
-      const g = document.getElementById("set-mods");
-      return { checked: g.querySelector('[role="switch"]').getAttribute("aria-checked"), rows: g.querySelectorAll(".modlist li").length, why: [...g.querySelectorAll(".modlist .ds")].filter((e) => e.textContent.includes("没有打开")).length };
-    });
-    check(`${tag}: the switch ships off and every mod says why it is not running`, off.checked === "false" && off.rows === 4 && off.why === 4, `${off.rows} mods, ${off.why} reasons`);
-    await page.locator('#set-mods [role="switch"]').click();
-    await page.waitForFunction(() => document.querySelectorAll("#set-mods .modlist li[data-state='running']").length === 1);
-    const on = await page.evaluate(() => {
-      const g = document.getElementById("set-mods");
-      const r = g.getBoundingClientRect();
-      const states = [...g.querySelectorAll(".modlist li")].map((li) => li.getAttribute("data-state"));
-      return { states, spill: r.right > innerWidth + 1 || g.scrollWidth > g.clientWidth + 1, marks: [...g.querySelectorAll(".modstate")].every((e) => /^\S+\s+\S+/.test(e.textContent.trim())) };
-    });
-    check(`${tag}: each state shows running, disabled, restarting or not running, with a mark as well as a word`, on.states.join() === "running,disabled,restarting,inactive" && on.marks, on.states.join());
-    check(`${tag}: the block does not spill sideways`, !on.spill);
-    if (shotDir) await page.locator("#set-mods").screenshot({ path: `${shotDir}/${scheme}-${width}-settings.png` });
+    await page.waitForSelector('[data-action="extensions.add"]');
+    if (!SHOWN) {
+      check(`${tag}: the mod settings block is not drawn while the host is hidden`, (await page.locator("#set-mods").count()) === 0);
+      await page.locator('input[aria-label="搜索设置"]').fill("Claude Code mod");
+      await page.waitForTimeout(400);
+      const found = await page.evaluate(() => [...document.querySelectorAll(".prefs-nav *, .prefs-results *")].some((e) => e.children.length === 0 && /Claude Code mod/.test(e.textContent)));
+      check(`${tag}: settings search does not lead to it either`, !found);
+      await page.locator('input[aria-label="搜索设置"]').fill("");
+    } else {
+      await page.waitForSelector("#set-mods");
+      const off = await page.evaluate(() => {
+        const g = document.getElementById("set-mods");
+        return { checked: g.querySelector('[role="switch"]').getAttribute("aria-checked"), rows: g.querySelectorAll(".modlist li").length, why: [...g.querySelectorAll(".modlist .ds")].filter((e) => e.textContent.includes("没有打开")).length };
+      });
+      check(`${tag}: the switch ships off and every mod says why it is not running`, off.checked === "false" && off.rows === 4 && off.why === 4, `${off.rows} mods, ${off.why} reasons`);
+      await page.locator('#set-mods [role="switch"]').click();
+      await page.waitForFunction(() => document.querySelectorAll("#set-mods .modlist li[data-state='running']").length === 1);
+      const on = await page.evaluate(() => {
+        const g = document.getElementById("set-mods");
+        const r = g.getBoundingClientRect();
+        const states = [...g.querySelectorAll(".modlist li")].map((li) => li.getAttribute("data-state"));
+        return { states, spill: r.right > innerWidth + 1 || g.scrollWidth > g.clientWidth + 1, marks: [...g.querySelectorAll(".modstate")].every((e) => /^\S+\s+\S+/.test(e.textContent.trim())) };
+      });
+      check(`${tag}: each state shows running, disabled, restarting or not running, with a mark as well as a word`, on.states.join() === "running,disabled,restarting,inactive" && on.marks, on.states.join());
+      check(`${tag}: the block does not spill sideways`, !on.spill);
+      if (shotDir) await page.locator("#set-mods").screenshot({ path: `${shotDir}/${scheme}-${width}-settings.png` });
+    }
 
     if (width === 1280) {
       await page.locator('[data-action="extensions.add"]').first().click();

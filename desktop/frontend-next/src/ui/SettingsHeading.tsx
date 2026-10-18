@@ -10,7 +10,7 @@ interface Props {
 export function SettingsHeading({ section, value, danger }: Props) {
   const group = NAV.find(([, items]) => items.some(([id]) => id === section));
   const name = group?.[1].find(([id]) => id === section)?.[1] ?? section;
-  const count = SETTINGS.filter((entry) => entry.section === section).length;
+  const count = SETTINGS.filter((entry) => entry.section === section && !entry.hidden).length;
 
   return (
     <header className="prefs-intro">

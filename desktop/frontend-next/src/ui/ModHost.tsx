@@ -5,6 +5,7 @@ import type { AgentPort, ModState, ModStatus, ModsSettings, ModsSettingsEdit } f
 import { HttpError } from "../port/port";
 import { Group } from "./Group";
 import { Switch } from "./Switch";
+import { MODS_SHOWN } from "./modsgate";
 import "../styles/mods.css";
 
 const BUDGET_MAX = 55000;
@@ -22,7 +23,11 @@ const STATE: Record<ModState, { mark: string; word: string }> = {
  *  their own with the user's full trust. The switch is the only authorisation to
  *  run any of them, so it says what that means in plain words, and a client that
  *  may not edit it sees it read-only rather than failing on a click. */
-export function ModHost({ port }: { port: AgentPort }) {
+export function ModHost({ port, shown = MODS_SHOWN }: { port: AgentPort; shown?: boolean }) {
+  return shown ? <ModHostBlock port={port} /> : null;
+}
+
+function ModHostBlock({ port }: { port: AgentPort }) {
   const [settings, setSettings] = useState<ModsSettings | null>(null);
   const [mods, setMods] = useState<ModStatus[] | null>(null);
   const [draft, setDraft] = useState("");
