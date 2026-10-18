@@ -76,7 +76,7 @@ function pluginInput() {
     kind: "plugin",
     installKind: "plugin",
     name: "devkit",
-    source: "https://github.com/o/r",
+    source: "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
     repoUrl: "https://github.com/o/r",
     version: "2.7.1",
   });

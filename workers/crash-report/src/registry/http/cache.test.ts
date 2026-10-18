@@ -62,7 +62,7 @@ async function publish(as: string, name: string, extra: Record<string, unknown> 
   const res = await fetchAs("/v1/packages", {
     method: "POST",
     headers: { authorization: `Bearer ${as}` },
-    body: { kind: "plugin", name, source: "https://github.com/o/r", summary: `summary ${name}`, ...extra },
+    body: { kind: "plugin", name, source: "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02", summary: `summary ${name}`, ...extra },
   });
   return (await res.json()) as any;
 }

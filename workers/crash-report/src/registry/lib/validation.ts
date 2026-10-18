@@ -58,14 +58,14 @@ function isInstallableSource(source: string): boolean {
   return isHttpUrl(raw) || looksLikePackage(raw);
 }
 
-function isGitHubRepoSource(source: string): boolean {
+function isCommitPinnedGitHubSource(source: string): boolean {
   let raw = source.trim();
   if (hasUnsafeSourceCharacters(raw) || raw.includes("\\")) return false;
   if (raw.startsWith("git:github.com/")) raw = `https://github.com/${raw.slice("git:github.com/".length)}`;
   try {
     const u = new URL(raw);
     if (
-      (u.protocol !== "http:" && u.protocol !== "https:") ||
+      u.protocol !== "https:" ||
       u.hostname.toLowerCase() !== "github.com" ||
       u.username !== "" ||
       u.password !== "" ||
@@ -114,8 +114,7 @@ function isGitHubRepoSource(source: string): boolean {
     const owner = parts[0] ?? "";
     const repo = (parts[1] ?? "").replace(/\.git$/i, "");
     if (!pkgSegment.test(owner) || !pkgSegment.test(repo)) return false;
-    if (parts.length === 2) return true;
-    return parts.length >= 4 && parts[2] === "tree";
+    return parts.length >= 4 && parts[2] === "tree" && /^[0-9a-f]{40}$/.test(parts[3]);
   } catch {
     return false;
   }
@@ -197,12 +196,12 @@ export const PublishSchema = z
     }
     // Explicit plugin installs clone a GitHub package repository/path; they do
     // not use the generic URL or npm-package MCP fallbacks.
-    if (installerFor(val.kind) === "plugin" && !isGitHubRepoSource(val.source)) {
+    if (installerFor(val.kind) === "plugin" && !isCommitPinnedGitHubSource(val.source)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["source"],
         message:
-          "a plugin or theme source must point at a GitHub repository or path containing reasonix-plugin.json, .codex-plugin/plugin.json, .claude-plugin/plugin.json, or a supported .claude-plugin/marketplace.json.",
+          "a plugin or theme source must be an HTTPS GitHub directory URL pinned to a full 40-character lowercase hexadecimal commit (https://github.com/<owner>/<repo>/tree/<commit>[/path]), containing reasonix-plugin.json, .codex-plugin/plugin.json, .claude-plugin/plugin.json, or a supported .claude-plugin/marketplace.json; repository roots, branches and tags are not accepted.",
       });
     }
     if (val.installKind !== "auto" && val.installKind !== installerFor(val.kind)) {

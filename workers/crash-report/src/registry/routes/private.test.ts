@@ -65,7 +65,7 @@ function publish(as: string, name: string, extra: Record<string, unknown> = {}) 
   return call("/v1/packages", {
     method: "POST",
     as,
-    body: { kind: "plugin", name, source: "https://github.com/o/r", summary: `secret ${name}`, tags: ["hidden-tag"], ...extra },
+    body: { kind: "plugin", name, source: "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02", summary: `secret ${name}`, tags: ["hidden-tag"], ...extra },
   });
 }
 
@@ -133,7 +133,7 @@ describe("private packages", () => {
       status: "private",
       kind: "plugin",
       installKind: "plugin",
-      source: "https://github.com/o/r",
+      source: "https://github.com/o/r/tree/34ba5aad19f0cb228965c01056b0a86c8ef5dd02",
     });
     expect(own.body.versions.map((v: { version: string }) => v.version)).toEqual(["1.2.0"]);
 
