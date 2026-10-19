@@ -139,7 +139,7 @@ Worker; the tables can stay.
 
 ## Account links
 
-Off by default (`FEEDBACK_ACCOUNT_LINK = "false"` in `wrangler.toml`). While off, the
+On in production (`FEEDBACK_ACCOUNT_LINK = "true"` in `wrangler.toml`; set it to `"false"` to turn it off). While off, the
 `/v1/feedback/link*` and `/v1/feedback/account/mine` routes do not exist, `mine` and
 replies stay install-keyed, and nothing reads `feedback_account_links`. The same
 holds while the `FEEDBACK_ACCOUNT_SECRET` secret is unset.
@@ -204,7 +204,7 @@ strict CSP (`script-src 'self'`, no inline script or style), `noindex`, and
 
 ## Contribution board
 
-Off by default (`FEEDBACK_BOARD = "false"`) and absent unless account linking is also on. Migration:
+On in production (`FEEDBACK_BOARD = "true"`; `"false"` hides it) and absent unless account linking is also on. Migration:
 `migrate-feedback-board.sql` (`feedback_board_optin`, `feedback_board_delisted`); `migrate-feedback-board.down.sql` drops both.
 
 - A signed-in account lists itself with `PUT /v1/feedback/board/optin {displayName}` and leaves with `DELETE`.

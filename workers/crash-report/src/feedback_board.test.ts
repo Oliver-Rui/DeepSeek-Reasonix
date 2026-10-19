@@ -384,9 +384,9 @@ describe("deploy contract", () => {
     expect(body).toContain("missing $name after migration");
   });
 
-  it("ships the board off by default", () => {
+  it("ships the board on, as the owner decided for production", () => {
     const toml = readFileSync("wrangler.toml", "utf8") as string;
-    expect(toml).toMatch(/^FEEDBACK_BOARD = "false"$/m);
+    expect(toml).toMatch(/^FEEDBACK_BOARD = "true"$/m);
     expect(toml).toMatch(/^FEEDBACK_BOARD_CACHE_SECONDS = "300"$/m);
   });
 });
