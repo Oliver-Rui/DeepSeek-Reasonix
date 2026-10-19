@@ -16,6 +16,11 @@ on:
         required: false
         default: ""
         type: string
+      studio_version:
+        description: "Studio version that must be present in the generated changelog"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -41,6 +46,7 @@ jobs:
         working-directory: site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STUDIO_RELEASE_VERSION: ${{ inputs.studio_version }}
         run: |
           npm ci
           npm test
