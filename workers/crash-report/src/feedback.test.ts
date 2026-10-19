@@ -89,7 +89,7 @@ describe("POST /v1/feedback", () => {
     expect(detail.env.memory).toEqual(memory);
   });
 
-  it("refuses memory entries that could carry anything but a process type and two numbers", () => {
+  it("drops memory entries that could carry anything but a process type and two numbers, and still takes the report", async () => {
     const bad = [
       [{ process: "C:\\Users\\someone\\app.exe", workingSetKB: 1, privateKB: 1 }],
       [{ process: "renderer", workingSetKB: "1", privateKB: 1 }],
@@ -97,9 +97,26 @@ describe("POST /v1/feedback", () => {
       [{ process: "renderer", workingSetKB: 1.5, privateKB: 1 }],
       Array.from({ length: 13 }, () => ({ process: "utility", workingSetKB: 1, privateKB: 1 })),
     ];
-    for (const memory of bad) expect(FeedbackEnv.safeParse({ memory }).success).toBe(false);
-    expect(FeedbackEnv.safeParse({ memory: [{ process: "gpu", workingSetKB: 76560, privateKB: 60000 }] }).success).toBe(true);
+    for (const [i, memory] of bad.entries()) {
+      expect(FeedbackEnv.parse({ version: "v2.45.0", memory }).memory).toBeUndefined();
+      const res = await submit(submission({ installId: `install-memory-${String(i).padStart(8, "0")}`, env: { version: "v2.45.0", memory } }));
+      expect(res.status).toBe(201);
+      const { receipt } = (await res.json()) as { receipt: string };
+      const detail = (await (await call(`/v1/admin/feedback/${receipt}`, { headers: admin })).json()) as { env: Record<string, unknown> };
+      expect(detail.env.version).toBe("v2.45.0");
+      expect(detail.env.memory).toBeUndefined();
+    }
+    expect(FeedbackEnv.parse({ memory: [{ process: "gpu", workingSetKB: 76560, privateKB: 60000 }] }).memory).toHaveLength(1);
     expect(FeedbackEnv.safeParse({}).success).toBe(true);
+  });
+
+  it("stores only the three fixed keys of a memory entry, whatever else is sent", async () => {
+    const sent = [{ process: "renderer", workingSetKB: 10, privateKB: 9, path: "C:\\Users\\someone", pid: 4740, cmd: "x" }];
+    const res = await submit(submission({ env: { version: "v2.45.0", memory: sent } }));
+    expect(res.status).toBe(201);
+    const { receipt } = (await res.json()) as { receipt: string };
+    const detail = (await (await call(`/v1/admin/feedback/${receipt}`, { headers: admin })).json()) as { env: { memory: unknown[] } };
+    expect(detail.env.memory).toEqual([{ process: "renderer", workingSetKB: 10, privateKB: 9 }]);
   });
 
   it("replays an idempotency key without creating a second row", async () => {

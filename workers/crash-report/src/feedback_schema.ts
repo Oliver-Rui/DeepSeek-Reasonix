@@ -20,7 +20,8 @@ export const FeedbackEnv = z.object({
   locale: short(20),
   channel: z.enum(["stable", "preview"]).optional(),
   providerKind: z.enum(["deepseek", "openai", "anthropic", "other"]).optional(),
-  memory: FeedbackMemory.optional(),
+  // A diagnostic must never cost the person their report: a malformed list is dropped, not refused.
+  memory: FeedbackMemory.optional().catch(undefined),
 });
 
 export const FeedbackSubmit = z.object({
