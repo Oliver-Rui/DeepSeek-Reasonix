@@ -3,6 +3,1006 @@
   "releases": [
     {
       "product": "studio",
+      "version": "2.45.0",
+      "date": "2026-10-19",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版新增定时任务、会话排序与跨项目移动、手机提醒、WSL 远程、Git 面板、反馈贡献榜、规则目录与按名称关闭工具，推理强度可在进行中的回合里切换，并修复内置浏览器页面缩放、终端卡顿、子代理识图等一批问题。\n\n## 新增\n\n- `reasonix schedule add|list|tick` 等命令，在终端确认后按时间只读地运行任务；需用系统计划任务调用 `schedule tick`。关联 #11406。\n- Studio 打开且可见（窗口或托盘图标）时，会按计划自动运行已确认的定时任务；同一时刻只有一个内核执行。关联 #11406。\n- 会话菜单里可以把会话上移或下移，也可以在会话行上按 Alt+上下键；顺序保存在内核里，重启后不变。关联 #11420。\n- Linux 增加 `.AppImage` 下载（amd64 和 arm64），可直接运行；它不会自更新，新版本需重新下载。关联 #11653。\n- 浏览器和工作台可以全屏查看，会话与输入框暂时收起，按 Esc 或再点一次回到分栏；有事等你决定时自动退出全屏。关联 #11721。\n- 登录同一账号的手机可在有操作待批准、模型提问、一轮出错时收到提醒，通知只含类别和数量。电脑和手机两边默认都关，需分别开启。关联 #11878。\n- MCP 服务器因授权范围不够拒绝调用时，模型会停下，你可在该服务器那行点“授权更多权限”，每次都会先问你。关联 #11959。\n- 在“我的反馈”里可以撤回自己的反馈（命令行用 /feedback withdraw）；已登记的议题会被关闭，已有结论的反馈不能撤回。关联 #11995。\n- 可选的等级提示（设置里“等级提升时通知我”，默认关）：反馈等级提高时在窗口顶部提示一次，终端 /feedback list 说一行。关联 #12025。\n- 在“我的反馈”的对话里，你自己的回复旁会显示你的等级徽章，维护者的回复旁没有。关联 #12025。\n- 关联账号的电脑上，“我的反馈”会列出其他已关联设备的反馈和回复；终端新增 /feedback link、unlink、links。关联 #12073。\n- 设置 → 远程可以添加本机的 WSL 发行版：内核运行在发行版里，界面仍在 Windows；关闭 Studio 后内核随发行版停止，对话会保留。关联 #12225。\n- 终端界面的 /mcp 面板里，返回 401 的服务器可按 a 登录，要求更多权限的服务器可按 u 授权，都会先问你。关联 #12357、#11959。\n- ACP 会话支持 `additionalDirectories`，多文件夹工作区可让会话写入额外文件夹，仅限该会话，且经过与手动授权相同的检查。关联 #13114。\n- ACP 支持 `$/cancel_request`、消息块 `messageId`、权限请求带工具名，并按客户端声明转交 MCP 的表单与外部页面。关联 #13114。\n- 可选的追踪导出，在用户配置里开启并填写收集器地址后，每轮对话以 OpenTelemetry 追踪发给你自己的观测系统；默认关闭，只发结构和名称。关联 #13115。\n- 反馈面板里的“贡献榜”，按版本有名次，自己选择加入并预览名字，随时退出；终端用 /feedback board。服务端开启后才显示。关联 #13142。\n- 会话菜单里可以把会话移到另一个项目，只带走对话和标题、置顶、归档；权限设置、检查点、后台任务日志和排队消息不随移动，原件会被移除。关联 #13370。\n- 设置里的 SearXNG 地址旁新增「测试连接」，说明连不上的原因；只测已保存的地址，不连云元数据等地址；搜索失败时模型也收到同一原因码。关联 #13541。\n- 大文件优先引用本地路径，无路径时流式上传；默认 1 GiB 上传安全上限可由用户配置调整。关联 #13544。\n- 实验性，未经真实端点验证：原生 Gemini 提供方（Interactions API），支持思考、工具调用与视频（含 Files API）。关联 #13615。\n- 可在设置里打开“把视频地址交给模型厂商”（默认关闭）；只交你亲手写的 https 地址，厂商自己访问，智谱 GLM 与 Gemini（YouTube）支持。关联 #13616。\n- 子代理的面板行、完整记录标题和嵌套卡片都会显示它实际跑在哪个模型和强度上，失败或中断的也有。见 #13640。\n- 模型现在可以请你打开它需要的开关（比如派发到其他项目），你点一下确认才生效；安全边界类设置它永远改不了。关联 #13678。\n- 在输入框输入 # 可选一段本工作区的历史会话，作为只读资料带进这条消息；搜索命中也能引用，长度上限可在设置里调。关联 #13687、#11942。\n- 模型可用 task 的 task_id 给运行中的子代理补充指示，它在下一次调用工具时读到；设置里可调单条大小和每分钟上限。关联 #13693。\n- mod 的安装预览写明完全信任与静态清单；mod 可在输入框上方画一条带，它的提问会写明来源。关联 #13694。\n- 把鼠标移到你发的消息上，操作图标旁会显示这条消息的发送时间，长时间运行的任务可以据此核对起止时间。关联 #13697。\n- 设置 → 扩展里，你自己和项目文件夹里的技能多了「卸载…」，确认框写明要删除的位置；内置技能和由包提供的技能不显示。关联 #13714。\n- 终端里的 /mcp 面板现在可以添加和删除 MCP 服务器（按 n、d），添加前会完整显示将要运行的命令并要你确认。关联 #13754。\n- 工作台里的 Git 面板：改动按文件夹树显示，可整个文件夹暂存、丢弃单个文件的改动，推送前先预览目的地，历史里的提交可展开看文件和差异，非仓库的项目文件夹会按仓库分组显示。关联 #13821。\n- 终端里 /btw <问题> 在旁路问一个只读问题，答案只显示一次，不存入会话、不进入提示词。关联 #7950。\n- `reasonix acp --permission-mode` 供把 Reasonix 当子代理嵌入的宿主使用：固定审批姿态，客户端只能降低不能抬高，旧存档的更高姿态被限制且文件不改。议题 #13839。\n- 连接可以声明余额接口的返回格式；其他域名（如中转站）必须选择格式，否则显示未配置，也不发密钥。关联 #13736。\n- 设置里可以让新对话默认进入计划模式（agent.default_mode，默认关闭）；已有对话保持自己的模式。关联 #7852。\n- 状态栏显示当前按供应商哪个时段计费（高峰或平峰）和还有多久切换，只在模型用的是供应商自己的价格表时显示。关联 #8853。\n- Studio「人设」页提供用户级前后缀及运行时上下文开关；内置指令保留，项目不能设置人设。保存后在新会话或下次会话重建时生效。关联 #13588。\n- 连接编辑器里，每个模型价格下可填价格来源链接和核对日期（UTC）；只显示主机名，点击才打开，不会自动访问。议题 #13276。\n- 支持规则目录（.reasonix/rules、.claude/rules 和用户目录下的 rules），可用 paths: 限定到某些文件；不影响缓存前缀。关联 #9886。\n- 可以按名称关闭工具（[tools] disabled，设置里每个工具有开关），关闭后不再发给模型，调用会被拒绝；被其他功能依赖的保留并提示。关联 #8394。\n\n## 变更\n\n- 服务商支持逐请求设置思考强度时，切换强度不再重建会话，进行中的回合里也能切，下一次请求起生效。见 #11411。\n- 会话等你回答时（含 Auto Guard 确认卡、沙盒越界提问）让出写入权；其间别的会话占了这些路径，会告知模型并记入回执，最长等待可设。见 #11531。\n- task 工具新增 task_id 参数，升级后的第一轮对话，工具说明的缓存会冷一次，之后恢复。关联 #13693。\n- 通过 ACP 连接时，失败的对话回合改为以 JSON-RPC 错误（-32603，data.code 为 turn_failed）结束，不再返回规范之外的 stopReason \"error\"。关联 #13703。\n- 通过 ACP 连接时，模型缺少密钥或尚未配置提供方，新建会话返回协议规定的“需要认证”错误（-32000），客户端可据此引导运行 reasonix setup。关联 #13705。\n- 通过 ACP 连接时，因“尚未验证”被暂停的回合以 end_turn 结束，响应带 paused 结果，文本末尾追加 [paused] 回执。关联 #13706。\n- 通过 ACP 连接时，状态类扩展通知需要客户端在初始化时声明 statusUpdates 才会发送，会话记录路径改放在响应的 _meta 里。关联 #13721。\n- 打开设置里的“派发”开关就是对派发的总同意：任务和回信不再出审批卡；新会话沿用发起会话的模型、预设、审批档位和计划模式，且不会更宽。见 #13526。\n- 已装的全信任权限扩展现在也会被已安装的 MCP 工具咨询（只能收紧，不能放宽）。见 #13694。\n- 常驻放行的会话间消息只会越过宿主自己设的暂停，不会越过你主动按下的暂停，它会留在队列里等你。关联 #13775。\n- 本机与 SSH 项目统一展示；“打开项目”移至标题旁的加号，支持统一折叠与展开。提交 da051abb2。\n- 会话采用中性选中背景；可选的悬停置顶、归档按钮默认关闭，菜单始终可用；修复环境切换、重复点击及焦点问题。PR #13638。\n- 远端读取与未指定目录的打开共用主机默认目录，已有会话不会改变读取目标或绕过禁用检查。PR #13638。\n- 未登记的 SSH 主机在连接前返回明确拒绝，远端写入接口的请求体限制为 64 KiB。PR #13638。\n\n## 修复\n\n- 代码编辑器及其查找栏的字号现在跟随外观里的界面字号，不再固定在 12px 和 11px。关联 #11577。\n- 撤回反馈后，它对应的 GitHub 议题会被自动关闭（标记为不计划处理）。关联 #11995。\n- 迁移数据根之后，窗口里仍记着旧位置的会话现在能按文件名在新的会话目录里打开，不再提示“没有这个会话”。关联 #13152。\n- `[[keep]]` 标记的回合现在有自己的保留预算（窗口的 15%，新的优先），超出的旧回合并入摘要并提示；共享窗口的模型在回复空间用尽前就会压缩。见 #13320、#12773。\n- 压缩时摘要请求被供应商以“输入超长”拒绝，现在会按更小的输入重试（70%、50%、35%），而不是放弃这次压缩。见 #13320。\n- 有系统沙盒把 shell 限在项目文件夹里时，同一 git 仓库下两个项目里的会话不再因 bash 等无声明写入互相等待；没有沙盒（如 Windows）时仍整库互斥。见 #13335。\n- 委派任务里点名了粘贴的截图（.reasonix/attachments 下的文件）时，子代理现在能收到图并切到识图模型；技能子代理也不再悄悄丢图。见 #13642。\n- 刚进入窗格就打开分支菜单时，菜单会被自己的挂载收尾关掉，或一直停在加载中。关联 #13674。\n- 模型调用跨项目派发被拒时，会说明是“允许模型把任务交给别的会话”开关没开，并指出设置位置，不再和“此会话无法打开别的项目”混为一谈。关联 #13677。\n- 有新版本时，设置弹窗左侧列表里的「版本」一行也会出现和左下角设置图标一样的提示点，打开设置后能直接看到该点哪里。关联 #13682。\n- Windows 上会话文件名含大写字母（如自定义模型名）时，顶部标题和标签总显示“新会话”。关联 #13684。\n- 标题栏的搜索按钮在查找栏已打开时再点一次会关闭它，不再只是重新聚焦；快捷键和命令面板仍然是打开。关联 #13696。\n- 你自己发的消息下面的操作图标（复制、改写、回退）和 AI 回复下面的一样大，不再偏小。关联 #13699。\n- 侧栏搜索框有关键词时不再在失焦后收起，点搜索结果的第一下不会再因为列表上移而落空。关联 #13708。\n- 技能目录顶层放了 SKILL.md 时，卸载它会把整个技能目录连同其他技能一起删掉；现在只删这一个文件。关联 #13714。\n- 模型偏好里的“网页搜索”不再列出尚未添加的连接下的模型；选不了时的提示也改为“还没有添加”，不再误称“已被移出”。关联 #13806。\n- HTTP 连接里输入 `!` 命令被拒后，命令会整段选中留在输入框，接着打字就是替换，下一条普通消息能直接发出。关联 #13810。\n- 智能体把页面排版到比窗格更宽的视口（如 1440 宽）时，内置浏览器只显示页面左侧一部分；现在整页缩放到窗格内显示。关联 #13811。\n- 智能体给内置浏览器页面设了比窗格小的视口时，页面居中显示，不再缩在窗格左上角；页面被缩小适配窗格时，智能体的点击仍落在原来瞄准的位置。关联 #13811。\n- 项目文件夹或外部文件夹被移走、改名或删除后，工具调用不再返回系统原话或“无匹配”，而是明确告诉模型和界面“文件夹不在了”，并在输入框上方提示重新选择。关联 #13833。\n- OpenCode Go 的新地址（opencode.ai/inference/go/…）不再因缺少会话标识而返回 400。关联 #13849。\n- 自定义提供商没有声明推理档位时，/effort 不再说“不支持”，而是告诉你在该条目里写 supported_efforts。关联 #13857。\n- 同一主机、不同端口的两个模型服务被合并成一个，新增的那个不显示；现在端口属于地址，各自独立显示，重复的条目也不再被丢掉。关联 #13858。\n- 终端界面里，命令输出很长、或思考/回答很长时，界面会越来越卡（每次追加都复制整段文字）；现在追加开销不再随长度增长。见 #13872。\n- Studio 窗口最小化时，智能体在内置浏览器里的点击被页面丢弃却报成功；现在输入前会不可见地升起窗口、之后恢复最小化（Windows）。见 #13628。\n- 你在卡片上批准的、别的会话发来的消息，在发送队列被暂停时不再只入队不处理，会单独开始，更早排队的内容仍保持暂停。关联 #13775。\n- 别的会话发来的消息正文里的 @ 不再被当成本地文件引用去读取，读不了的引用也不会再把发送队列暂停。关联 #13775。\n- 终端里刚启动就输入 /feedback 会提示“当前会话不可用”，要先 /reload 才行；现在启动后即可用。关联 #12073。\n- 用量页的「实付」不再包含订阅等价（Token Plan 之类）的估算；估算单独一行标为「等价估算」，每日明细里也并排显示。议题 #13276。\n- 已选「自动下载」时，打开设置里的版本页会立即检查一次新版本并开始下载，不必再等最长一天的后台检查。议题 #13683。\n\n---\n<!-- lang:en -->\n\nThis release adds scheduled tasks, session moves, phone reminders, WSL remotes, a Git panel, a contribution board and rules directories, lets reasoning depth change mid-turn, and fixes browser scaling, terminal slowdown and sub-agent image reading.\n\n## New\n\n- `reasonix schedule add|list|tick` and friends: a read-only task runs when you confirm it in a terminal; call `tick` from your OS scheduler. Refs #11406.\n- While Studio is open and visible (a window or tray icon), it runs the schedules you confirmed; only one kernel ticks at a time. Refs #11406.\n- A conversation can be moved up or down from its menu or with Alt+Arrow on its row; the order is kept by the kernel and survives restarts. Refs #11420.\n- Linux gets an `.AppImage` download for amd64 and arm64 that runs in place. It does not update itself: download the next release. Refs #11653.\n- Full-screen browser and workbench with the conversation folded away; Esc or the button restores the split, and it exits by itself when something needs your decision. Refs #11721.\n- phones on the same account can be reminded when an action awaits approval, the model asks, or a turn fails; only the kind and a count are sent. Off by default on both sides. Refs #11878.\n- When an MCP server refuses a call for lack of access, the model stops and you can click \"Grant more access\" on its row; you are asked every time. Refs #11959.\n- You can withdraw your own report from My feedback (or /feedback withdraw in the terminal); its issue is closed, and a report with an outcome can no longer be withdrawn. Refs #11995.\n- An optional level-up notice (Settings \"Tell me when my level goes up\", off by default): one note at the top of the window, one line in /feedback list. Refs #12025.\n- In a My feedback thread, your level badge now sits beside your own replies and never beside a maintainer's. Refs #12025.\n- On a linked device, My feedback also lists reports and replies from your other linked devices; the terminal gains /feedback link, unlink, links. Refs #12073.\n- Settings, Remote can add a WSL distribution on this PC. The kernel runs in it and stops with it when Studio closes; conversations are kept. Refs #12225.\n- In the terminal /mcp panel, press a to sign in to a server that answered 401, or u to grant one the extra access it asked for; you are asked first. Refs #12357, #11959.\n- ACP sessions accept `additionalDirectories`, so a multi-folder workspace can give a session extra write roots, for that session only and with the usual vetting. Refs #13114.\n- ACP supports `$/cancel_request`, `messageId` on chunks and tool names on permission requests, and forwards MCP forms and pages when advertised. Refs #13114.\n- Opt-in trace export: once your user config enables it and names a collector, each turn goes to your own observability stack as OpenTelemetry traces; off by default. Refs #13115.\n- A contribution board in the feedback panel, ranked per release; you choose to join, preview the name and can leave. Terminal: /feedback board. Refs #13142.\n- Move a conversation to another project from its menu; permissions, checkpoints, task logs and queued messages stay behind and are removed. Refs #13370.\n- A Test connection button beside the SearXNG address says why an instance does not answer; it tests only the saved one, never a metadata address. Refs #13541.\n- Large files use native references or streaming; the default 1 GiB upload safety ceiling is user-configurable. Refs #13544.\n- (experimental, not run against the real endpoint) a native Gemini provider on the Interactions API with thinking, tools and video. Refs #13615.\n- a Settings switch (off by default) to hand a public video address you wrote to the model vendor, which visits it itself; Zhipu GLM and Gemini (YouTube). Refs #13616.\n- a sub-agent's panel row, full-record header and nested card now show the model and effort it actually ran on, failed or interrupted runs included. See #13640.\n- The model can now ask you to turn on a switch it needs (such as dispatching to another project), applied only when you confirm; boundary settings it can never change. Refs #13678.\n- Type # in the message box to reference a past conversation of this workspace as read-only material; search hits can be referenced too, with a size limit in Settings. Refs #13687, #11942.\n- The model can give a running sub-agent more guidance with task's task_id, read at its next tool call; Settings sets the size and per-minute limits. Refs #13693.\n- A mod's install preview states full trust and a static listing; a mod can draw a band above the prompt, and its questions say whose they are. Refs #13694.\n- Hovering your own message now shows when it was sent next to its action icons, so a long-running task's start can be checked against it. Refs #13697.\n- Settings > Extensions can remove a skill of your own or the project's, after a confirmation naming the place to be deleted; built-in and package skills do not offer it. Refs #13714.\n- The terminal's /mcp panel can now add and remove MCP servers (n, d), showing the full command it would run and asking you to confirm first. Refs #13754.\n- A Git panel in the workbench: a folder tree of changes to stage and discard, push with a preview, commit details, and a section per repository. Refs #13821.\n- In the terminal, /btw <question> asks a read-only side question: the answer is shown once and is not saved to the session or sent into its prompt. Refs #7950.\n- `reasonix acp --permission-mode`, for hosts embedding Reasonix as a subagent, fixes the approval posture: clients can lower it, never raise it; a higher saved posture is clamped. Issue #13839.\n- A connection can declare the format its balance endpoint answers in; a relay must pick one or shows as not configured and is not sent the key. Refs #13736.\n- Settings can start new conversations in plan mode (agent.default_mode, off by default); existing conversations keep their own mode. Refs #7852.\n- The status bar shows which of the vendor's billing windows (peak or off-peak) the model is in and how long until it changes, only where the model is billed at the vendor's own rate. Refs #8853.\n- Studio Persona settings add user-level prefix/suffix text and a runtime-context switch, preserving built-in guidance. Applies at the next session build. Refs #13588.\n- A model's price in the connection editor can carry a source link and a check date (UTC); only the host is shown, the link opens when clicked and is never fetched. Issue #13276.\n- Rules directories (.reasonix/rules, .claude/rules and the user's rules folder), optionally scoped to files with paths:; the cache-stable prefix is untouched. Refs #9886.\n- Tools can be turned off by name ([tools] disabled, a switch per tool in Settings): they leave every request and a call is refused; tools another feature needs stay, with a note. Refs #8394.\n\n## Changed\n\n- when the provider takes reasoning depth per request, changing it no longer rebuilds the session and works mid-turn, taking effect on the next request. See #11411.\n- a session waiting on you gives up its write claim, Auto Guard and sandbox-escape asks included; contention reaches the model and receipt, and the longest wait is a setting. See #11531.\n- The task tool gains a task_id parameter, so the tool-description cache is cold once on the first turn after upgrading and then warm again. Refs #13693.\n- Over ACP, a failed turn now ends with a JSON-RPC error (-32603, data.code turn_failed), not the non-standard stopReason \"error\". Refs #13703.\n- Over ACP, opening a session with a keyless model or no provider now returns the protocol's \"Authentication required\" error (-32000) so clients can offer reasonix setup. Refs #13705.\n- Over ACP, a turn paused as unverified now ends with end_turn, a paused outcome and a [paused] receipt at the end of the text. Refs #13706.\n- Over ACP, the vendor status notifications are sent only to clients that declare statusUpdates at initialize, and the transcript path moves into the response _meta. Refs #13721.\n- the Dispatch switch is your consent: tasks and replies come in with no card, and the opened session keeps the sender's model, preset, approval mode and planning, never wider. See #13526.\n- existing full-trust permission extensions are now also consulted for installed MCP tools (they can only tighten). See #13694.\n- A message let in by a standing release starts only over a pause the host set itself, never over one you pressed; it stays queued for you. Refs #13775.\n- Local and SSH projects share one list. Open Project moves to the heading's plus button, alongside collapse/expand all. Commit da051abb2.\n- Neutral session selection offers opt-in hover Pin and Archive, off by default; session menus remain available. Environment routing, repeated clicks, focus and stream budgets are fixed. PR #13638.\n- Remote reads and unqualified opens share the host default. Existing panes cannot redirect a read or bypass a disabled host. PR #13638.\n- Unknown SSH hosts are refused before connecting; remote mutation request bodies are limited to 64 KiB. PR #13638.\n\n## Fixed\n\n- The code editor and its search bar now follow the interface text size in Appearance instead of staying at 12px and 11px. Refs #11577.\n- When a report is withdrawn, its mirror GitHub issue is now closed automatically as not planned. Refs #11995.\n- After the data root is moved, a conversation the window remembers by its old location opens from the new session folder by file name. Refs #13152.\n- [[keep]] turns now have their own budget (15% of the window, newest first); older ones fold with a notice. Shared-window models fold before the reply runs out of room. See #13320, #12773.\n- when the provider refuses a compaction's summary request as too large, it is retried with a smaller input (70%, 50%, 35%) instead of giving up the fold. See #13320.\n- with an OS sandbox confining the shell to its folder, sessions in two projects of one git repository no longer wait on each other for bash writes; without one they still do. See #13335.\n- a delegated task naming a pasted screenshot (a file under .reasonix/attachments) now gives the sub-agent the image on the vision model; skill sub-agents no longer drop it. See #13642.\n- Opening the branch menu just as a pane settles no longer shuts it or leaves it loading forever. Refs #13674.\n- When cross-project dispatch is refused because the user's switch is off, the error now says so and names the setting, not a generic \"cannot open sessions\". Refs #13677.\n- When a newer release is known, the Version row in the settings list now carries the same mark as the gear, so the update entry is easy to find. Refs #13682.\n- on Windows the header and tab always read \"New chat\" when the transcript file name had upper-case letters (for example a custom model name). Refs #13684.\n- Pressing the title bar search button while the find bar is open now closes it instead of only re-focusing; the shortcut and the palette still open it. Refs #13696.\n- The action icons under your own messages (copy, edit, rewind) are now the same size as those under a reply instead of smaller. Refs #13699.\n- The rail's search box stays open while it holds a query, so the first press on a result is no longer lost to the list moving up. Refs #13708.\n- Removing a skill whose SKILL.md sits at the top of a skills folder deleted the whole folder with every other skill; it now deletes only that file. Refs #13714.\n- the web-search model picker no longer lists models from unadded connections, and a refused pick now says \"not added\" rather than \"removed\". Refs #13806.\n- Over an HTTP connection a refused `!` command now stays selected in the box, so what you type next replaces it and the next ordinary message sends. Refs #13810.\n- A page the agent laid out wider than the pane (for example 1440 wide) showed only its left part in the built-in browser; it is now scaled to fit. Refs #13811.\n- A built-in browser page given a viewport smaller than the panel is centred at its own size, and clicks on a page scaled to fit the panel land where they were aimed. Refs #13811.\n- when a project or external folder is moved, renamed or deleted, tools now say the folder is gone instead of a bare system error, and the window prompts to choose it again. Refs #13833.\n- OpenCode Go's documented endpoint (opencode.ai/inference/go/…) no longer fails with 400 for lack of the session header. Refs #13849.\n- /effort on a custom provider with no declared reasoning levels now says so and points at supported_efforts instead of claiming the model does not support them. Refs #13857.\n- Two model services on one host but different ports were merged into one and the new one never showed; the port is now part of the address, and exact duplicates are listed too. Refs #13858.\n- the terminal UI slowed down as a command's output, an answer or its thinking grew, since each appended piece copied everything so far; appending now costs the same at any length. See #13872.\n- clicks the agent sent the built-in browser were dropped yet reported done while Studio was minimized; the window is now raised unseen for input, then minimized again (Windows). See #13628.\n- A message from another session that you approved on its card now starts even when the send queue is paused; what was queued before stays paused. Refs #13775.\n- An @token in the text of a message from another session is no longer read as a local file reference, and an unreadable one no longer pauses the send queue. Refs #13775.\n- In the terminal, /feedback said \"not available in this session\" until a /reload; it now works from the start. Refs #12073.\n- The usage page's paid figure no longer includes a subscription-equivalent estimate; it is its own labelled line and sits beside each day. Issue #13276.\n- With automatic download chosen, opening the Versions page now checks for a release at once and starts the download, instead of waiting for the next daily background check. Issue #13683.\n",
+        "sha": "56795d8913cc5ec27344d5c30ffe28b7435af4e5",
+        "path": "release-notes/studio/2.45.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.45.0",
+        "zh": "Reasonix Studio v2.45.0"
+      },
+      "summary": {
+        "en": "本版新增定时任务、会话排序与跨项目移动、手机提醒、WSL 远程、Git 面板、反馈贡献榜、规则目录与按名称关闭工具，推理强度可在进行中的回合里切换，并修复内置浏览器页面缩放、终端卡顿、子代理识图等一批问题。",
+        "zh": "本版新增定时任务、会话排序与跨项目移动、手机提醒、WSL 远程、Git 面板、反馈贡献榜、规则目录与按名称关闭工具，推理强度可在进行中的回合里切换，并修复内置浏览器页面缩放、终端卡顿、子代理识图等一批问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.45.0",
+            "zh": "Reasonix Studio v2.45.0"
+          },
+          "body": {
+            "en": "本版新增定时任务、会话排序与跨项目移动、手机提醒、WSL 远程、Git 面板、反馈贡献榜、规则目录与按名称关闭工具，推理强度可在进行中的回合里切换，并修复内置浏览器页面缩放、终端卡顿、子代理识图等一批问题。",
+            "zh": "本版新增定时任务、会话排序与跨项目移动、手机提醒、WSL 远程、Git 面板、反馈贡献榜、规则目录与按名称关闭工具，推理强度可在进行中的回合里切换，并修复内置浏览器页面缩放、终端卡顿、子代理识图等一批问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.45.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/56795d8913cc5ec27344d5c30ffe28b7435af4e5/release-notes/studio/2.45.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.44.0",
+      "date": "2026-10-18",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版新增模型读图片/视频工具、网页搜索与抓取的后端设置、会话间消息的真开关与派活、打开本地网页文件和模型接口重试次数设置，并修复子代理、MCP、侧栏、输入法与反馈回复相关的一批问题。\n\n## 新增\n\n- 设置 > 外观 > 大小 增加“界面文字”四档，只放大侧栏、设置、标签等处的文字，不动边距和控件；对话正文仍由“正文”单独设置。关联 #11577。\n- MCP 工具定义被改动时不必每次点接受：可以对某个服务器选择「跟随」，它的改动直接采用，每次仍会通知；随时可取消。关联 #12356。\n- 需要登录（401）的 MCP 服务器行上有“登录”按钮，点后等待浏览器登录；被暂挡工具旁新增“接受并以后都自动接受这个服务器的改动”，已跟随的服务器可“取消跟随”。关联 #12357。\n- 「我的反馈」的等级卡片里加了一句说明，写清楚「已落地」指反馈已被修复或实现并随新版本发布。修复 #12900。\n- 新增（默认关闭）：模型可把任务交给你另一个项目里的会话（dispatch_to_project），对方用户批准后才看到。关联 #13341。\n- 你发过消息的会话，侧栏行和标签上会出现小图标，标明对话走到哪一步（等批准、处理中、已回复、被拒绝），点它跳到该会话。关联 #13371。\n- 设置里有真正的“会话间消息”开关；被拦下的消息可“批准并记住项目”，已记住的项目在设置里一键撤销。保存后下个回合起生效。关联 #13371。\n- 声明 `video_models` 和 `video_protocol` 后，`read_video` 可把 MP4 原生交给能看视频的模型（通义内联、Kimi 上传），卡片显示发给了哪个模型。关联 #13399。\n- 能读图的模型多了 view_image 工具，可直接看工作区里的 PNG/JPEG/GIF/WebP 文件；不读图的模型不受影响。关联 #13540。\n- 本机读不到网页时，`web_fetch` 可回退到 DeepSeek 付费抓取接口，需先在卡片上同意；内网地址绝不外发。关联 #13541。\n- 免费搜索没有回答时，`web_search` 可回退到 DeepSeek 付费搜索接口；首次使用前弹出卡片，写明价格和搜索词，由你同意。关联 #13541。\n- `web_search` 可用你自己运行的 SearXNG 免费搜索，在用户配置里设置，默认关闭。关联 #13541。\n- 设置 > 工具与权限 里可设置网页搜索和抓取的后端与先后顺序；付费后端的计费同意是单独的开关，不会替你勾选。新开的窗格生效。关联 #13551。\n- 对话里点一个你授权过的额外文件夹里的文件路径，现在能在工作台里只读打开它（不能保存）；文件夹之外的路径仍打不开。关联 #13582。\n- 新增用户设置 `agent.max_provider_retries`：模型接口连接失败后的重试次数，默认仍是 10；设为 0 则一直重试到你取消，适合无人值守的长任务。关联 #13526。\n- 目标现在显示用量：桌面端展开计划栏能看到状态、轮数、请求数、tokens 和用时，停下时说明原因；终端页脚同样显示。关联 #13663。\n- 工作台浏览器里打开本地网页、SVG 或 PDF 文件时，右上角按钮可用系统默认程序打开它，旁边注明网页脚本会照常运行。关联 #13665。\n- 编辑器（ACP）新增只读方法 `session/info`（模型、工作区、预设、自动放行、缓存）和 `session/mcpServers`（已配置的 MCP 服务器及启用状态）。关联 #13644。\n- 编辑器（ACP）可对单个会话重连、断开 MCP 服务器，并提交扩展表单；项目声明但未获批准的服务器不会被启动，只返回要运行的命令。关联 #13660。\n- 编辑器（ACP）里付费搜索、付费抓取的同意可以选“本会话允许”或“始终允许”（存进你的设置），重连后卡片上仍保留这个选择。关联 #13606。\n\n## 变更\n\n- 输入框恢复 1.x 手感：悬停或聚焦时边框扫过一圈光（运行中、系统减弱动画时不播）；框内不再印“空闲/运行中”，状态仍读给读屏软件，运行时钟照旧。关联 #13253。\n- 选了人民币或美元显示费用、但模型价格不是官方价目表里的价格时，设置里会说明哪些模型无法换算；服务商页的价格行提供「恢复官方价」，缓存命中价为 0 时提示费用偏低。关联 #13513。\n- 子代理并发数和并行写者数默认不再限制（原为 6 和 3），可在用户配置里设上限；嵌套深度默认 8，设 0 取消。关联 #13526。\n- 会话队列不再限制排队 64 条；想限制时在用户配置里设 `agent.max_queued_inputs`，队列的字节上限仍然生效。关联 #13526。\n- 侧栏不再限制只能记住 32 个项目；想限制时在用户配置的 [desktop] 里设 max_workspaces。关联 #13526。\n- 左上角品牌标志旁的“STUDIO”徽标由实心深色块改为透明底、细边框、淡色文字，不再像一条提示；外形尺寸不变。关联 #13601。\n- MCP 登录：打开浏览器之前先告诉你服务器要把你带去哪个主机，批准后才打开；可选“始终允许”，只对这个服务器和这个主机生效。关联 #12357。\n- `/peer` 和会话间消息的接口现在会说明你发出的消息处于等待、处理中、已回复还是被拒绝。关联 #13341。\n- 带图片的排队消息不能在运行中途插入，要等本轮结束；队列里这一行现在写明“含图片，本轮结束后发送”，不再只显示“尚未送达”。关联 #13563。\n- 子代理列表里已结束的任务现在写明状态“已交付”并带上耗时，用绿色标出，不再只显示一个秒数。关联 #13596。\n- 配置工作目录时会显示准备的实际阶段、长时间等待、成功、失败重试和取消；失败或取消保留原任务与附件，已有隔离目录也在同一入口可搜。关联 #13598。\n\n## 修复\n\n- 压缩摘要复用已发送的系统提示和工具目录；纯文本历史还复用对话前缀，含工具的历史继续脱敏。关联 #11860。\n- Windows SSH 远端通过脚本文件启动内核，避免 WMI 的编码命令启动失败，并正确处理中文路径。关联 #12750。\n- 修复输入“/”后技能列表出现很慢的问题（装了大量插件技能时尤其明显）：短时间内的重复补全不再逐个重读技能文件。关联 #13197。\n- 辅助会话可收起为标题栏以露出正文，展开后保留草稿、引用和回答；收起不会取消正在进行的请求。关联 #13288。\n- 同一仓库里多个项目声明同名 MCP 服务器（内容不同）时，各自启用互不覆盖，重启后都保持已启用。关联 #13527。\n- 共享事件流迟迟打不开时（旧版内核或代理不认这条路径），窗格 10 秒后改读各自的事件流，页面不再停在“已连接却收不到事件”。关联 #13562。\n- 辅助会话面板改为从输入框上方弹出，不再固定在右上角、盖住右侧文件树；按 Esc 或点 × 关闭后焦点回到辅助会话按钮。关联 #13539。\n- 两个窗口或项目用同名但启动方式不同的 MCP 服务器时，不再每次启动互相冲掉握手缓存。关联 #13560。\n- 没有代理、读不到版本目录时，打开设置页会让「版本」等上 15 秒；现在各处共用一次读取，失败只记 20 秒，点「重试」才重新读。关联 #13565。\n- 原目录和隔离目录的会话归入同一项目，并标出实际目录；原目录失效时使用仍存在的目录，手动选择隔离目录仍打开该目录。关联 #13586。\n- 同一文件夹被写成不同形式（大小写、斜杠方向、末尾分隔符）时，窗格与侧栏项目对不上，标签和列表可能缺少已打开标记；窗格的会话找不到列表行时，日志里会留一行说明。关联 #13600。\n- 断网恢复后，侧栏“进行中”计数不再卡在已经结束的会话上（没打开的窗格也会在网络恢复后重新读到状态）。关联 #13604。\n- agent 打开、刷新或翻页内置浏览器时，不再打断你正在进行的输入法输入（拼音不会被当成字母直接上屏）。关联 #13605。\n- agent 打开、导航或显示内置浏览器页面时，不再把你正在输入的键盘焦点抢走；你自己点进那个页面则照常。关联 #13605。\n- 设置页左侧已选中的分区，鼠标停在上面时不再被悬停样式盖掉：浅色主题保持选中底色，两种主题下图标都保持选中时的颜色。关联 #13610。\n- 反馈刚提交、状态还是“已收到”时，如果维护者已经留言提问，现在可以直接在这条下面回复，不必等它被登记为 GitHub 议题；审核中的反馈仍不能回复。关联 #13626。\n- 主会话的模型不读图、子代理的模型读图时，子代理现在也有 view_image 可以看图，不再错用视频工具；父会话的工具表不变。关联 #13642。\n- 命令行里输入斜杠命令时，同一条技能发现警告不再每次按键重复打印、盖住输入行和状态栏；每条警告每个会话只出现一次。关联 #13655。\n- 后台任务一段时间没往自己的输出里写内容时，界面上的警告改成中文，写明任务名和已安静的时长，不再显示英文原文。关联 #13566。\n- 多个会话同时运行时，超长输出偶尔被截断的问题。关联 #13620。\n- Windows 上默认端口落在系统保留段（Hyper-V、WSL、Docker）时，网页服务现在会顺延到下一个可用端口，不再直接启动失败。关联 #13649。\n- 网络抖动时读取窗格列表失败，不再关掉所有标签并把你切到别的窗格；共享事件流首次连上后若断开，重连不再漏掉中间的事件。关联 #13603。\n- 会话标题在后台生成时，首条消息改了会重新生成，较慢的旧结果不会盖掉新标题。关联 #13611。\n- 网络、壁纸和账号面板失败时，按界面语言说明原因：不支持的壁纸格式、被拒绝的代理、登录请求已过期都不再显示英文原文或路径加状态码。关联 #13621、#13637。\n- 会话收件箱的队列暂时读不出来时，不再当成空队列而停止投递，会稍后重试。关联 #13438。\n- Windows 上读取 PDF 引用超时被取消时，不再因为结束进程命令无响应而卡住。关联 #13614。\n\n## 升级须知\n\n- 本版无需用户操作。唯一改变默认行为的是子代理并发数和并行写者数不再有默认上限；想保留上限，在用户配置里设置。关联 #13526。\n\n<!-- lang:en -->\n\nThis release adds image and video reading tools for the model, web search and fetch backend settings, a real switch and dispatch for session messages, opening a local page in the default program and a provider retry setting, and fixes a batch of sub-agent, MCP, sidebar, IME and feedback-reply problems.\n\n## New\n\n- Appearance > Size has an Interface text step (small to larger) that enlarges only sidebar, settings and tab text, not spacing or controls; body text keeps its own. Refs #11577.\n- For an MCP server you trust, choose to follow it: its changed tool definitions are taken without a click, each still announced, and you can undo it. Refs #12356.\n- an MCP server that answered 401 has a Sign in button; withheld tools gain \"accept and follow this server's changes\", and a followed server can be un-followed. Refs #12357.\n- the My feedback level card now says what \"shipped\" counts: a report that was fixed or built and released in a version. Fixes #12900.\n- the model can hand a task to a session in another of your projects (dispatch_to_project); that project's user approves first. Refs #13341.\n- a session you have written to carries a small icon on its row and tab saying where the exchange stands (waiting, working, replied, declined); click it to open that session. Refs #13371.\n- Settings has real session-message switches; a held message can be approved with its project remembered, and revoked in Settings. Applies from the next turn. Refs #13371.\n- declare `video_models` and `video_protocol` and `read_video` hands an MP4 to a model that watches video (DashScope inline, Kimi upload); the card shows which. Refs #13399.\n- a model that reads images gets a view_image tool that shows it a PNG, JPEG, GIF or WebP file in the workspace; text-only models are unchanged. Refs #13540.\n- when this machine cannot read a page, `web_fetch` can fall back to DeepSeek's paid Fetch API after you agree on a card; internal addresses are never sent. Refs #13541.\n- when the free search did not answer, `web_search` can fall back to DeepSeek's paid Search API, after a card shows the price and the query and you agree. Refs #13541.\n- `web_search` can use your own SearXNG instance for free searches, set in your user config, off by default. Refs #13541.\n- Settings > Tools and permissions sets the web search and fetch backends and their order; consent to be billed is its own switch, never ticked for you. New panes only. Refs #13551.\n- A path in the conversation that points into an extra folder you granted now opens read-only in the workbench (no saving); a path outside every granted folder still does not open. Refs #13582.\n- Added the user setting `agent.max_provider_retries`: how often a failed provider connection is retried, still 10 by default; 0 keeps trying until you cancel, for long unattended runs. Refs #13526.\n- A goal now shows its usage: the desktop plan fold lists state, turns, requests, tokens and work time and says why it stopped; the terminal footer shows the same. Refs #13663.\n- A local HTML, SVG or PDF file in the workbench browser can now be opened in the system default program from the toolbar button; a note says page scripts run as usual. Refs #13665.\n- ACP gains read-only `session/info` (model, workspace, preset, auto-approve, cache) and `session/mcpServers` (configured servers, on or off, no commands). Refs #13644.\n- ACP can reconnect or disconnect an MCP server for one session and submit extension forms; a project-declared server that is not approved is never started, only its command is reported. Refs #13660.\n- In editors (ACP), consent to paid search or fetch can be given for the session or always (saved to your settings), and a reconnected card keeps that choice. Refs #13606.\n\n## Changed\n\n- the composer border sweeps with light on hover or focus as in 1.x (not while running or with reduced motion); the idle/running word is no longer printed but still announced. Refs #13253.\n- Settings names models whose price is not in the vendor's list and so cannot be converted to the pinned currency; the price row offers Restore official price. Refs #13513.\n- Sub-agent concurrency and parallel writers are no longer capped by default (were 6 and 3); set limits in your user config. Nesting depth defaults to 8; 0 removes it. Refs #13526.\n- The session queue no longer stops at 64 waiting prompts; set `agent.max_queued_inputs` in your user config to limit it, and the queue's byte limits still apply. Refs #13526.\n- The sidebar no longer stops at 32 remembered projects; set max_workspaces under [desktop] in your user config to limit it. Refs #13526.\n- The STUDIO badge beside the wordmark is now an outline with muted text instead of a solid dark block; its size is unchanged. Refs #13601.\n- MCP sign-in names the host a server sends you to and asks before the browser opens; \"always\" is remembered per server and host only. Refs #12357.\n- `/peer` and the messages-between-sessions API now say whether a message you sent is waiting, being worked on, replied to or declined. Refs #13341.\n- A queued message with a picture cannot join a running turn and waits for it to end; its queue line now says \"Has an image: sent when this turn ends\", not just \"not delivered yet\". Refs #13563.\n- A finished sub-agent in the list now says \"Handed back\" with its time, in green, instead of showing only a number of seconds. Refs #13596.\n- Preparing a workspace shows its real stages, success, retry and cancel; a failure or cancel keeps the task and attachments, and existing worktrees are searchable there. Refs #13598.\n\n## Fixed\n\n- Compaction reuses the sent system/tool prefix, plus eligible text history. Tool arguments remain elided and oversized or stale requests fall back. Refs #11860.\n- Windows SSH remotes launch the kernel from a UTF-8 script instead of a WMI encoded command, preserving non-ASCII paths. Refs #12750.\n- Fixes the slow skill list after typing \"/\" (most visible with many plugin skills installed): repeated completions within a moment no longer re-read every skill file. Refs #13197.\n- Collapse a side question to read the transcript without losing its draft, quotes, answers or pending request. Refs #13288.\n- projects of one repository that declare an MCP server by the same name with different contents keep their enables side by side across a restart. Refs #13527.\n- when the shared event stream never opens (an older kernel, or a proxy), panes read their own streams after 10 seconds instead of staying silent. Refs #13562.\n- the side-conversation panel now opens above the composer instead of sitting at the top right over the file tree; Esc or the close cross returns focus to its button. Refs #13539.\n- two windows or projects using an MCP server of the same name but a different launch spec no longer evict each other's handshake cache on every start. Refs #13560.\n- With no proxy and an unreachable version catalog, opening Settings kept Versions waiting 15 s; callers now share one read, a failure is kept 20 s, and Retry reads again. Refs #13565.\n- source and worktree chats share one project with checkout labels. A surviving checkout replaces a missing source; picking a worktree still opens it. Refs #13586.\n- A folder spelled two ways (case, slashes, trailing separator) no longer splits a pane from its sidebar project; a pane with no row for its conversation now leaves a log line. Refs #13600.\n- after a network flap the sidebar's running count no longer sticks on conversations that finished; a pane you have not opened reads its status again once the network is back. Refs #13604.\n- the agent opening, reloading or navigating the built-in browser no longer cuts off an input-method composition in progress (the pinyin is no longer committed as raw letters). Refs #13605.\n- the agent opening, navigating or showing a built-in browser page no longer takes the keyboard from what you are typing in; clicking into that page yourself still works. Refs #13605.\n- The selected settings section keeps its look while the pointer rests on it: its fill in the light theme, and its icon colour in both themes. Refs #13610.\n- A \"received\" report can be answered from its thread once a maintainer has written to it, without waiting to be filed as an issue; one under review still takes no reply. Refs #13626.\n- A sub-agent on an image-reading model now gets view_image even if the session's model cannot read images; the parent's tool block is unchanged. Refs #13642.\n- Typing slash commands no longer reprints the same skill-discovery warning on every keystroke over the input line and status bar; each warning appears once per session. Refs #13655.\n- the warning about a background job that has been silent on its own output is now worded in the interface language, with the job name and how long it has been quiet. Refs #13566.\n- Oversize output was occasionally truncated when several sessions ran at once. Refs #13620.\n- On Windows, when the default port falls in a range the system reserves (Hyper-V, WSL, Docker), the web server now moves on to the next free port instead of failing to start. Refs #13649.\n- A failed pane-list read in a network blip no longer closes every tab, and a shared stream that drops right after its first attach no longer loses events. Refs #13603.\n- Session titles generated in the background are asked again when the first message changes, and a slower older result no longer overwrites the newer title. Refs #13611.\n- Network, wallpaper and account panels word their failures in the interface language instead of English text or a path and a status. Refs #13621, #13637.\n- When the session inbox queue cannot be read for a moment, delivery no longer stops as if it were empty; it retries shortly. Refs #13438.\n- On Windows, cancelling a timed-out PDF reference extraction no longer hangs when the process-kill command does not answer. Refs #13614.\n\n## Upgrade notes\n\n- No action is needed. The only default that changed is that sub-agent concurrency and parallel writers are no longer capped; set limits in your user config to keep them. Refs #13526.\n",
+        "sha": "31f230cf490ffee9db98e6734860dc0b92fb5bc5",
+        "path": "release-notes/studio/2.44.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.44.0",
+        "zh": "Reasonix Studio v2.44.0"
+      },
+      "summary": {
+        "en": "本版新增模型读图片/视频工具、网页搜索与抓取的后端设置、会话间消息的真开关与派活、打开本地网页文件和模型接口重试次数设置，并修复子代理、MCP、侧栏、输入法与反馈回复相关的一批问题。",
+        "zh": "本版新增模型读图片/视频工具、网页搜索与抓取的后端设置、会话间消息的真开关与派活、打开本地网页文件和模型接口重试次数设置，并修复子代理、MCP、侧栏、输入法与反馈回复相关的一批问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.44.0",
+            "zh": "Reasonix Studio v2.44.0"
+          },
+          "body": {
+            "en": "本版新增模型读图片/视频工具、网页搜索与抓取的后端设置、会话间消息的真开关与派活、打开本地网页文件和模型接口重试次数设置，并修复子代理、MCP、侧栏、输入法与反馈回复相关的一批问题。",
+            "zh": "本版新增模型读图片/视频工具、网页搜索与抓取的后端设置、会话间消息的真开关与派活、打开本地网页文件和模型接口重试次数设置，并修复子代理、MCP、侧栏、输入法与反馈回复相关的一批问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.44.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/31f230cf490ffee9db98e6734860dc0b92fb5bc5/release-notes/studio/2.44.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.43.0",
+      "date": "2026-10-17",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版新增会话间消息（实验）、跨项目的对话正文搜索、模型读视频、更新方式“自动下载”和可选起始分支的独立工作目录，并修复多个会话同时开着时的界面卡死、停止无效，以及一批界面和英文界面问题。\n\n## 新增\n\n- 设置里新增“会话间消息（实验）”：可查看本机别的会话、给它们发文字；收到的文字在输入框上方等你批准，批准后才交给模型。默认关闭。关联 #11376。\n- 开启“会话间消息”后，模型多了 list_peers 和 send_peer_message 两个工具；发送前先问你（卡片显示收件会话和全文），对方的用户批准后才交给它的模型。关联 #11376。\n- 侧栏搜索除了按名称筛选，停顿后还会搜所有项目里对话的正文，列出命中的对话和片段，点一下就打开。关联 #11942。\n- 在 Windows 缩放 100% 的宽屏（2400 像素以上）上，首次使用会问一次“界面是不是偏小”，可一键放大并可恢复，不会擅自改动。关联 #11962。\n- 模型来源列表的小圆点会记住上一次测试：失败是红点、悬停可见原因，通过是空心圈，换了地址或密钥就清掉。关联 #12040。\n- 工具调用跑了 10 秒还没结束时，卡片上出现“只停止这一条调用”，点了只结束这一条，本轮继续，模型会被告知该调用是被你停止的。关联 #12254。\n- 对话里的图片也能从你授权给当前工作区的文件夹（设置 → 沙盒 → 额外文件夹）里显示，文件夹之外的本地图片仍显示为占位框。关联 #13125。\n- 新会话的分支入口升级为“配置工作目录”：可选起始分支，首次发送时创建独立的 worktree；已有对话仍可切换分支。关联 #13264。\n- 设置 › 版本 › 更新方式新增“自动下载”（默认关）：后台下载并校验新版本，空闲时提示“重启并更新”，不会自动安装或重启。关联 #13291。\n- 任务运行时，输入框上方的状态条会写出本轮已运行多久（如“read_file · 1m 6s”），不用回到对话区看计时。关联 #13346、#13253。\n- 反馈窗口里添加的截图可以点击放大查看（发送和回复反馈两处），按 Esc 关闭，截图仍保留在草稿里。关联 #13350。\n- 侧栏首次读取项目和会话超过 15 秒时，会说明仍在读取并给出“重试”，重试会另起一次请求，不再排在卡住的请求后面。关联 #13345。\n- 输入框里的计划折叠在没有计划时显示 /goal 目标；对话、运行分析、工作台三个视图有了快捷键（Ctrl/⌘ 1、2、3）和命令面板入口。关联 #13369。\n- 设置里新增“多个会话同时写一个项目”开关（乐观模式，默认关），只对之后新开的会话生效。关联 #13384、#13392。\n- 用户配置里设 `tools.mcp_resources = true` 后，模型可读已连接 MCP 服务器列出的资源，每次先请你批准（默认关闭）。关联 #13385。\n- 读取 MCP 资源时，服务器声明的资源模板（如 `doc://item/{id}`）生成的地址也可读，其它地址仍被拒绝。关联 #13385。\n- 「我的反馈」顶部新增吸顶筛选条（全部、新回复、需要你回复、未结束、已结束，带数量），条目多时也能找到有新进展的。修复 #13388。\n- 工具调用卡片上多了“把结果带到末尾”按钮，点一下就在对话末尾再显示这条调用的原始输出，不用再翻找。关联 #13394。\n- 模型现在能“看”视频：read_video 用本机 ffmpeg 均匀抽几帧作为图片给模型（看不到声音和动作），需要读图模型；没装 ffmpeg 会明确说明。关联 #13399。\n- 命令行发布包现在随带网页界面，解压后直接运行 reasonix serve 就能在浏览器里打开。修复 #13406。\n- 命令要访问不在 `allowed_domains` 里的网站时，批准卡多了“始终允许”，把该网站写进你自己的列表，以后不再询问。关联 #13478。\n- 用户配置新增 `agent.goal_auto_retry`（默认 0）：目标因完成度检查不可用而暂停时，按退避间隔自动重试，最多这么多次。关联 #13478。\n- 设置 → 工具新增“计划批准”开关（也可在用户配置设 `agent.plan_approval = \"auto\"`）：打开后提交的计划不再等你点批准，默认关闭。关联 #13478。\n- 点击“后台任务”里正在运行的任务可查看它的输出（每 2 秒刷新，可复制、可停止），不影响模型自己读取输出。关联 #4783。\n- 设置了“同时保留的会话标签数”后，窗口因满额收起某个会话时会提示是哪一个，并说明对话仍在列表里。关联 #13419。\n- 用户配置新增 `sandbox.egress_unlisted = \"allow\"`：清单外的主机不再询问，每个主机只提示一次；拒绝名单照旧；默认关闭。关联 #13478。\n- 后台任务列表现在显示模型给任务起的名字（bash 新增可选的 description），悬停、聚焦或长按会弹出完整名字和完整命令，可选中复制。关联 #13458。\n\n## 变更\n\n- 添加模型来源时，先填协议、地址和 API Key，来源名称挪到最后，连接后自动生成，不必先想名字。关联 #12040。\n- 模型服务的联网搜索、思考参数、上下文续接三个开关不再点一下就写入，而是进连接表单的草稿，点“保存”才生效，“还原”可撤回。关联 #12040。\n- 切换 Git 分支时，输入框里的分支按钮会写出“正在切换到 xxx…”，不再只是变灰。关联 #12780。\n- 侧栏“全部 / 进行中 / 置顶 / 归档”那一行去掉了多余的放大镜，会话搜索走顶栏。关联 #13023。\n- 会话运行中已保存的压缩结果与历史对不上、改发完整历史时，会提示原因，不再悄悄放大上下文。关联 #13148、#13295。\n- 设置保存因配置文件读不出而被拒时，提示直接写出是哪个文件。关联 #13220。\n- 创建独立工作目录只使用已提交的代码，草稿附件随任务迁移，失败时保留原草稿；聊天区五个配置菜单统一了字号、间距、圆角与选中态。关联 #13264。\n- 窄屏聊天区的空输入框工具栏在获得焦点时保持紧凑，输入文字、添加附件或打开菜单时才展开，点按时按钮不会在手指下移位。关联 #13264。\n- 改了无法读出范围的内容后，结束前的提示不再说“重做一遍就行”：只能用 conclude_blocked 说明哪一处无法确认，或交给你；同一项只完整解释一次。关联 #13293。\n- 一个文件夹里会话很多时，重启后的首次读取不再逐个打开会话文件，只重读有变化的会话，改名后刷新也快得多。关联 #13345。\n- 自动命名失败时会说明原因（标题模型超时、没返回文字，或接口拒绝并给出状态码和原话），不再只说“请重试”。关联 #13353。\n- 去掉会话上方“对话 / 运行分析 / 工作台”一行：运行分析和工作台改为顶栏右端图标（再点返回对话），计划只在输入框里。关联 #13369。\n- 辅助会话入口从顶部视图条移到输入框工具栏（附件按钮之后的聊天图标），悬停有说明，打开时图标保持按下态。关联 #13369。\n- 子代理工具（task、fleet）的说明讲清了：开启 write_lease = optimistic 后，不传 write_paths 的写入者只占正在写的路径，不再占住整个工作区。关联 #13395。\n- 内核带失败码退出时，崩溃目录里会留下一个写明退出码和原因的文件，不再是空文件或被直接删掉。关联 #13433。\n- 对话里卡片图标下面的竖线轨道和“执行过程”折叠区左边的线已去掉，同一次工具调用在不同位置的样子更一致。关联 #13456。\n- “带到末尾的结果”改成和执行过程里一样的一行（无边框、图标方块、竖线）；暗色主题下执行过程的行也不再有整块底色。关联 #13456。\n- 开着多个会话标签时，切换标签和侧栏筛选更快：切换不再让所有隐藏会话整页重绘。关联 #13326。\n- 权限批准卡片上“本会话允许 / 始终允许”下多了一行说明：前者只在本次会话有效、不写磁盘，后者写入用户配置的权限规则，可在设置里撤销。关联 e54381d4f。\n- 辅助会话不再限制同时打开 3 个；想限制时在用户配置里设 `agent.max_side_sessions`。关联 #13526。\n- 安全加固：手写进收件夹的会话间消息正文，读取时同样清掉控制字符和方向覆盖符，假冒不了终端或审批界面。关联 #11376。\n- 安全加固：会话间消息里的会话名和发件人名读取时清掉换行、转义序列和标记，伪造的记录文件塞不进模型或终端。关联 #11376。\n- 设置“提问超时”后，模型交还任务清单却无人回应时，也会按此时间自动继续并写明假设，连续最多 3 次；默认关闭。关联 #13478。\n- 改进：本机所有窗格共用一条事件流，开多少窗格都只占 2 个连接，停止与提交不再被挤住。关联 #13533。\n- 对话里的批准、提问、记忆、守卫复核、扩展卡片等现在用同一种外壳：同样的圆角、边框和底色，标题栏不再单独填色，警告和错误也不再给整圈边框着色。关联 #13456。\n- 对话里低风险的“守卫复核：已允许”和“记住了”改成一行（“忘记”按钮在行内）；被拦截或中高风险的复核仍是卡片。关联 #13456。\n- 对话里展开一个步骤后，详情改成四周细线的面板，不再是左边一条竖线。关联 #13456。\n- 侧栏左上角的品牌标题改成一行：字标右边是紧凑的实心“STUDIO”徽章，与字标垂直居中，明暗主题下位置一致。关联 #13456。\n- 对话里的主机提示（切换模型、告警、失败等）改成一行提示条：没有边框、标题栏和底色，只有图标的颜色表示严重程度。关联 #13456。\n\n## 修复\n\n- 编辑模型来源时，“读取可用模型”按表单里还没保存的地址、密钥和协议去连，不再只测已保存的那一份。关联 #12040。\n- 选中 /review、/security-review 后不写任务直接回车，现在会按默认范围审查当前改动，不再被拒绝。关联 #12883。\n- 压缩后保留的失败工具结果不再随压缩轮数累积：它们有独立预算（窗口的 5%），更早的并入摘要。关联 #13148。\n- 会话标签页的圆点在回合结束后不会再偶尔一直“呼吸”。关联 #13254。\n- 更多只读 git 命令（merge-base、分支/远程/配置/暂存的查看形式）不再被当成“无法证明只读的改动”，也不再触发验证提示。关联 #13293。\n- 只读的 gh 命令（pr、issue、run、release、repo 的 list 与 view，pr checks，gh api 的读取）不再触发验证提示。关联 #13293。\n- 回复下方的复制、引用、更多按钮不再在这条回复的工具还在运行时出现，不会让人误以为任务已经结束。关联 #13343。\n- 回复里用 Markdown 写的本地图片：工作区内的图片现在能直接显示，工作区外的不再显示成裂图，改为带说明的占位框。关联 #13354。\n- 用 / 选好技能或命令后继续输入正文，不再一直弹出“正在加载命令与技能…”，只在光标处于斜杠词里时才显示。关联 #13358。\n- 发送带图片的消息时，较高的图片（如手机截图）不再撑出缩略图框、盖住消息文字，每张图都固定为缩略图大小。关联 #13368。\n- 从“已归档”里打开一个会话后，“全部”列表不再多出一条叫“新会话”的空行。修复 #13377。\n- 回答提问卡片时若内核没及时回应，错误提示现在有边距和醒目颜色，不再贴着卡片边缘。关联 #13379。\n- 已打开的会话不再因列表的筛选、搜索或分页丢掉自己的那一行，标签页重新显示会话标题，不再是“新会话”。修复 #13402。\n- 从旧版 Reasonix 找回会话后，原来的项目文件夹会自动出现在侧栏里，找回的会话不再“导入了却看不到”。修复 #13412。\n- Linux 上文件夹选择器弹不出来时，“添加文件夹”和“找回旧版会话”改为让你输入路径，不再毫无反应。修复 #13421。\n- 从旧版找回的会话带着旧版显示的标题；之前找回的那些，再点一次“找回旧版会话”就会补上标题，不再显示成 v4-文件名。关联 #13439。\n- 英文界面下，“项目自带的钩子要你批准”等 15 条提示不再显示成中文，并加了检查防止以后新增提示漏掉英文。修复 #13441。\n- 输入框下方“执行权限”下拉的小箭头比旁边的下拉箭头更小、位置偏下，现在与其他下拉一致。修复 #13472。\n- 选了中文后，输入 `/goal`、`/memory`、`/mcp`、`/theme`、`/feedback` 等命令弹出的子菜单说明不再是英文。修复 #13493。\n- 键盘用户：设置、命令面板等对话框现在把 Tab 键留在对话框里，关闭后焦点回到原处；远程会话的“删除”按钮在浅色主题下聚焦时有了焦点环。关联 d191b73fc。\n- 手机宽度下，连接设置里“模型”标题不再被挤成竖排两行，右边的按钮换到下一行。关联 #12040。\n- 设置里“网络 → 测试连接”的每一步结果按界面语言显示：英文界面不再出现中文的步骤名、提示和“key 被拒了”之类的句子。关联 #12040。\n- 修复：会话很多（约 2000 个）时左侧项目栏刷新很慢；Windows 上每次刷新从约 0.9 秒降到约 0.1 秒。关联 #13176。\n- 修复：设置 › 存储里“配置与凭据”一行不再把同一文件夹里的会话与归档也算进去，Windows 默认安装下它原先会显示成几十 GB。关联 #13345。\n- 修复：输入框下方“执行权限”在“全部放行”状态下，小箭头和警告图标现在与文字同色（此前箭头是灰色，浅色主题下图标比文字浅）。关联 #13472。\n- 修复：新会话在还没有任何计价时，底栏不再显示“本轮 ¥0.00”这个并非来自你设置的占位，第一次计价后才出现本轮费用。关联 #13513。\n- 修复：手动连接的 MCP 服务器现在也会像自动启动的那样记下握手结果，下一次会话不用重新握手；此前快速关闭会话会丢掉它。关联 #13485。\n- 修复：开着五六个会话标签时，停止和发送不再因浏览器连接数用完而卡住：不显示也不在运行的标签会放掉实时连接，显示时接着断点读。关联 #13491。\n- 修复：会话很多时，刚启动后第一次载入左侧项目栏很慢；Windows 上约 2000 个会话从约 10 秒降到约 1 秒。关联 #13176。\n- 修复：模型用 await_user 交还清单后，系统不再因“改动没验证”等缺口自己开新一轮，回合停下等你输入。关联 #13467。\n\n## 升级须知\n\n- 设置 > 外观新增“同时保留的会话标签数”，默认 0：打开的会话都保留（此前超过 4 个会悄悄收起）；设成 N 才收起最久没动的空闲会话。关联 #13419。\n\n---\n\n<!-- lang:en -->\n\nAdds messages between sessions (experimental), cross-project text search, video reading, auto-download updates and worktrees from a chosen branch; fixes the many-sessions freeze and UI bugs.\n\n## New\n\n- Settings gain Messages between sessions (experimental): list other local sessions, send them text, and approve what arrives in a bar above the composer. Off by default. Refs #11376.\n- With messages between sessions on, the model gains list_peers and send_peer_message; sending asks you first and shows the recipient and full text, and the other user must approve. Refs #11376.\n- The sidebar search now also looks through the text of conversations in every project once you pause, listing the matching conversations with a passage; click one to open it. Refs #11942.\n- On a wide display (2400 px or more) at 100% scaling, Studio asks once whether the interface is too small and offers 125% or 150% with a restore; it never resizes by itself. Refs #11962.\n- The dot on each model source remembers its last test: red for a failed one with the cause on hover, a hollow ring for a pass, cleared when the address or key changes. Refs #12040.\n- A tool call still running after 10 seconds offers \"Stop only this call\": it ends that call, the turn goes on, and the model is told you stopped it. Refs #12254.\n- Pictures in a conversation also load from a folder you granted this workspace (Settings, Sandbox, extra folders); local pictures elsewhere still show a placeholder. Refs #13125.\n- The new-session branch control becomes \"Configure working directory\": pick a base branch and a separate worktree is created on first send; existing conversations keep branch switching. Refs #13264.\n- Settings > Version > Update mode gains Download (off by default): it downloads and verifies a release in the background and offers a restart when idle, never restarting alone. Refs #13291.\n- While a turn runs, the chip above the composer says how long it has been running (e.g. \"read_file · 1m 6s\"), so you need not check the transcript. Refs #13346, #13253.\n- Screenshots attached in the feedback window can be clicked to view at full size, in both the new-report and reply forms; Esc closes the viewer and the screenshot stays attached. Refs #13350.\n- A first sidebar read that takes over 15 seconds says it is still reading and offers Retry, which starts a fresh request instead of queueing behind the stuck one. Refs #13345.\n- The composer's plan fold shows the /goal text when there is no plan, and the Conversation, Run analysis and Workbench views get shortcuts (Ctrl/Cmd 1, 2, 3) and command-palette entries. Refs #13369.\n- Settings gain a \"Several sessions writing one project\" switch (optimistic mode, off by default); it applies to sessions opened afterwards. Refs #13384, #13392.\n- `tools.mcp_resources = true` in your user config lets the model read a resource a connected MCP server lists, asking you first each time (off by default). Refs #13385.\n- The MCP resource tool also reads addresses a server's declared resource templates (like `doc://item/{id}`) can build; any other address is still refused. Refs #13385.\n- My feedback gets a sticky filter bar (All, New replies, Needs your reply, Open, Closed, with counts) so reports with news are easy to find in a long list. Fixes #13388.\n- Tool-call cards get a \"show this result again at the end\" button that repeats the call's own output at the end of the conversation, so you need not hunt for it. Refs #13394.\n- The model can look at a video: read_video samples frames with the local ffmpeg and hands them over as images (no audio or motion); needs an image-reading model and says so without ffmpeg. Refs #13399.\n- The command-line release archives now carry the web page, so reasonix serve opens in a browser straight after unpacking. Fixes #13406.\n- The card asking before a command reaches a site outside `allowed_domains` offers \"always allow\", adding the site to your own list so it is not asked again. Refs #13478.\n- New user-config `agent.goal_auto_retry` (default 0): a Goal paused because its completion check could not run is retried with backoff, up to that many times. Refs #13478.\n- Settings → Tools gains a \"Plan approval\" switch (also `agent.plan_approval = \"auto\"` in user config): when on, a submitted plan starts without waiting for your click; off by default. Refs #13478.\n- Clicking a running task under Background tasks shows its output (refreshed every 2 seconds, copyable, stoppable) without affecting the model's own reader. Refs #4783.\n- When the open-session limit you set makes the window fold a session out of the tab bar, a note names it and says it is still in the list. Refs #13419.\n- New user-config `sandbox.egress_unlisted = \"allow\"`: hosts outside allowed_domains pass without asking, said once per host; denied_domains still refuse; off by default. Refs #13478.\n- The background task list now shows the name the model gave a task (bash takes an optional description); hover, focus or long press shows the full name and command, selectable. Refs #13458.\n\n## Changed\n\n- Adding a model source asks for protocol, address and API key first; the source name moves last and is made after connecting, so you no longer have to invent one up front. Refs #12040.\n- The web search, thinking and continuation switches on a model service join the connection form's draft: they apply on Save and Revert undoes them. Refs #12040.\n- While a Git branch switch runs, the branch button in the composer says \"Switching to xxx…\" instead of only fading. Refs #12780.\n- Removed the extra magnifier from the sidebar's All / Live / Pinned / Archived row; search sessions from the top bar. Refs #13023.\n- When a saved compaction stops matching its history mid-session and the full history is sent instead, a notice says why instead of widening silently. Refs #13148, #13295.\n- When a settings save is refused because the config file does not parse, the message names the file. Refs #13220.\n- A separate worktree uses only committed code and carries draft attachments, keeping the draft on failure; the five composer menus share typography, spacing, corners and selected state. Refs #13264.\n- Empty toolbars in narrow chat panes stay compact on focus and expand for text, attachments or open menus, so buttons stay under the pointer during a click. Refs #13264.\n- After a change the host could not read, the end-of-turn prompt no longer says making it again settles it: only conclude_blocked or you can, and it explains once. Refs #13293.\n- With thousands of sessions in one folder, the first read after a restart no longer opens every session file; only changed ones are re-read, and refreshing after a rename is much faster. Refs #13345.\n- A failed automatic naming says why (title model timed out, returned no text, or its endpoint refused with a status and its words), not only \"try again\". Refs #13353.\n- The Conversation / Run analysis / Workbench row is gone: Run analysis and Workbench are icons on the window bar (press again to return) and the plan is in the composer. Refs #13369.\n- The side-question entry moves from the top view strip to the composer toolbar (a chat icon after attach), with a tooltip and a pressed state while the panel is open. Refs #13369.\n- The task and fleet tool descriptions say that under write_lease = optimistic a writer without write_paths holds only the path it is writing, not the whole workspace. Refs #13395.\n- When the kernel exits with a failure code, the crash folder keeps a file naming the code and the reason, instead of an empty file that is dropped or removed. Refs #13433.\n- The vertical rail under each card's icon and the left rule of the Execution group are gone, so one tool call looks the same wherever it appears. Refs #13456.\n- A result brought to the end is the same single row as in the Execution group (no box, icon square or track); dark-theme rows there lose their slab background. Refs #13456.\n- With several session tabs open, switching tabs and filtering the sidebar is faster: a switch no longer redraws every hidden session. Refs #13326.\n- The approval card says where \"Allow for this session\" and \"Always allow\" are kept: the first only for the session, the second as a user-config permission rule Settings can undo. Refs e54381d4f.\n- Side conversations are no longer capped at 3 open at once; set `agent.max_side_sessions` in your user config to limit them. Refs #13526.\n- Hardening: a hand-written message body in the inbox folder is reduced on read like a sent one (controls and bidi overrides), so it cannot fake a terminal or the approval prompt. Refs #11376.\n- Hardening: names in messages between sessions are reduced on read, so a forged record cannot put line breaks, escapes or markup before the model or a terminal. Refs #11376.\n- With the ask timeout on, a task list handed back to you continues after that time, assumptions stated, at most 3 times in a row; off by default. Refs #13478.\n- Improved: local panes share one event stream, so any number of open panes holds 2 connections and Stop never starves. Refs #13533.\n- Approval, ask, remember, guardian, extension and similar cards now share one shell: the same radius, border and ground, a header with no fill, and no state-tinted border. Refs #13456.\n- A low-risk allowed guardian review and a remembered fact are now a single row (the Forget button stays in it); refusals and medium-or-higher-risk reviews keep their cards. Refs #13456.\n- An opened step's detail is now a panel with a hairline on all four sides, instead of a rule down its left edge. Refs #13456.\n- The sidebar's top-left mark is one row: the wordmark with a compact filled STUDIO badge beside it, vertically centred and in the same place in both themes. Refs #13456.\n- Host notices in the conversation (model switches, warnings, failures) are now a single bar: no box, header strip or wash, and the glyph's colour alone shows severity. Refs #13456.\n\n## Fixed\n\n- When editing a model source, \"read available models\" tests the address, key and protocol on the form that are not saved yet, instead of only the saved ones. Refs #12040.\n- Choosing /review or /security-review and pressing Enter with no task reviews the pending changes by their default scope instead of being refused. Refs #12883.\n- Failed tool results kept by a compaction no longer pile up across rounds: they get their own budget (5% of the window), older ones fold into the digest. Refs #13148.\n- A session tab's dot no longer sometimes keeps breathing after a turn has ended. Refs #13254.\n- More read-only git commands (merge-base and the listing forms of branch, remote, config and stash) no longer count as an unproven change or raise the verification prompt. Refs #13293.\n- Read-only gh commands (list and view of pr, issue, run, release and repo, pr checks, gh api reads) no longer raise the verification prompt. Refs #13293.\n- A reply's copy, quote and more buttons no longer appear while the tools under that reply are still running, so the turn no longer looks finished. Refs #13343.\n- Local pictures written in a reply: pictures inside the workspace now show, and pictures outside it no longer draw as broken images but as a placeholder that says why. Refs #13354.\n- After picking a skill or command with / and typing on, \"Loading commands and skills…\" no longer keeps appearing; it shows only while the caret is in a slash word. Refs #13358.\n- Tall pictures (such as phone screenshots) sent with a message no longer spill out of their thumbnail over the text: each is held to the thumbnail size. Refs #13368.\n- Opening a session from the Archived view no longer adds an empty \"New session\" row to the everyday list. Fixes #13377.\n- When the kernel does not answer in time while you answer a question card, its error now has padding and a clear colour instead of hugging the card's edge. Refs #13379.\n- A conversation open in a pane keeps its own titled row when the list's scope, search or page size leaves it out, so its tab shows the real title. Fixes #13402.\n- After recovering sessions from an older Reasonix, the project folders they came from appear in the sidebar, so recovered sessions are no longer imported but invisible. Fixes #13412.\n- On Linux, when the folder panel cannot be shown, Add folder and Recover older sessions ask for the path instead of doing nothing. Fixes #13421.\n- Sessions recovered from an older Reasonix keep the title 1.x showed; earlier copies get it on the next Recover older sessions, instead of showing as v4-file names. Refs #13439.\n- In the English UI, 15 notices such as \"this project's hooks need your approval\" no longer show in Chinese, and a check now stops a new notice from shipping without English. Fixes #13441.\n- The small arrow on the composer's execution-permission picker was smaller and sat lower than the other pickers' arrows; it now matches them. Fixes #13472.\n- With Chinese selected, the sub-menu descriptions of `/goal`, `/memory`, `/mcp`, `/theme`, `/feedback` and similar commands are no longer English. Fixes #13493.\n- Keyboard: Settings, the command palette and other dialogs keep Tab inside and return focus on close; the remote-session delete button shows a focus ring in the light theme. Refs d191b73fc.\n- On phone-width windows the \"Models\" heading in the connection settings no longer breaks into two lines; the buttons beside it wrap onto the next line. Refs #12040.\n- Settings → Network → \"Test it\" words every step in the interface language: the English window no longer shows Chinese step names, advice or sentences such as \"key was rejected\". Refs #12040.\n- Fixed: with thousands of sessions the sidebar refresh was slow; on Windows each refresh drops from about 0.9 s to about 0.1 s. Refs #13176.\n- Fixed: Settings › Storage no longer counts the sessions and archive in the \"Configuration and credentials\" row when they share a folder, as on a default Windows install. Refs #13345.\n- Fixed: on the permission picker in the Full access state, the arrow and warning icon now share the label's colour (the arrow was grey; the icon lighter in the light theme). Refs #13472.\n- Fixed: a fresh session no longer shows a \"This turn ¥0.00\" placeholder in a currency nothing has priced; the figure appears with the first priced round. Refs #13513.\n- Fixed: an MCP server connected by hand now leaves its handshake in the cache like a started one, so the next session needs no handshake; a quick close used to lose it. Refs #13485.\n- With five or six session tabs open, Stop and Send no longer stall on the connection limit: hidden idle tabs release their live connection and resume from their cursor. Refs #13491.\n- Fixed: the first sidebar load after start was slow with thousands of sessions; on Windows about 2,000 sessions drop from about 10 s to about 1 s. Refs #13176.\n- Fixed: after the model hands the list back with await_user, the host no longer starts new rounds for gaps like an unverified change; the turn waits for you. Refs #13467.\n\n## Upgrade notes\n\n- Settings > Appearance gains \"Session tabs kept open\", default 0: every open session is kept (it used to quietly fold one past 4); set N to fold the longest-idle one. Refs #13419.\n",
+        "sha": "2b3b7c4d0c828d90c7e88842d2509befb2893dab",
+        "path": "release-notes/studio/2.43.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.43.0",
+        "zh": "Reasonix Studio v2.43.0"
+      },
+      "summary": {
+        "en": "本版新增会话间消息（实验）、跨项目的对话正文搜索、模型读视频、更新方式“自动下载”和可选起始分支的独立工作目录，并修复多个会话同时开着时的界面卡死、停止无效，以及一批界面和英文界面问题。",
+        "zh": "本版新增会话间消息（实验）、跨项目的对话正文搜索、模型读视频、更新方式“自动下载”和可选起始分支的独立工作目录，并修复多个会话同时开着时的界面卡死、停止无效，以及一批界面和英文界面问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.43.0",
+            "zh": "Reasonix Studio v2.43.0"
+          },
+          "body": {
+            "en": "本版新增会话间消息（实验）、跨项目的对话正文搜索、模型读视频、更新方式“自动下载”和可选起始分支的独立工作目录，并修复多个会话同时开着时的界面卡死、停止无效，以及一批界面和英文界面问题。",
+            "zh": "本版新增会话间消息（实验）、跨项目的对话正文搜索、模型读视频、更新方式“自动下载”和可选起始分支的独立工作目录，并修复多个会话同时开着时的界面卡死、停止无效，以及一批界面和英文界面问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.43.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/2b3b7c4d0c828d90c7e88842d2509befb2893dab/release-notes/studio/2.43.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.42.0",
+      "date": "2026-10-16",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版本新增会话概览、从源文件夹更新技能、更新提醒、按模型填写价格、子代理乐观写入范围和从分支创建独立工作区副本，并修复停止卡住、后台任务状态、同仓库项目互相等待写入、压缩恢复和一批界面问题。\n\n## 新增\n\n- 「我的反馈」新增「账号关联」：登录后可手动把这台电脑关联到账号，随时解除；默认关闭、不改变额度，网页账号页之后据此显示反馈等级。关联 #13141。\n- 会话右键菜单新增“从最近回复分叉”，会话还在执行时也能从最近一个已完成的回复分叉；旧回复下的分叉按钮执行中同样可用。关联 #13177。\n- 新增：侧边栏会话右键菜单加入“自动命名”，一步生成并保存标题，无需先打开重命名，关联 #13195\n- 新增：设置 › 会话折叠 › 思考过程新增「收起并预览首句」，收起的思考在同一行后面显示首句（超长以 … 截断）。默认不变。关联 #13212。\n- 新增：网页版 Studio 页面开着不关、内核升级后，会提示“这个页面不是最新版”并给出刷新按钮，不再出现 n.filter 之类的报错，关联 #13213\n- 新增：删除带有恢复副本的会话时，确认框可以选择“连同 N 份副本删除”，不用再一个一个删，关联 #13221\n- 新增：文件窗口里可以用“用其他程序打开项目”菜单，在 VS Code、终端等已安装的程序中打开当前项目，关联 #13227\n- 新增：内置浏览器的页签可以双击重命名，不再只能显示网址，关联 #13228\n- 新增：Windows 上可以给「指定一个可执行文件」填写启动参数（例如 wsl.exe -d 发行版 -- /bin/bash），保存前带着参数实际运行验证，无法运行则不保存。关联 #13247。\n- 新增：右侧文件窗口的工具栏加了“在系统文件管理器中显示此文件”按钮，不用再去文件列表里右键，关联 #13255\n- 新增：回复反馈时可以附上截图（粘贴或选择，最多 3 张），只发给维护者，由维护者决定是否公开。关联 #13258。\n- 新增：可以从选定的分支创建独立的工作区副本，指定的分支不存在时会明确提示。关联 #13271。\n- 新增：设置里「子代理的写入范围」可开启乐观模式（默认关闭）：没有声明 write_paths 的子代理不再占住整个工作区，可与主会话并发写。关联 #13274。\n- 新增：连接编辑器里可以按模型填写每百万 token 的价格（输入、输出、缓存命中、货币），没价格的模型在用量里仍显示「未知」。关联 #13276。\n- 新增：设置 → 版本里的“更新方式”。默认“手动”不做后台联网；选“提醒”后每天查一次版本目录，有新版本时设置图标出现小点。两种方式都不下载、不安装、不重启。关联 #13291。\n- 新增：点击输入框下的“缓存”数字打开会话概览：请求、Token、缓存命中、工作时长、费用及按来源明细，各数字旁写明口径，费用不完整时只给下限。关联 #13297。\n- 新增：会话概览里加上“上下文窗口”：已使用、容量、各类占比与自动压缩线，标明是下一次请求的当前值而非累计，可直达上下文详情。关联 #13297。\n- 新增：技能列表会标出从某个文件夹安装的技能副本与来源文件夹是否一致（来源有更新、副本被改过、两边都改过、来源不见了）。关联 #13311。\n- 新增：技能列表里，从本机文件夹复制安装的技能在来源有变化时可以“从源文件夹更新…”：先预览每个文件的改动（脚本需逐项展开），确认后才替换，失败会保留原副本。关联 #13311。\n\n## 变更\n\n- 侧栏底部的「发送反馈」现在用强调色加粗显示，更容易找到（不加动画；错误提示上的「报告此问题」和命令面板入口不变）。关联 #13048。\n- MCP 服务器把耗时的工具调用作为任务返回时，现在会自动跟进到结果，不再返回空结果或要求任务扩展而报错。关联 #13108。\n- MCP 任务超过工具超时后，会转成后台任务继续运行，可用 wait、bash_output 取结果、kill_shell 取消，不再直接超时失败。关联 #13108。\n- 技能列表里，技能声明的许可（license）、运行要求（compatibility）和附加信息（metadata）现在可以展开查看；这些只是显示，不影响技能怎么运行。关联 #13110。\n- 会话很多时侧栏刷新、改名更快：每次刷新不再逐个会话解析路径（Windows 上 2100 个会话约从 1.2 秒降到 0.4 秒）。关联 #13176。\n- 用量页的「每日明细」现在最新一天排在最上面，不用再滚到底才能看到最近的数据。关联 #13179。\n- 打开文件失败时按真实原因提示：只有文件确实不存在才说“找不到文件”；被软链接或权限拒绝的文件不再被误报为不存在。关联 #13180。\n- 输入 / 弹出命令列表更快：补全命令名时不再每次读取插件包、模型和记忆数据，装了大量插件技能时尤其明显。关联 #13197。\n- 输入 / 或 @ 时，上一个按键还没返回的补全请求会被取消，不再堆积占满连接。关联 #13197。\n- 设置了提问超时后，提问卡片会显示“N 秒后自动跳过，点任意处保留”的倒计时，接管后消失；命令行界面同步显示。关联 #13210。\n- 分支芯片区分“不是 Git 仓库”“Git 拒绝打开”“Git 没有及时响应”，并显示 Git 的原话，不再统一说不是仓库。关联 #13217。\n- 启动时 Git 没及时响应不再让分支芯片整场会话都显示没有仓库：第一次读取时会再试一次。关联 #13217。\n- 改进：配置文件无法读取导致设置没保存时，提示会指到「设置」里查看出错位置并修复，关联 #13220\n- 优化：切换本地 Git 分支成功后立即使用切换结果更新界面，变更列表单独刷新，状态摘要的三项读取并行进行。关联 #12780。\n- 改进：会话标签页里正在工作的会话状态点会呼吸闪动，已完成未读也直接由这个点表示（不再多出一个小点），关联 #13254\n- 改进：带 write_paths 的子代理调用不允许的工具时，拒绝原因现在说明缘由和下一步（不要重试，改用文件工具或收尾汇报）。关联 #13269。\n- 改进：压缩完成的卡片在折叠后仍占窗口很大一块时，会说明剩下的是什么（模型回复、工具输出、用户消息各多少，最大的一条是谁）。关联 #13284。\n- 改进：更新下载卡住时，版本面板会说明“已重连 N 次”；重连仍无效则提示下载卡住，并给出重试或手动下载的办法。关联 #13291。\n- 改变：输入框下的缓存百分比不再把服务商未区分缓存的输入算作未命中，与会话概览同一口径；这类输入多的会话读数更高。关联 #13297。\n- 改进：对话右下角“回到顶部/底部”的按钮更淡更小，改为圆角方形、半透明浅底，不再是深色圆形。关联 #13303。\n- 改进：给“额外可写文件夹”选择技能安装位置时，拒绝原因现在说明出路：把技能源文件夹用“登记”方式安装，并在源文件夹里修改。关联 #13311。\n\n## 修复\n\n- 修复超长会话里自动压缩反复放弃的问题：摘要模型没看到的改动不再被当成「摘要丢了全部改动」，由系统补记后正常折叠。关联 #13013。\n- 修复：重命名或复制的文件在 Git 变更里的新增/删除行数现在能正确统计。关联 #13175。\n- 修复鼠标移向状态栏里的上下文浮窗时它立刻消失、导致点不到「立即压缩」和「管理 MCP」的问题（浮窗与触发处之间的空隙现在会保持悬停）。关联 #13178。\n- 修复：设置了壁纸时，标签栏下沿不再是一条生硬的横线，而是向下柔和渐隐，关联 #13194\n- 修复：已过期的置顶记忆不再进入稳定前缀、不再遮蔽全局指引、也不再占用置顶字数预算。关联 #13201。\n- 修复：关闭一个内核里已不存在的会话窗格时不再弹出 “no runtime r1”，按已关闭处理，关联 #13204\n- 修复：电脑崩溃后会话检查点的最后一行写了一半时，不再丢掉其余完好的对话轮次。关联 #13241。\n- 修复对话栏变窄时输入框工具栏（模型、思考强度、停下按钮）折成两行错位的问题：现在始终保持一行，放不下时模型名先缩略。关联 #13259。\n- 修复：设置了独立的 REASONIX_HOME 时，配置编辑锁不再写到系统默认的 ~/.reasonix，保持独立目录自包含。关联 #13275。\n- 修复：窗口截图的对话框已经关闭时，截图流程会安静停止，不再报“window is not defined”类错误。关联 #13285。\n- 修复：「恢复旧会话」现在能导入 1.x 桌面版新存储（desktop-sessions-v5）里的会话，此前它们被悄悄跳过；无法使用的编号会列入“未导入”。关联 #13290。\n- 修复：项目菜单里的“文件管理器”“终端”现在显示中文，且“用文件管理器打开”不再与“在文件管理器中显示”重复。关联 #13292。\n- 修复：改动范围无法确认时，结束前的提示会说明检查解决不了它，要换用会报告路径的工具重做。关联 #13293。\n- 修复：打开会话时，之前保存的压缩结果若因历史变化或模型/工作区不同而无法复用，现在会提示原因，不再悄悄改发完整历史。关联 #13295。\n- 修复：Windows 上停止任务时，如果系统的 taskkill 卡住，整个“停止”不再被它无限期拖住：最多等 10 秒，之后直接结束主进程。关联 #13299。\n- 修复：顶部的计划按钮不再停在标签行中间，而是靠右紧挨“辅助会话”。关联 #13302。\n- 修复：停止后把同一句话再发一次，不再在待发队列里叠出多份；原来未生效的那条被重新排队，恢复后只会回答一次。关联 #13318。\n- 修复：停止后台任务后，右下角的任务列表会立即刷新；对已在停止中的任务再点停止，会说明“已请求停止，进程还没退出”，不再误报“已经不在运行”。关联 #13319。\n- 修复：从源文件夹更新技能后，记录写入失败会自动重试一次；仍失败时再点一次更新即可补上记录，技能不再被误判为“副本被改过”。关联 #13311。\n- 修复：对话右下角“回到会话顶部/跳到最新”按钮一次点击直达两端；原来的“逐个展开块”跳法改为按住 Shift 点击。关联 #13326、#13229。\n- 修复：会话概览里同一行的数字按同一高度对齐，不再因旁边格的脚注较长而下沉。关联 #13297。\n- 修复：同一个 Git 仓库下的多个项目互相等待写入时，提示现在说明它们共用该仓库这一个写入域，并给出出路。关联 #13335。\n\n---\n\n<!-- lang:en -->\n\nThis release adds a session overview, updating skills from their source folder, update notifications, per-model prices and an optimistic sub-agent write mode, and fixes stuck Stop, background-job state, projects in one repository waiting on each other and compaction recovery.\n\n## New\n\n- \"My feedback\" gains an \"Account link\": once signed in, link this computer yourself and unlink any time. Off by default, changes no limits. Refs #13141.\n- New \"Branch from the latest reply\" in the session menu: a running conversation can branch from its latest finished reply, and older replies' branch buttons work mid-run. Refs #13177.\n- Added: the sidebar session menu now has Auto name, which generates and saves a title in one step without opening Rename first, refs #13195\n- Added: Settings › Conversation folding › Thinking gains \"Folded, with first sentence\", showing the first sentence after a folded thought (long ones end in …). Default unchanged. Refs #13212.\n- Added: a hosted Studio page left open across an upgrade now says it is not the latest build and offers a refresh, instead of failing with errors like n.filter, refs #13213\n- Added: deleting a conversation that has recovery copies now offers to delete the copies with it, instead of one by one, refs #13221\n- Added: the file window has an \"open the project in another program\" menu (VS Code, terminal and the other programs installed here), refs #13227\n- Added: built-in browser tabs can be renamed by double-clicking, instead of always showing the address, refs #13228\n- Added: on Windows, \"point at an executable\" takes launcher arguments (for example wsl.exe -d <distro> -- /bin/bash), verified by running them before saving. Refs #13247.\n- Added: the file window in the right sidebar has a \"show this file in the system file manager\" button in its toolbar, so you no longer need the file list right-click, refs #13255\n- Added: replies to feedback can carry screenshots (paste or pick, up to 3); they go to the maintainers only, who decide whether to make them public. Refs #13258.\n- Added: an isolated workspace copy can be created from a chosen branch, and an unknown branch is reported clearly. Refs #13271.\n- Added: an optimistic mode for sub-agent write scope in Settings (off by default): a sub-agent with no write_paths no longer holds the whole workspace. Refs #13274.\n- Added: the connection editor takes a per-model price (input, output, cache hit, currency); a model with no price still shows as unknown in usage. Refs #13276.\n- Added: Settings, Version, \"Update mode\". Manual (default) does nothing in the background; Notify checks daily and dots the Settings icon. Neither downloads, installs or restarts. Refs #13291.\n- Added: the cache figure under the composer opens a session overview: requests, tokens, cache hit, work time, cost, by source, each with its definition; incomplete cost shows a floor. Refs #13297.\n- Added: the session overview shows the context window: used, capacity, share by kind and the fold line, stated as a current reading, with a way into the context details. Refs #13297.\n- Added: the Skills list marks an installed skill copy that no longer matches the folder it came from: source changed, copy edited, both changed, or source gone. Refs #13311.\n- Added: a skill copied from a local folder can be updated from it in the Skills list: preview each file change (scripts must be opened), confirm; a failure keeps the old copy. Refs #13311.\n\n## Changed\n\n- The sidebar footer's \"Send feedback\" is now bold in the accent colour so it is easier to find (no animation; other feedback entries unchanged). Refs #13048.\n- MCP servers that answer a long tool call as a task are now followed to the result, instead of returning nothing or failing for lack of the tasks extension. Refs #13108.\n- An MCP task that outruns the tool's timeout now continues as a background job you can wait on, read with bash_output or cancel with kill_shell, instead of failing on the timeout. Refs #13108.\n- A skill's declared license, requirements (compatibility) and metadata can now be opened in the skills list; display only, nothing about how it runs changes. Refs #13110.\n- With many sessions the sidebar refreshes and renames faster: a refresh no longer resolves every session's path (2100 sessions on Windows: about 1.2 s to 0.4 s). Refs #13176.\n- The usage page's daily breakdown now lists the newest day first, so the latest figures are visible without scrolling to the bottom. Refs #13179.\n- Opening a file that fails now says why: only a file that is not there is reported as missing, and one behind a refused link or a permission error is no longer called \"not found\". Refs #13180.\n- Typing / opens the command list faster: completing a command name no longer reads plugin packages, models and memory on every keystroke, which matters most with many plugin skills. Refs #13197.\n- While typing / or @, a completion request a newer keystroke has made stale is cancelled instead of piling up on the connection pool. Refs #13197.\n- With an ask timeout set, the question card now counts down \"skipped in N s, click anywhere to keep it\" and stops once you take the question over; the terminal UI shows it too. Refs #13210.\n- The branch chip tells \"not a Git repository\" from \"Git refused to open it\" and \"Git did not respond\", and shows Git's own words. Refs #13217.\n- If Git does not answer when a session opens, the branch chip no longer says there is no repository for the whole session: the first read tries once more. Refs #13217.\n- Improved: when a setting is not saved because the config file does not parse, the message now points to Settings, where the broken line is shown and can be repaired, refs #13220\n- Improved: after a successful local Git branch switch, the UI uses the returned state at once and refreshes the change list on its own; the summary's three reads now overlap. Refs #12780.\n- Improved: the session tab dot breathes while a session is working, and finished-but-unread is shown by that same dot (no extra small dot), refs #13254\n- Improved: when a write_paths sub-agent calls a target it may not run, the refusal now says why and what to do next (do not retry; use file tools or report). Refs #13269.\n- Improved: when a fold still leaves a large share of the window, its card says what the rest is made of and which single message is the largest. Refs #13284.\n- Improved: when an update download goes quiet, the version panel says it reconnected N times, and if that fails says it got stuck, with a retry or manual installer. Refs #13291.\n- Changed: the cache percentage under the composer no longer counts prompt the provider did not split as uncached, matching the overview; sessions with much of it read higher. Refs #13297.\n- Improved: the jump-to-top/bottom buttons are lighter and smaller, rounded squares with a translucent pale fill instead of dark circles. Refs #13303.\n- Improved: granting the installed-skills folder as a writable folder now explains the way forward: install the skill's source folder in register mode and edit it there. Refs #13311.\n\n## Fixed\n\n- Fixed auto-compaction repeatedly giving up in very long sessions: changes the summarizer never saw are no longer treated as lost by it. Refs #13013.\n- Fixed: added and removed line counts are now correct for renamed and copied files in the Git changes. Refs #13175.\n- Fixed the status-bar context card closing as the pointer moved toward it, which made \"Compress now\" and \"Manage MCP\" unreachable; the gap now keeps the hover. Refs #13178.\n- Fixed: over a wallpaper the tab strip no longer ends on a hard line; it now fades softly into the conversation, refs #13194\n- Fixed: an expired pinned memory no longer rides the stable prefix, shadows live global guidance, or consumes the pinned-character budget. Refs #13201.\n- Fixed: closing a pane the kernel no longer holds no longer surfaces a raw \"no runtime r1\" error; it counts as closed, refs #13204\n- Fixed: when a crash leaves the last line of a session checkpoint half-written, the intact turns before it are no longer lost. Refs #13241.\n- Fixed the composer toolbar breaking into two misaligned lines when the conversation column is narrow: it stays on one line and the model name shortens first. Refs #13259.\n- Fixed: with an isolated REASONIX_HOME, config edit locks no longer go to the default ~/.reasonix; the isolated home stays self-contained. Refs #13275.\n- Fixed: the window capture now stops quietly when its dialog is already gone, instead of raising a \"window is not defined\" error. Refs #13285.\n- Fixed: \"Recover older sessions\" now imports 1.x desktop (desktop-sessions-v5) conversations, which were skipped silently; an unusable id is listed as skipped. Refs #13290.\n- Fixed: the project menu now shows \"File manager\" and \"Terminal\" in your language, and no longer lists the file manager twice. Refs #13292.\n- Fixed: when a change's extent is unknown, the end-of-turn prompt now says a check cannot settle it and to redo it with a path-reporting tool. Refs #13293.\n- Fixed: when a saved compaction cannot be reused on opening a session, a notice now says why instead of silently sending the full history. Refs #13295.\n- Fixed: on Windows a hung taskkill no longer holds a Stop forever; it is given 10 seconds, after which the main process is ended directly. Refs #13299.\n- Fixed: the plan button in the tab row now sits at the right edge beside the side-question toggle instead of floating mid-row. Fixes #13302.\n- Fixed: after a stop, sending the same words again no longer stacks copies in the held queue; the steer that did not apply is requeued, so once released it is answered once. Refs #13318.\n- Fixed: after stopping a background job the task list refreshes at once, and stopping one already shutting down says so instead of claiming it is not running. Refs #13319.\n- Fixed: a failed record write after a skill update is retried once; if it still fails, updating again repairs the record instead of leaving the skill marked edited. Refs #13311.\n- Fixed: the jump-to-top and jump-to-latest buttons now go straight to the ends in one click; the old step through expanded blocks is Shift+click. Refs #13326, #13229.\n- Fixed: in the session overview, figures on one row now share a baseline instead of sinking when the neighbouring cell's footnote is longer. Refs #13297.\n- Fixed: when projects under one Git repository wait on each other to write, the notice now says they share that repository's single write domain, and how to avoid it. Refs #13335.\n",
+        "sha": "55c3d81bbc33f8d6245c0e1e0c5f44fadeb64325",
+        "path": "release-notes/studio/2.42.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.42.0",
+        "zh": "Reasonix Studio v2.42.0"
+      },
+      "summary": {
+        "en": "本版本新增会话概览、从源文件夹更新技能、更新提醒、按模型填写价格、子代理乐观写入范围和从分支创建独立工作区副本，并修复停止卡住、后台任务状态、同仓库项目互相等待写入、压缩恢复和一批界面问题。",
+        "zh": "本版本新增会话概览、从源文件夹更新技能、更新提醒、按模型填写价格、子代理乐观写入范围和从分支创建独立工作区副本，并修复停止卡住、后台任务状态、同仓库项目互相等待写入、压缩恢复和一批界面问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.42.0",
+            "zh": "Reasonix Studio v2.42.0"
+          },
+          "body": {
+            "en": "本版本新增会话概览、从源文件夹更新技能、更新提醒、按模型填写价格、子代理乐观写入范围和从分支创建独立工作区副本，并修复停止卡住、后台任务状态、同仓库项目互相等待写入、压缩恢复和一批界面问题。",
+            "zh": "本版本新增会话概览、从源文件夹更新技能、更新提醒、按模型填写价格、子代理乐观写入范围和从分支创建独立工作区副本，并修复停止卡住、后台任务状态、同仓库项目互相等待写入、压缩恢复和一批界面问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.42.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/55c3d81bbc33f8d6245c0e1e0c5f44fadeb64325/release-notes/studio/2.42.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.41.0",
+      "date": "2026-10-15",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版本新增辅助会话、按需保存长粘贴、会话行快捷按钮、沙盒设备白名单等功能，并修复窄窗口布局、对比度、记忆召回和远控兼容等一批问题。\n\n## 新增\n\n- 设置 → 模型偏好新增「命名模型」和按角色的推理强度：可以单独指定用哪个模型给会话起标题，并分别设置各角色的推理强度。关联 #11851。\n- 新增「辅助会话」：在主对话旁边问一个只读的小问题，用只读工具回答，不写进主对话、不改文件，关闭即丢弃。关联 #12927、#13128。\n- 上下文详情里每一类占用可以展开，看最大的几项（只显示大小和工具名，不含消息内容）。关联 #13052、#13143。\n- MCP 服务器在工具列表响应里给出 `ttlMs` 时，工具目录会在到期后自动重读（限制在 30 秒到 1 小时之间），不再只靠变更通知。关联 #13108。\n- 技能的 `allowed-tools` 现在也接受开放标准写法（空格分隔，如 `Bash(git add:*) Read`），原来的逗号分隔照常可用；括号内的分隔符属于同一条规则。关联 #13110。\n- `reasonix doctor` 现在会提示技能的名称、描述不符合 Agent Skills 开放标准（大写、连字符、超长、与目录名不一致），这些技能仍会正常加载。关联 #13110。\n- 设置 → 外观新增「会话行快捷按钮」：打开后，鼠标移到侧栏会话行上会显示「归档」「删除」按钮；默认关闭，两个操作仍在右键菜单里。关联 #13132。\n- 压缩被拒时，提示现在列出候选内容的构成（固定前缀、被保护的消息、摘要、最近回合各占多少），不再只说「候选仍高于触发线」。关联 #13148。\n- 反馈对话框新增「想法与讨论」入口，建议和想法可以发到 GitHub 讨论区，bug 和错误仍用发送。关联 #13141、#13155。\n- 新增 `[sandbox] allow_devices`：Linux 命令沙盒默认看不到宿主的设备节点（如显卡），现在可在用户级配置里用 `/dev/nvidia*` 这类白名单放进去；默认关闭，项目配置不能开。关联 #13157。\n- 撰写框里的长粘贴芯片新增「存为文件」：点了才把这段文字存成文件，消息里只带一段指针（行数、大小、路径、怎么读），原文不再随每个请求发送；不会自动存。关联 #13148、#13162。\n- 终端界面里折叠的长粘贴可以按 Ctrl+G 存成文件：发送时只带一段指针，不再把原文送给模型；不按就和以前一样整段发送。关联 #13148、#13166。\n\n## 变更\n\n- ACP 的工具调用更新现在带上被调用的工具名。关联 #13114、#13130。\n- Linux 上 bubblewrap 已安装却不能创建命名空间（容器、受限内核）时，提示不再说「请安装」，而是说明真实原因和出路。关联 #13117、#13138、#13146。\n- 压缩前先预判：被保护的消息和最近回合本身就已超过触发线、摘要无论怎样都放不进去时，直接拒绝并说明构成，不再先花一次摘要调用。关联 #13148。\n\n## 修复\n\n- 会话里召回过的记忆在会话外被修改或删除后，下一次召回会读到新内容（只重查上次命中的几条，不全量扫描）。关联 #12948。\n- 记忆目录因权限或存储故障无法读取时，现在明确报错，避免漏列历史版本、误报版本不存在，或根据不完整历史计算恢复版本号。关联 #12950。\n- Linux 上启动时不再把没人选过、也没说过话的启动目录（主目录）列成项目，删掉它重启后不会再回来。关联 #13107、#13127。\n- 要打开的文件不存在时，右侧面板现在明确提示「找不到该文件」，不再打开一片空白的预览页。关联 #13125、#13133。\n- 设置壁纸后，侧栏底部（钱包与用量、发送反馈、账号）不再多出一块发白的底，壁纸一直延续到最下面。关联 #13129、#13131。\n- 手机浏览器版本太旧、没有 X25519 加密时，远控现在改用经审计的软件实现继续连接（只在需要时才加载，约 24 KB），不再要求换浏览器。关联 #13140。\n- 重启后点以前的会话打不开时，提示现在区分原因：会话文件已不在、会话所在目录不在、或系统读不了该路径（并带上系统给的原因），不再一律说「无法解析该会话路径」。关联 #13152、#13159。\n- 窄窗口下界面不再重叠或被挤压：标签栏会换行，设置里的标签不再被压成一字一行，分段控件不再跑出面板，几处文字对比度提高到 AA。关联 #13169。\n- 窄窗口下的排版修正：活动步骤行的耗时与箭头不再被挤出，计量栏的子代理芯片收起文字保留数字，配置错误框的路径改为换行。关联 #13154、#13172。\n- 修复两处对比度不达 AA：开场页的「按任意键跳过」提示，和输入框上方「已更改文件」胶囊里的 +/− 数字（深浅两种主题）。整机审查于 f8c262da0。\n\n---\n\n<!-- lang:en -->\n\nThis release adds side questions, keeping a long paste as a file, optional session-row buttons and a sandbox device allowlist, and fixes narrow-window layout, contrast, memory recall and remote-control compatibility.\n\n## New\n\n- Settings → Model preferences gains an independent naming model and per-role reasoning effort, so titles can use their own model and each role its own effort. Refs #11851.\n- New side questions: ask a read-only question beside the main conversation; read-only tools, never in the main transcript, dropped on close. Refs #12927, #13128.\n- Each class in the context details can be opened to its largest items (sizes and tool names only, never message text). Refs #13052, #13143.\n- When an MCP server puts `ttlMs` on its tool list, the catalog is re-read once it runs out (clamped to 30 s to 1 h) instead of relying on change notices alone. Refs #13108.\n- A skill's `allowed-tools` now also takes the open-standard spelling (space separated, like `Bash(git add:*) Read`); commas still work. Refs #13110.\n- `reasonix doctor` now reports skill names and descriptions that depart from the Agent Skills spec (uppercase, hyphens, length, directory mismatch); such skills still load. Refs #13110.\n- Settings → Appearance gains \"Session row buttons\": when on, hovering a sidebar session row shows Archive and Delete; off by default, both stay in the context menu. Refs #13132.\n- When compaction rejects its candidate as too large, the message now splits it into fixed prefix, protected messages, summary and recent tail, not just \"still above trigger\". Refs #13148.\n- The feedback dialog gains an \"Ideas and discussion\" link to GitHub Discussions for suggestions; bugs and errors still use Send. Refs #13141, #13155.\n- New `[sandbox] allow_devices`: the Linux command sandbox hides host devices such as the GPU; a user-level allowlist binds them in. Off by default; project config cannot set it. Refs #13157.\n- The long-paste chip gains \"save as file\": on click the text is stored as a file and the message carries only a pointer (lines, size, path, how to read it); never automatic. Refs #13148, #13162.\n- In the terminal, a folded long paste can be kept as a file with Ctrl+G: the message carries a pointer, not the text; without the key it is sent whole as before. Refs #13148, #13166.\n\n## Changed\n\n- ACP tool-call updates now name the invoked tool. Refs #13114, #13130.\n- On Linux, bubblewrap installed but unable to create a namespace (containers, hardened kernels) now gets its real cause and ways out, not \"install it\". Refs #13117, #13138, #13146.\n- Compaction now refuses up front when the protected messages and recent tail already reach the trigger, naming what holds the size, instead of paying for a summary that cannot fit. Refs #13148.\n\n## Fixed\n\n- A recalled memory fact edited or deleted outside the session is re-read before the next recall (only the last hits are checked, no full scan). Refs #12948.\n- Unreadable memory directories now report errors, keeping revision lists, restores, and recovery from treating permission or storage failures as missing data. Refs #12950.\n- On Linux, a launch folder nobody picked and nothing was said in is no longer listed as a project, so deleting it does not bring it back on restart. Refs #13107, #13127.\n- A requested file that does not exist is now said so in the side panel instead of opening a blank preview page. Refs #13125, #13133.\n- With a wallpaper set, the sidebar footer no longer paints a whiter plate; the picture continues to the bottom. Refs #13129, #13131.\n- On a phone browser too old for X25519 in WebCrypto, remote control now falls back to an audited software curve, loaded only then (about 24 KB), instead of asking for a newer browser. Refs #13140.\n- When an older session cannot be opened after a restart, the error now says why: the file is gone, its folder is gone, or the system could not read the path (with its reason). Refs #13152, #13159.\n- Narrow windows no longer overlap or squeeze: the tab bar wraps, settings labels keep their width, segmented controls stay in the sheet, and a few colours reach AA. Refs #13169.\n- Narrow windows: activity step rows keep their duration and arrow, the meter rail's subagent chip keeps its count when it cannot fit, and config error paths wrap. Refs #13154, #13172.\n- Fixed two contrast shortfalls: the intro \"press any key to skip\" hint and the +/− counts in the changed-files pill (both themes). Found by the audit at f8c262da0.\n",
+        "sha": "5d784ed6d6c8fc3b5b5f34a9c673b4c955388f52",
+        "path": "release-notes/studio/2.41.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.41.0",
+        "zh": "Reasonix Studio v2.41.0"
+      },
+      "summary": {
+        "en": "本版本新增辅助会话、按需保存长粘贴、会话行快捷按钮、沙盒设备白名单等功能，并修复窄窗口布局、对比度、记忆召回和远控兼容等一批问题。",
+        "zh": "本版本新增辅助会话、按需保存长粘贴、会话行快捷按钮、沙盒设备白名单等功能，并修复窄窗口布局、对比度、记忆召回和远控兼容等一批问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.41.0",
+            "zh": "Reasonix Studio v2.41.0"
+          },
+          "body": {
+            "en": "本版本新增辅助会话、按需保存长粘贴、会话行快捷按钮、沙盒设备白名单等功能，并修复窄窗口布局、对比度、记忆召回和远控兼容等一批问题。",
+            "zh": "本版本新增辅助会话、按需保存长粘贴、会话行快捷按钮、沙盒设备白名单等功能，并修复窄窗口布局、对比度、记忆召回和远控兼容等一批问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.41.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/5d784ed6d6c8fc3b5b5f34a9c673b4c955388f52/release-notes/studio/2.41.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.40.0",
+      "date": "2026-10-14",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版本修复工作区「+」无法点击等问题，新增回合叙述设置，并让更新日志支持中英文切换。\n\n## 新增\n\n- 反馈对话框新增「截取当前窗口」：只在你点按钮时截一次，截图以可删除的缩略图加入附件，不会自动发送。关联 #11965。\n- 侧边栏的会话列表数据现在带「最后活动时间」，可按最近使用排序或显示相对时间。关联 #12011。\n- 子代理因另一个子代理占着要写的路径而排队时，现在会说明在等谁、是否因为双方都没声明 write_paths（按整个工作区处理）。关联 #12052。\n- 主题包新增 `shadowFloat`，可改菜单、弹出层和对话框的投影；不设则保持内置阴影。关联 #12063。\n- 图表在数据不多时，会在柱顶和折线数据点旁直接标出数值；数据多到放不下时自动不画，悬停读数仍然可用。关联 #12291。\n- 侧栏里的项目现在可以拖动排序：按住项目行拖到目标位置，上沿或下沿的线指示落点；顺序保存在内核里。关联 #12300。\n- 每轮结束时的「耗时」行现在同时写出这一轮的开始时间（当天只显示时分，其他日子带日期），重新载入会话后仍然保留。关联 #12728。\n- 设置 > 账号新增「导出与导入配置」：无需账号，加密导出成文件、换机器时逐项导入；密钥默认不导出，必须设口令。关联 #12736。\n- 设置 → 会话新增「回合间叙述」：选「详细」后，模型会在每批工具调用之间用三四行说明拿到了什么、下一步做什么；默认「简短」，行为不变。关联 #12788。\n- 项目右键菜单新增「用 … 打开」：文件管理器之外，可用本机已安装的 VS Code、Cursor、IntelliJ IDEA、系统终端打开项目文件夹。关联 #12858。\n- 工作台文件面板里新增「提交历史」：展开后按提交图谱列出所有分支最近的提交，带分支和标签。关联 #12913。\n- 设置 → 外观新增「1.x 旧会话」开关，可把迁移来的 1.x 会话从侧栏隐藏；默认显示，不删除，搜索和已打开的不受影响。关联 #12964。\n- 终端界面的 `/theme` 现在打开选择器：光标移到哪一行就即时预览，Enter 保留，Esc 还原；`/theme list` 仍列出名称。关联 #12985。\n- 上下文超过压缩阈值而无内容可折叠时，现在会说明由什么占用（按类别和最大几项），不再只说「无需压缩」。关联 #13013。\n- 本机 stdio MCP 服务器现在会在 `_meta[\"io.reasonix/writableRoots\"]` 里收到你额外允许写入的目录；远程服务器不会收到。关联 #13053。\n- 首次启动的设置页新增「稍后再说」：可先进入主界面，输入框上方会提示「去连接」；只对本次启动有效，下次仍会提示。关联 #13065。\n- 底部「生成速度」详情新增「首字时间」（从发出请求到首个输出，由内核计时），并改为与「上下文详情」一致的行式样式。关联 #13075。\n- 添加项目后会自动选中该项目并打开一个新会话（不会替你发送任何消息），无论是点「打开或新建项目」、首次提示里的按钮还是拖入文件夹。关联 #13076。\n- 对话区右下角新增「回到顶部 / 跳到最新」悬浮按钮（距端不足 48px 或无需滚动时隐藏），优先跳到最近的展开块，取代原「回到最新」。关联 #13077。\n- 版本页的更新内容可以在中文和英文之间切换，默认跟随界面语言；之后每个版本的发布说明都附带英文。关联 #13081。\n\n## 变更\n\n- 左侧图标栏和侧栏的「文件」按钮现在是开关：文件面板已展开时再点一次就收起，在别处关掉后再点会重新展开。关联 #12925。\n- 撰写框的模型菜单里，服务商标题更醒目、模型行缩进，并新增按服务商的筛选标签（可多选、可清除，选择会记住）。关联 #12926。\n- 应用、任务栏/Dock、启动器和托盘图标恢复为黑金配色。关联 #13004。\n- 对话里的图片、输入框里待发的图片和工具截图共用一个查看器：点击放大原图，Esc 退出，焦点回到缩略图。关联 #13006、#13010。\n- 设置侧栏的选中项不再带强调色、边框和左侧竖条，只是底色变深；分区标题比选项更轻，层级更清楚。关联 #13045、#13046。\n- 去掉顶栏的「浏览器」按钮：「工作台」标签是唯一入口，没有运行中的网页时显示「文件 / 改动 / 浏览器」启动页，不再直接开一个空白页。关联 #13067。\n- 会话行不再在悬停时显示「归档」「删除」两个小图标，界面更简洁；这两个操作仍在右键菜单里，Delete 键也照常可用。关联 #13068。\n\n## 修复\n\n- 模型起草提交说明失败时，提交卡片仍列出暂存的文件，输入框留空并说明原因，可以手动填写后提交。关联 #12747。\n- 上下文用量改为以服务商回报的大小加上之后新增的内容为准，不再取本地估算和回报中较大的一个，估算偏大时不再虚高。关联 #12988。\n- 只读的 `find ... -exec wc/grep/cat/stat ...` 不再被当成写入：它不会占用工作区写入租约，也就不会再和另一个会话正在写的文件冲突。关联 #12993。\n- 模型退化成「很多句不重复的短句」（如 go. / End. / I wait.）时，重复输出检测现在也会提示；以前只认字节完全相同的循环。关联 #13001。\n- 子代理浮层里每个子代理现在显示自己的任务标题（来自任务描述的首行，过长截断，悬停看全文），并行的子代理不再都只写「task」。关联 #13002。\n- 切换长会话时不再弹出「扩展界面恢复失败」；只有确实丢了扩展界面才提示一次，读不出历史才报错。关联 #13011。\n- 运行分析的信号轨里挨得太近的标记合并成一个带数量的标记，点开列出明细，不再排成很长的竖列。关联 #13034。\n- 修复项目行上“…”按钮只有四个角能点、点中间没有反应的问题：行内的数量徽标淡出后仍然盖在按钮上，现在不再拦截鼠标。关联 #13036、#13038。\n- 侧栏会话筛选旁的放大镜现在是真正的开关：再点一次会收起搜索框，不再重播弹出动画。关联 #13041。\n- 侧栏「这台机器」行上打开或新建项目文件夹的“＋”按钮现在始终可见，不再要把鼠标移到行上才出现。关联 #13043、#13072。\n- 修复输入框里打开分支菜单时，悬停提示卡没有收起、与菜单叠成两层阴影的问题。关联 #13044。\n- 重新载入会话时读取状态失败而弹出的红色提示，在之后同一读取成功时会自动消失，不用再手动点“知道了”。关联 #13047。\n- 设置没生效、链接打不开等不阻断发送的失败，改为右下角的小提示（最多 3 条，点“知道了”才消失），可一键“报告此问题”。关联 #13047、#13048。\n- 扩展界面、MCP 目录和改动文件三处读取遇到缺失的列表字段时按空列表处理，不再弹出「Cannot read properties of undefined (reading 'filter')」。关联 #13055。\n- 分支列表、事件回放和待发队列在为空时现在返回空列表而不是 null，页面不再因此在读取时出错。关联 #13055。\n- 报错条与右下角提示的「报告此问题」现在会把页面自身错误的名称和出错位置（仅文件名与行列号）一并填进反馈草稿，便于定位。关联 #13055。\n- 输入框下的红色提示若是页面自身的程序错误（如“Cannot read properties of undefined”），现在会把调用栈写进控制台，便于定位。关联 #13055。\n- 手机远控页上传较大的图片或文件时，不再把连接弄断：过大的内容会在手机上直接提示并留在原处，其他操作照常。关联 #13056。\n- 手机远控页现在可以上传较大的图片和文件：内容拆成多条消息发送，电脑端收齐后一次处理（最大 16 MB）；旧版电脑端仍提示太大。关联 #13056。\n- 修复写入会话临时目录等工作区外位置时反复弹出“检查点记录失败”的提示：这类写入不在检查点范围内，改为记为覆盖缺口。关联 #13060。\n- 修复 MCP 服务器启动或重连失败时内核崩溃退出的问题：失败现在只会让这个服务器不可用，不会影响其他功能。关联 #13086。\n- 修复部分 Windows 电脑上界面图片（如左上角字标）显示为破损图片的一个可能原因：页面文件的类型不再受注册表里别的程序设置的影响。关联 #13094。\n\n---\n\n<!-- lang:en -->\n\nThis release fixes the unclickable workspace \"+\" button, adds a turn-narration setting, and lets the changelog switch between Chinese and English.\n\n## New\n\n- The feedback dialog gains \"Capture this window\": it takes one picture of the app window only when you click, adds it as a removable thumbnail, and never sends it on its own. Refs #11965.\n- The session tree now carries each conversation's last-activity time, so a list can sort by recency or show a relative time. Refs #12011.\n- A sub-agent queued behind another's write claim now says whose claim it waits on, and whether neither declared write_paths (each treated as writing the whole workspace). Refs #12052.\n- Theme packs gain `shadowFloat`, the shadow menus, popovers and dialogs cast; unset keeps the built-in one. Refs #12063.\n- Charts now write each value beside its bar or line point while the plot is sparse, and draw none when there are too many marks to read; hover readout is unchanged. Refs #12291.\n- Projects in the sidebar can now be reordered by dragging a row; a line on the target's top or bottom edge shows where it lands, and the order is kept by the kernel. Refs #12300.\n- The \"Worked for\" line at the end of a turn now also says when the turn began (time of day for today, with the date for another day), and it survives reopening the session. Refs #12728.\n- Settings > Account gains \"Export and import config\": no account needed; export an encrypted file and import it item by item elsewhere. Keys off by default; a passphrase is required. Refs #12736.\n- Settings → Session gains \"Narration between tool calls\": Detailed asks the model for three or four lines between batches of tool calls; Brief, the default, changes nothing. Refs #12788.\n- The project menu gains \"Open with …\": besides the file manager, open a project folder in the VS Code, Cursor, IntelliJ IDEA or system terminal this machine has installed. Refs #12858.\n- The workbench explorer gains a \"Commit history\" section: opened, it lists the newest commits of every branch as a graph, with branches and tags. Refs #12913.\n- Settings → Appearance gains a \"Sessions from 1.x\" switch to hide migrated 1.x sessions from the sidebar; shown by default, nothing is deleted. Refs #12964.\n- In the terminal UI, `/theme` now opens a picker that previews each row as you move, keeps it on Enter and restores the original on Esc; `/theme list` still prints the names. Refs #12985.\n- When the context is over the compaction threshold with nothing to fold, a notice now says what holds the tokens, by class and largest items. Refs #13013.\n- Local stdio MCP servers now receive the extra folders you allowed tools to write in `_meta[\"io.reasonix/writableRoots\"]`; remote ones do not. Refs #13053.\n- First-run setup gains \"Not now\": open the workbench first, with a note above the input box leading back to setup; this launch only, offered again next time. Refs #13065.\n- The bottom \"Generation speed\" detail gains \"Time to first token\" (request sent to first output, timed by the kernel) and now uses the same row layout as the context detail. Refs #13075.\n- Adding a project now selects it and opens a new session in it (nothing is sent for you), whether through \"Open or create project\", the first-run prompt or a folder drop. Refs #13076.\n- New floating \"Back to top\" / \"Jump to latest\" buttons in the conversation (hidden near an end or when nothing scrolls) land on the nearest expanded block first. Refs #13077.\n- The Versions page can switch a release's notes between Chinese and English, following the interface language by default; every release's notes now carry English. Refs #13081.\n\n## Changed\n\n- The Files button in the rail and sidebar now toggles: pressed while the files panel is open it folds it, and it reopens after the panel was closed elsewhere. Refs #12925.\n- The composer's model menu now sets provider headings apart, indents the models, and adds multi-select provider chips that are remembered. Refs #12926.\n- Restore the black-and-gold application, taskbar/Dock, launcher and tray icons. Refs #13004.\n- Sent pictures, pictures waiting in the composer and tool screenshots share one viewer: open the original, Esc to leave, focus returns. Refs #13006, #13010.\n- The Settings sidebar's selected row no longer carries the accent colour, outline and edge bar, only a deeper fill; section titles are lighter than the items under them. Refs #13045, #13046.\n- The title-bar Browser button is gone: the Workbench tab is the one way in, and with nothing running it shows the Files / Changes / Browser start page instead of opening a blank page. Refs #13067.\n- Session rows no longer show the hover Archive and Delete icons; both stay in the right-click menu, and the Delete key still works. Refs #13068.\n\n## Fixed\n\n- When the model cannot draft a commit message, the commit card still lists the staged files and says why; type the message and commit. Refs #12747.\n- The context gauge now reads the provider's reported size plus what grew since, instead of the larger of that and the local estimate, so an estimate running high no longer inflates it. Refs #12988.\n- A read-only `find ... -exec wc/grep/cat/stat ...` is no longer treated as a write, so it does not claim the workspace write lease or collide with another session's edit. Refs #12993.\n- The repeated-output guard now also flags a stream that collapses to a few tiny lines in no fixed order; before it only saw byte-identical loops. Refs #13001.\n- Each sub-agent in the sub-agents popover now shows its own task title (the first line of its description, cut to fit, full text on hover), so parallel ones no longer all read \"task\". Refs #13002.\n- Switching to a long session no longer shows \"could not restore extension surfaces\"; you hear once only if a surface was dropped. Refs #13011.\n- On the run-analysis signal rail, marks too close together now share one counted marker that opens a list, instead of stacking into a tall column. Refs #13034.\n- Fixed the project row's \"…\" button answering only at its corners: the faded count badge kept sitting over it and taking the click; it no longer takes the pointer. Refs #13036, #13038.\n- The magnifier beside the session filters is now a real toggle: pressing it again closes the find box instead of replaying its opening animation. Refs #13041.\n- The \"+\" that opens or creates a project folder on the sidebar's \"This machine\" row is now always visible instead of appearing only when the row is hovered. Refs #13043, #13072.\n- Fixed the branch hover card staying on screen under the branch menu and stacking a second shadow. Refs #13044.\n- The red notice raised when reading the session status fails on reload now clears itself when that read next succeeds, instead of waiting for \"Got it\". Refs #13047.\n- Failures that do not block sending now show as corner notices (three at most, dismissed only by you) with \"Report this problem\". Refs #13047, #13048.\n- The extension-surface, MCP catalog and changed-files reads treat a missing list as empty instead of raising \"Cannot read properties of undefined (reading 'filter')\". Refs #13055.\n- The branch list, event replay and queue now answer an empty list instead of null when they are empty, so the page no longer fails reading them. Refs #13055.\n- The \"Report this problem\" entry on error bars and corner notices now also writes a page defect's error name and where it came from (file name and line only) into the feedback draft. Refs #13055.\n- A red notice under the composer that comes from a defect of the page itself (for example \"Cannot read properties of undefined\") now also logs its stack to the console. Refs #13055.\n- Uploading a large image or file from the phone remote page no longer drops the connection: an oversized request is refused on the phone with a clear message and the link keeps working. Refs #13056.\n- The phone remote page can now upload larger images and files, sent as several messages and handled once the desktop has them all (up to 16 MB). Refs #13056.\n- Fixed the repeated \"Checkpoint recording failed\" warning for writes outside the workspace, such as the session temp folder: they are now a coverage gap, not a failure. Refs #13060.\n- Fixed the kernel crashing when an MCP server fails to launch or reconnect: a failed server now only becomes unavailable, nothing else is affected. Refs #13086.\n- Fixed one likely cause of broken images (such as the sidebar wordmark) on some Windows machines: the page's file types no longer follow other programs' registry entries. Refs #13094.\n",
+        "sha": "ce2a950525a221b21ffc5734b05dbe9636262f78",
+        "path": "release-notes/studio/2.40.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.40.0",
+        "zh": "Reasonix Studio v2.40.0"
+      },
+      "summary": {
+        "en": "本版本修复工作区「+」无法点击等问题，新增回合叙述设置，并让更新日志支持中英文切换。",
+        "zh": "本版本修复工作区「+」无法点击等问题，新增回合叙述设置，并让更新日志支持中英文切换。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.40.0",
+            "zh": "Reasonix Studio v2.40.0"
+          },
+          "body": {
+            "en": "本版本修复工作区「+」无法点击等问题，新增回合叙述设置，并让更新日志支持中英文切换。",
+            "zh": "本版本修复工作区「+」无法点击等问题，新增回合叙述设置，并让更新日志支持中英文切换。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.40.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/ce2a950525a221b21ffc5734b05dbe9636262f78/release-notes/studio/2.40.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.39.0",
+      "date": "2026-10-14",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版加入会话行双击重命名、没有模型服务也能启动、磁盘空间不足提醒和扩展界面的地图与仪表盘，并整理侧边栏与对话的显示细节。\n\n## 新增\n\n- 双击侧边栏会话行就地重命名；重命名对话框可以按需自动起标题 (#12977, #11591)\n- 没有配置任何模型服务也能启动，直接打开连接引导 (#12966)\n- 项目或会话所在磁盘快满时发出提醒，默认开启，只提醒不清理文件 (#12960)\n- 终端界面向终端报告工作中、等待你、已完成的状态 (#12976)\n- 已完成的会话可以在「进行中」列表里多留一段时间，默认关闭 (#12957)\n- 侧边栏标出保存在 1.x 里的会话，终端恢复列表标出未查看的会话 (#12405, #12587)\n- 用 / 调用技能时显示为紧凑的技能块；工具调用的 JSON 输入带语法着色 (#12972, #12969)\n- 变更列表里可以暂存和取消暂存文件 (#12923)\n- 应用图标显示未读的任务完成数，并换成扁平的新图标 (#12922, #12897)\n- 新增「清白蓝」「茶绿」配色，主题包可以声明密度和圆角 (#12932, #12513)\n- 图标栏有新建会话按钮；点标题栏的文件夹标记可以打开项目文件夹 (#12891, #12857, #12288)\n- 对话里的文件链接可以在工作台打开；文件菜单可以把文件或文件夹加入对话 (#12910, #12877)\n- 远程机器收进一个可折叠的行，会话树各层级更容易分清 (#12878, #12905)\n- 第二次按 Esc 才会停止正在运行的回合 (#12859)\n- 扩展界面支持样式字段、可编辑草稿、地图对比仪表盘和非阻塞动作 (#12830, #12854, #12876, #12896)\n- 已安装的包可以按功能搜索、显示贡献类型、复制调用方式，安装预览显示解析出的提交 (#12065, #12117, #12070, #12075, #12098)\n- 可以查看子代理的技能声明，并搜索 MCP 服务器的工具清单 (#12102, #12085)\n- 发现 WSL 发行版并探测其中一个 (#12595)\n- 手机页可以添加到主屏幕；已配对的手机在重启后保留，设置里有开关 (#12591, #12440)\n- 发布 Linux arm64 的 .deb 和 .rpm 安装包 (#12914)\n- 本机 stdio 的 MCP 服务器能收到工作目录和宿主的只读状态 (#12967)\n- MCP 服务器在运行中增删工具并发出通知时，工具目录会自动刷新 (#12138)\n- 可以关闭宿主对已改动回合的检查 (#12860)\n- 从右到左的文字块按自身方向显示 (#12118)\n- 工作台浏览器标签菜单新增「关闭右侧浏览器标签」，可用键盘打开 (#12557)\n\n## 变更\n\n- 版本页只保留最新的几个早期版本，其余折叠到一个按钮后 (#12982)\n- 会话列表统一为单行省略，批量选择入口移到「这台机器」的更多菜单 (#12935)\n- 桌面侧栏统一用分隔条操作；品牌标识统一为正式字标 (#12918, #12936)\n- 计算机操作改用 CUA Driver (#12937)\n- 对话里的「执行过程」改成淡色一行，展开后的头部会吸在顶部 (#12954, #12944)\n- 标题栏的会话标题紧挨项目名；分支按钮悬停的形状与相邻按钮一致 (#12955, #12971)\n- 模型列表只留设置页的一条滚动条，显示别名输入框跟随主题 (#12979)\n- 已安装的技能按来源分组 (#12329)\n\n## 修复\n\n- 压缩拿不到摘要时，被折叠的用户消息不再整段消失 (#12963)\n- 上下文占用的显示改为和触发压缩时用的数字一致，不再比服务商回报的偏小 (#12991, #12988)\n- Windows 上点任务完成通知会把窗口带到前台，点击过程写入日志 (#12907, #12956)\n- 关闭浏览器标签时不再读取内核不会发送的内容 (#12886)\n- 你已经开始作答的提问不再超时跳过 (#12884)\n- 运行时重建或回合结束事件丢失后，仍保留正在进行的回合 (#11735)\n- 保存设置的结果区分成功、未应用和失败，失败后可以重试 (#12350)\n- 撤销入口从后端恢复，撤销失效状态会保存下来 (#11589)\n- 工作台里未保存的文件草稿会被保留 (#12898)\n- 切换模型设置后上下文占用立即刷新 (#12871)\n- 费用按钱包的币种显示，文件夹选择器能列出隐藏文件夹 (#12874)\n- Windows 上 Git Bash 探测挂起时重试一次，并正确显示回退用的终端路径 (#12887)\n- 只发 /技能名 时，历史里记录的是你输入的原文 (#12890)\n- MCP 工具重名会被拒绝，原始标识在各条路径里保持一致 (#12889, #12893, #12892)\n- 子代理状态帧在客户端落后时不再丢失 (#12888)\n- 文件预览会先检查目标是否允许访问，并先经过 PreToolUse 钩子 (#12115)\n- 记忆保存失败时会撤回，迁移过的记忆再次修改时会修复索引 (#12938, #12939, #12940)\n",
+        "sha": "f289e3903f41d3a2bb4373fc182c837738b945d9",
+        "path": "release-notes/studio/2.39.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.39.0",
+        "zh": "Reasonix Studio v2.39.0"
+      },
+      "summary": {
+        "en": "本版加入会话行双击重命名、没有模型服务也能启动、磁盘空间不足提醒和扩展界面的地图与仪表盘，并整理侧边栏与对话的显示细节。",
+        "zh": "本版加入会话行双击重命名、没有模型服务也能启动、磁盘空间不足提醒和扩展界面的地图与仪表盘，并整理侧边栏与对话的显示细节。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.39.0",
+            "zh": "Reasonix Studio v2.39.0"
+          },
+          "body": {
+            "en": "本版加入会话行双击重命名、没有模型服务也能启动、磁盘空间不足提醒和扩展界面的地图与仪表盘，并整理侧边栏与对话的显示细节。",
+            "zh": "本版加入会话行双击重命名、没有模型服务也能启动、磁盘空间不足提醒和扩展界面的地图与仪表盘，并整理侧边栏与对话的显示细节。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.39.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/f289e3903f41d3a2bb4373fc182c837738b945d9/release-notes/studio/2.39.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.38.0",
+      "date": "2026-10-13",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版加入从任意回复分支会话、会话批量操作、模型显示别名和 MCP 工具定义变更审批，并修复长对话里拖选文字卡死、重载后丢失撤销入口等问题。\n\n## 新增\n\n- 可以从任意一条回复分支出一个独立的新会话 (#12770)\n- 会话行上有快速归档和删除；可以多选本地会话做批量操作 (#12775, #12807)\n- 把文件夹拖到侧边栏即可添加为项目，项目右键菜单可以打开项目操作 (#12776, #12324)\n- 从上下文环和检查器就能压缩上下文 (#12777)\n- 对话导航旁显示当前计划 (#12803)\n- 浏览器面板新增宽屏模式，打开时仍能看到对话；浏览器页面可以逐个或批量关闭 (#11762, #12806)\n- 文件面板右键增加「复制路径」和「复制引用」，名称里含冒号或以反斜杠结尾而无法表示成引用时会禁用后者 (#12818, #12842)\n- 可以给每个模型设置显示别名；添加来源前可以批量检测模型 (#12821, #12835)\n- 模型偏好里可以设置联网搜索使用的模型 (#11761)\n- MCP 服务器的工具定义变更后，需要重新批准才会启用 (#12829)\n- 回退之后对话顶部显示持久的撤销提示，可以关闭，重载后仍在 (#12831, #12559)\n- 可以在右键菜单里引用选中的回复文字 (#12836)\n- 发送快捷键成为统一的偏好设置 (#12837)\n- 反馈表单里可以直接打开日志文件夹；反馈对话折叠显示并保留未读状态 (#12768, #12802)\n- 正在使用的版本被撤回时，应用会告知用户 (#12769)\n- 工作台「+」按钮会显示启动器，从导航打开聚焦会话的文件 (#12826, #12832)\n\n## 变更\n\n- 会话标签页改为按需开启 (#12841)\n- 项目里置顶的会话排在最前并带标记 (#12845)\n- 默认浅色主题的层次重新调整；视图标签与页面色调一致 (#12793, #12782)\n- 对话壁纸下的文字光晕可以配置 (#12839)\n- 当前使用的模型在输入框的选择器里排第一 (#12801)\n- 手机窄屏上未输入时的输入框更紧凑，并保留分支标识 (#12800, #12813)\n- 左侧图标栏的图标与对应设置分区一致；设置页打开时侧边栏开关仍可用 (#12753, #12798)\n- 首屏改用 1.9 MB 的核心字体子集；对话导航条每个可区分位置只画一个标记 (#12766, #12767)\n- 多个会话共用一个工作区时，写入改用乐观租约 (#12772)\n- 没有声明检查的项目里，写过文件的未识别命令不再免除验证 (#12848)\n\n## 修复\n\n- 长对话里拖选文字会卡死：选区经过的远处块改为按对话原文保留，1200 轮对话里跨屏选择从数十秒降到约 0.1 秒；这些中间块复制出的是对话原文，不再带界面标签 (#12850)\n- 一个超过 128 个字符的 MCP 工具名会让整个会话的每次请求失败：现在只缩短工具名部分 (#12849)\n- 密集的时间线信号可以逐个查看 (#12815)\n- 压缩对话时转录区不再跳动 (#12783)\n- 停放的浏览器页面再次显示时会重新附着，不再留下空白 (#12778)\n- Windows 上替换插件目录时不再重命名被监视的目录 (#11822)\n- 反馈里正确报告 Windows 11 的产品线 (#12734)\n- 没有任何对话的文件夹现在返回空的会话列表 (#12744)\n- 终端界面里补全菜单中按 Esc 会同时停止正在运行的回合 (#12761)\n- 记忆改名时先下线旧名再发布；归档记忆恢复失败后可以重试，索引与归档保持一致 (#12785, #12816, #12819)\n- 自动召回的记忆在轨迹里记录是被条数还是字符预算截掉的 (#12843)\n",
+        "sha": "c48ee0f80d3650267916b93e98a5e327e28eb996",
+        "path": "release-notes/studio/2.38.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.38.0",
+        "zh": "Reasonix Studio v2.38.0"
+      },
+      "summary": {
+        "en": "本版加入从任意回复分支会话、会话批量操作、模型显示别名和 MCP 工具定义变更审批，并修复长对话里拖选文字卡死、重载后丢失撤销入口等问题。",
+        "zh": "本版加入从任意回复分支会话、会话批量操作、模型显示别名和 MCP 工具定义变更审批，并修复长对话里拖选文字卡死、重载后丢失撤销入口等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.38.0",
+            "zh": "Reasonix Studio v2.38.0"
+          },
+          "body": {
+            "en": "本版加入从任意回复分支会话、会话批量操作、模型显示别名和 MCP 工具定义变更审批，并修复长对话里拖选文字卡死、重载后丢失撤销入口等问题。",
+            "zh": "本版加入从任意回复分支会话、会话批量操作、模型显示别名和 MCP 工具定义变更审批，并修复长对话里拖选文字卡死、重载后丢失撤销入口等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.38.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/c48ee0f80d3650267916b93e98a5e327e28eb996/release-notes/studio/2.38.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.37.0",
+      "date": "2026-10-12",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版加入常用服务预设库和主题包删除，并修复严格网关回放无参数工具调用时的 HTTP 400、卡住的外壳探测拖住内核等问题。\n\n## 新增\n\n- 添加模型服务时可以从内核维护的常用预设开始：可搜索、按域名分组，选中后整条预设（模型目录、识图模型、窗口、思考档）原样写入，名称重复由内核判断 (#12645)\n- 外观里可以删除已安装的主题包，需要点两次确认，内置主题没有删除入口 (#12623)\n\n## 变更\n\n- 删除模型服务时会说明哪些角色改用了其他服务、哪些被清空，并从 `provider_access` 里去掉该服务 (#12589)\n- 带密钥的供应商请求（聊天、探测、余额、决策协议）不再跟随跨主机的重定向；被拒时说明被重定向到了哪里，聊天也不再重试十次。如果你的中转站会重定向，把 base URL 改成它重定向到的地址即可 (#12570)\n- 每天的第一个回合会告诉模型当天日期，只放在回合末尾，不改变缓存前缀 (#12598)\n- `reasonix upgrade` 遇到由 npm 或 Homebrew 安装的程序，会提示用对应的包管理器升级，不再自己替换文件 (#12578)\n- 检查通过之后才写入的文档不再要求再验证一次；有工具钩子或边车介入时仍然要求验证 (#12560)\n\n## 修复\n\n- 严格的网关在回放无参数的工具调用时返回 HTTP 400「arguments must be valid JSON」：空参数现在发送 `{}`，已保存的会话保持原样 (#12745)\n- 外壳探测整体有时限，一次卡住的探测不再拖住内核，也不会反复重新启动 (#12615)\n- 本地 `.mcp.json` 等清单有大小上限，安装被拒时会写明具体原因 (#12641)\n- 内部：Windows 更新助手移除、配置迁移合并为一次读取、启动输入显式绑定、测试稳定性 (#12594, #12592, #12555, #12742)\n",
+        "sha": "e17ef45e343f43f65ffa4628ec904a6dfa9fd22f",
+        "path": "release-notes/studio/2.37.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.37.0",
+        "zh": "Reasonix Studio v2.37.0"
+      },
+      "summary": {
+        "en": "本版加入常用服务预设库和主题包删除，并修复严格网关回放无参数工具调用时的 HTTP 400、卡住的外壳探测拖住内核等问题。",
+        "zh": "本版加入常用服务预设库和主题包删除，并修复严格网关回放无参数工具调用时的 HTTP 400、卡住的外壳探测拖住内核等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.37.0",
+            "zh": "Reasonix Studio v2.37.0"
+          },
+          "body": {
+            "en": "本版加入常用服务预设库和主题包删除，并修复严格网关回放无参数工具调用时的 HTTP 400、卡住的外壳探测拖住内核等问题。",
+            "zh": "本版加入常用服务预设库和主题包删除，并修复严格网关回放无参数工具调用时的 HTTP 400、卡住的外壳探测拖住内核等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.37.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/e17ef45e343f43f65ffa4628ec904a6dfa9fd22f/release-notes/studio/2.37.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.36.0",
+      "date": "2026-10-11",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版加入提问等待超时、可选提示音、可选的折叠中间过程、每回合运行时长、改动文件条、工作区额外文件夹设置和编辑连接时更改协议，回执卡改为默认隐藏，并修复 1M 窗口每轮 400、存储迁移卡在校验、滚轮抖动、模型切换被后台任务挡住、Linux 与 Windows 更新等问题。\n\n## 新增\n\n- 新增可选的提问等待超时（默认关闭）：设置的会话页、`[agent] ask_timeout_seconds` 或终端 `/ask-timeout` 开启后，无人回答的提问超时即跳过，并告诉模型这是超时而非你的回答 (#12661)\n- 每个回合结束后显示它运行了多久，重新载入历史后仍能看到；失败或被取消的回合不显示，旧会话也不补造 (#12656)\n- 输入框上方新增改动文件条，显示「N 个文件已更改 +x -y」，点击打开工作台文件列表；默认开启，可在会话设置里关闭，非 git 工作区不显示 (#12668)\n- 外观的行宽新增「整宽，输入框也铺满」，默认不变，需要时自己选；手机宽度不受影响 (#12703)\n- 设置的「工具与权限」里新增「此项目的额外文件夹」：可添加、移除让 agent 额外可写的文件夹，只对本项目生效，拒绝时给出带代码的原因，默认没有；「完全放行」只决定是否询问，不会扩大可写范围 (#12640, #12715)\n- 新增可选的提示音（默认关闭）：设置的通知里打开后，回合结束、等待批准、模型提问和反馈回复时放一声短提示，不依赖系统通知，窗口在后台也会响 (#12702)\n- 新增可选的「折叠中间过程」（默认关闭，`[ui] fold_turn_work`）：已结束的一轮只留最后一句，中间的工具调用、思考和中间文字收成一行，点开展开，运行中的一轮始终展开 (#12714)\n- 设置的版本页新增「日志与异常退出记录」：显示日志目录和异常退出留下的文件，不上传任何东西 (#12719)\n- 编辑连接时可以更改协议，不必删掉重建；决策来源不显示该选项，已固定请求地址的连接会被拒绝并说明原因 (#12618)\n- 界面字体与代码字体的建议列表大幅扩充，在 Windows 上不再几乎没有可选项 (#12708)\n- 斜杠菜单里的 MCP 提示词会列出它声明的参数，并标明必填或可选，Studio 和终端界面都有 (#12700)\n- 窗口关闭后重新打开，会回到上次的大小、位置和最大化状态 (#12624)\n- 不带任务编号调用 `bash_output` 时，列出正在运行的后台任务及其开始时间，模型不必自己记任务编号 (#12627)\n\n## 变更\n\n- 回执卡默认隐藏：有未验证的改动时只留一行，点击展开；在设置里或 `[ui] show_receipt` 可恢复显示，终端界面读同一个设置 (#12721)\n- 打开工作台时先出入口页（文件、改动、浏览器），不再替你打开浏览器；标题栏的浏览器按钮仍直达浏览器 (#12648)\n- 侧栏开关只有一个且位置不变，会话项点击有动作，同一模型连续回复只在首条显示头像和名字 (#12647)\n- 运行分析的信号栏说明它是什么、为什么标记不能拖；窄窗口加高缩放下标题栏折成一个按钮，不再互相压住 (#12646, #12616)\n- 宿主拒绝过的调用会在下一轮告诉模型（只回传确定不可重试的几类），被拒说明也不再写「本会话剩余时间」 (#12697)\n- 本机模型的验证超时单独说明「本机服务没有在时限内回答，模型可能仍在加载」，本机等待放宽到 60 秒，远程仍是 20 秒 (#12704)\n- 设置、用量等机器级页面在远程窗格里也绑定本机运行时，被替换的控制器的货币保存会被拒绝 (#12674)\n- 悬停提示延迟 0.3 秒，键盘聚焦不延迟 (#12707)\n- 只剩后台任务时也可以切换模型、思考档、窗口、服务或恢复会话：任务继续运行并交给新的运行时，不再被「仍有后台任务」挡住；回合进行中仍会被拒绝 (#12622)\n- 计划模式下调用 `browser_open` 被拒时，说明原因并建议改用 `web_fetch` (#12678)\n- 通知设置的说明改为如实：总开关默认关闭，前台和后台都会提醒，系统提示音由系统决定，没有单独的声音设置 (#12677)\n- 只读代理现在可以搜索能力目录，不再被误报「未知的动态能力操作」 (#12582)\n- 权限规则可以写 `system_one`、`advise`、`best_of_n` 等仅在特定装配下存在的工具，不再保存时被拒或载入时被报失效 (#12565)\n- 安装计划和插件警告里来自软件包的文字统一按显示场景处理：控制字符不再截断整句，隐藏字符不再悄悄被删 (#12630, #12636)\n- MCP 登录判定改为按 401 的 Bearer 质询和凭据情况，不再靠错误文字里有没有「auth」；没有质询的 401 与 403 现在显示为可重试 (#12613)\n\n## 修复\n\n- 存储位置迁移不再在「正在校验」处看似卡死：校验按文件汇报进度，迁移期间继续写入的文件会再次复制，仍不稳定则拒绝并保持原样；校验后又被写过的旧目录会保留；目标目录被拒时列出多余条目 (#12740)\n- 向上滚动长对话时不再抽搐或跳到上一条 (#12706)\n- 还没有输出的运行中调用可以展开，写明命令仍在运行、已运行多久和它自带的超时 (#12720)\n- 恢复 Goal 会真的开始追求，对被阻塞的 Goal 回复后恢复追求；被拒绝的提交带通知码，排队的前端不再说「请重发」 (#12655, #12654)\n- 模型显式交回（阻塞或等待用户）后，宿主不再继续续跑；仍在运行的后台任务算看不见的写入者，通过符号链接写入会记录实际写到哪里 (#12651, #12586, #12619)\n- 通用的 400 说明不再说「通常是程序缺陷」，附上服务给出的原因 (#12710)\n- 上下文接近 1M 时每一轮都返回 HTTP 400：补全预留改为随窗口按比例留出，没有错误码的 400 也会折叠上下文后重放，折叠失败时错误里会写明原因 (#12698, Fixes #12694)\n- Responses 协议的流在工具调用不完整时不再悄悄丢掉其中一个，而是判为失败重试 (#12558)\n- 发给 Responses 的图片补上 `detail` 字段，官方 OpenAI 地址不再拒收；400 或 422 时在服务返回的文字旁显示本机发出的请求形状，便于排查 (#12666, #12667)\n- stdio 的 MCP 服务若对探测不应答又在收到非 `initialize` 的首条消息时退出，现在改在新进程上握手，不再等到超时报 `context deadline exceeded` (#12621)\n- 已写入磁盘的改动被扩展的 `tool.after` 报告为失败后，不再从改动记录里消失，改完代码仍会要求验证 (#12614)\n- 回执判断某个路径是否属于宿主自己的目录时，改在调用发生时判断，并把各种链接（含 Windows 联接点）和 `..` 都视为不属于 (#12632)\n- 删除模型服务被拒时，原因显示在删除按钮旁，并同步清掉所有引用该服务的角色，窗口很矮时也看得到 (#12573)\n- 决策协议的来源不再显示「读取可用模型」按钮 (#12568)\n- 关闭右侧边栏后，滚动条不再被拖拽热区盖住，可以直接拖动；各分栏的拖拽条也不再压住相邻滚动条 (#12620)\n- 重写消息的输入框改为占满所在行，不再只有一个窄的文本框 (#12626)\n- 停靠的浏览器栏从窗格顶部开始，不再空出一截 (#12650)\n- 模型思考时输入一行，思考内容不再被拆成两块 (#12673)\n- 在一个窗口里归档或改动会话后，其他窗口的会话列表会跟着刷新 (#12664)\n- 通知里的占位符（文件名、数量、规则）现在统一替换，不再原样显示 `{n}`、`{name}` (#12642)\n- 扩展的几类告警分开计数，一类不再吞掉另一类；重建后缺失边车程序的通知不再丢失；同一条构建期通知在重建时只出现一次 (#12669, #12690, #12581)\n- 模型的推理被长度上限截断而没有正文时，告知是上限所致，不再只说「别只发推理」 (#12625)\n- 被取消的子任务的记录会交给父任务，但不会被当作答案 (#12628)\n- Linux 的 `.deb` 更新程序现在接受 `reasonix-studio` 包名，不再在校验后以 package_rejected 拒绝；`.deb` 的 CI 校验同步加上 (#12662)\n- Windows 更新时以 `--updated` 启动安装程序，更新后桌面快捷方式和任务栏固定得以保留 (#12675)\n- Windows 点击系统通知会把 Studio 窗口带到前面 (#12699)\n- 反馈表单的系统一栏按构建号显示「Windows 11」，不再只显示 NT 10.0 而被误认为 Windows 10 (#12701)\n- 后台任务完成等由宿主排队的回合，开始时现在会宣告，界面不再看似无事发生 (#12705)\n- 排队的一行被内核判为无法送达后，会从对话记录里撤下，不再一直显示「等待中」，与队列面板一致 (#12713)\n- Linux 托盘菜单只在内容变化时才重建，避免定时替换把打开着的菜单关掉；这是对一个托盘问题的加固，未确认为根因 (#12709)\n- 附件、壁纸、主题包过大时先拒绝再读入内存，不再因几百 MB 的压缩包耗尽内存 (#12711, #12712)\n- 外壳探测遇到卡住的 bash 一分钟内不再重复启动；网络位置（UNC 共享）上的 bash 与 PowerShell 一律不再被用作 shell (#12633, #12635)\n- 自动安装 `.mcp.json` 被拒时，保留并显示被拒的原因，不再当作没有这个文件 (#12571)\n- 内部：会话旁文件每次事务只读一次并缓存已验证的信任对象，后台命令的退出码和信号改为带类型字段，用户消息的附件改为字段而非文本匹配 (#12653, #12638, #12634)\n- 内部：评测统计、持续集成、依赖升级、官网与技能镜像、赞助鸣谢等不影响使用的改动 (#12629, #12631, #12679, #12681, #12686, #12687, #12639, #12649, #12659, #12612)\n- 内部：测试与基线检查修复、评测记录与语料守卫 (#12607, #12718, #12737, #12739, #12494, #12495, #12500)\n",
+        "sha": "0807e52c2deb0145df552b902d25f3584590385d",
+        "path": "release-notes/studio/2.36.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.36.0",
+        "zh": "Reasonix Studio v2.36.0"
+      },
+      "summary": {
+        "en": "本版加入提问等待超时、可选提示音、可选的折叠中间过程、每回合运行时长、改动文件条、工作区额外文件夹设置和编辑连接时更改协议，回执卡改为默认隐藏，并修复 1M 窗口每轮 400、存储迁移卡在校验、滚轮抖动、模型切换被后台任务挡住、Linux 与 Windows 更新等问题。",
+        "zh": "本版加入提问等待超时、可选提示音、可选的折叠中间过程、每回合运行时长、改动文件条、工作区额外文件夹设置和编辑连接时更改协议，回执卡改为默认隐藏，并修复 1M 窗口每轮 400、存储迁移卡在校验、滚轮抖动、模型切换被后台任务挡住、Linux 与 Windows 更新等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.36.0",
+            "zh": "Reasonix Studio v2.36.0"
+          },
+          "body": {
+            "en": "本版加入提问等待超时、可选提示音、可选的折叠中间过程、每回合运行时长、改动文件条、工作区额外文件夹设置和编辑连接时更改协议，回执卡改为默认隐藏，并修复 1M 窗口每轮 400、存储迁移卡在校验、滚轮抖动、模型切换被后台任务挡住、Linux 与 Windows 更新等问题。",
+            "zh": "本版加入提问等待超时、可选提示音、可选的折叠中间过程、每回合运行时长、改动文件条、工作区额外文件夹设置和编辑连接时更改协议，回执卡改为默认隐藏，并修复 1M 窗口每轮 400、存储迁移卡在校验、滚轮抖动、模型切换被后台任务挡住、Linux 与 Windows 更新等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.36.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/0807e52c2deb0145df552b902d25f3584590385d/release-notes/studio/2.36.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.35.0",
+      "date": "2026-10-11",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版加入 Linux 的 rpm 安装包、MCP 工具定义固定与变更扣留、闲置会话自动归档、硬件加速开关和反馈回复通知，并修复信任库无限增长、新会话默认模型被跳过时无提示等问题。\n\n## 新增\n\n- 新增 Linux 的 `.rpm` 安装包（`ReasonixStudio-linux-*.rpm`），本版是首个含 rpm 的版本；用 minisign 校验，无 GPG 签名；rpm 安装的版本暂不自动更新 (#12608)\n- MCP 工具定义在你批准时被固定：之后有变化或新增的工具会被扣住，不进入模型请求，调用会被明确拒绝，直到用 `reasonix mcp trust <名称> --digest <摘要>` 批准；桌面端目前只显示通知 (#12597)\n- 设置的外观页新增「图形」：可关闭硬件加速（下次启动生效），并显示当前窗口的绘制方式；窗口无法绘制时，可用环境变量 `REASONIX_DISABLE_GPU=1` 或参数 `--disable-gpu` 仅关闭这一次 (#12451)\n- 设置新增可选的闲置会话自动归档（默认关闭，默认 30 天，范围 1 到 3650）；已置顶、正在运行、有待回答事项或有未读完成的会话不会被归档，归档可恢复 (#11535)\n- 反馈的未读角标在应用打开期间自动刷新，窗口不在前台时有新回复会弹出通知；通知设置里新增「反馈有回复时」开关，在总开关打开时默认开启 (#11538)\n- 设置的「关于」页新增「支持项目」入口，含 PayPal 链接以及默认折叠的微信、支付宝收款码 (#11709)\n\n## 变更\n\n- 提交接口 `POST /submit` 只在提交确实被丢弃时返回 409；已受理并立刻结束的回合、排在结束中回合之后的提交现在返回 202 (#12596)\n- 电脑操作返回给模型的应用名和窗口标题现在限长并转义，包含换行或不可见字符的名称不再能伪造快照行 (#12585)\n- 安装 skill 或本地插件时，复制的来源若是指向目录的别名现在可以安装；批准之后来源别名被改指向别处，会被拒绝而不会复制 (#12112)\n\n## 修复\n\n- 信任库 `trusted/` 目录不再无限增长：密封记录不再把合同的验收条目复制进每一回合，义务清单改为只存一份并按摘要引用 (#12609, Fixes #12603)\n- 新会话的默认模型是决策来源而被跳过时，终端界面和 `reasonix run` 现在给出「默认模型不可用」的通知，不再静默改用别的模型 (#12605)\n",
+        "sha": "f1323bb2fafe904cb15af821de76676109465179",
+        "path": "release-notes/studio/2.35.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.35.0",
+        "zh": "Reasonix Studio v2.35.0"
+      },
+      "summary": {
+        "en": "本版加入 Linux 的 rpm 安装包、MCP 工具定义固定与变更扣留、闲置会话自动归档、硬件加速开关和反馈回复通知，并修复信任库无限增长、新会话默认模型被跳过时无提示等问题。",
+        "zh": "本版加入 Linux 的 rpm 安装包、MCP 工具定义固定与变更扣留、闲置会话自动归档、硬件加速开关和反馈回复通知，并修复信任库无限增长、新会话默认模型被跳过时无提示等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.35.0",
+            "zh": "Reasonix Studio v2.35.0"
+          },
+          "body": {
+            "en": "本版加入 Linux 的 rpm 安装包、MCP 工具定义固定与变更扣留、闲置会话自动归档、硬件加速开关和反馈回复通知，并修复信任库无限增长、新会话默认模型被跳过时无提示等问题。",
+            "zh": "本版加入 Linux 的 rpm 安装包、MCP 工具定义固定与变更扣留、闲置会话自动归档、硬件加速开关和反馈回复通知，并修复信任库无限增长、新会话默认模型被跳过时无提示等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.35.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/f1323bb2fafe904cb15af821de76676109465179/release-notes/studio/2.35.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.34.0",
+      "date": "2026-10-10",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版让输入框可以直接切换工作区的本地分支，界面缩放改用统一范围并支持 Ctrl/Cmd +/-/0，电脑操作能判断每一步是否生效，并修复回退冲突、旧版会话导入、模型切换、GLM 思考参数和多处终端界面的问题。\n\n## 新增\n\n- 输入框的分支标签读取真实的 git 状态，并可直接把工作区切换到另一个本地分支；有进行中的回合、后台任务或未提交改动时会明确拒绝并说明原因 (#12092, #12171)\n- 界面缩放只有一个声明范围 0.8 到 1.8（步长 0.05），滑块显示的值就是实际保存的值，并可用 Ctrl/Cmd 加 `+`、`-`、`0` 调整 (#12035)\n- 电脑操作的每一步会标明效果是否可信，并带上占住输入的模态对话框；Windows 上输入文字会读回确认，被错误框挡住时不再假装成功 (#12541, #12542)\n- 自动压缩因上次摘要失败而被暂缓时，界面和终端界面会显示一条中英文提示，不再静默 (#12083)\n- 终端界面输入框为空时按回车，回到最新输出并继续跟随，与 1.x 一致；`Ctrl+Z` 把终端界面挂起到命令行，`fg` 后恢复 (#12510, #12511)\n- 思考参数面板按协议声明的字段命名，Responses 协议的服务商不再显示成只支持 Chat (#12498)\n\n## 变更\n\n- 侧栏底部的用量、反馈、账号和设置，在图标栏可见时不再重复显示；图标栏隐藏、仅折叠时显示或窄窗口下仍保留 (#12482)\n- 显式声明 `glm` 协议的服务，glm-5.2、glm-5.3、glm-5.3-flash 的请求现在带 `reasoning_effort`：5.2 选 high 真发 high，选 none 真关思考；5.3 的「关闭」发 `thinking=enabled` 加 low (#12552)\n- 决策来源不再出现在输入框的模型切换器里，选它会得到明确错误，而不是不可预期的失败 (#12553)\n- 已保存的决策来源点「测试连接」时，改走它自己的协议并给出分类错误，不再提示「加 /v1」 (#12546)\n- 配置编辑锁目录改放在用户主目录下，遇到属于他人的目录时给出明确错误，不再报一个裸的权限错误 (#11374)\n- 权限规则写成不对应任何已注册工具的裸命令（如 `ask = [\"rm\"]`）时会被报告并拒绝，不再静默失效 (#12536)\n- 安装计划里来自软件包的文字（版本、名称、路径、警告等）现在限长并清除控制字符，`.mcp.json` 声明的服务数超限会被拒绝 (#12037, #12512)\n\n## 修复\n\n- 代码回退之后再次回退同一回合或更早的回合，不再误报文件冲突；回退确认里的文件数按整个回退范围统计 (#11572, #11692)\n- 打开 1.x 会话时不再多出一份同名副本 (#12506)\n- 导入 1.x 目录时，读不了的会话会逐条列出并附带原因，不再只给一个警告数量 (#12538)\n- 模型切换被拒时区分是回合仍在运行还是只剩后台任务，并说明各自的处理办法 (#12505)\n- 模型切换后，已接入的拦截器类扩展不再失效，也不再误报其服务已停止 (#12367)\n- Windows 上通过注册表里的安装路径找到 Git Bash，回退到 PowerShell 时明确告知；外壳探测有时限且结果会保存，不再拖慢启动 (#12486, #12539)\n- Git 低于 2.31 时，工作区不再被误判为「不是仓库」而丢失状态、提交和分支标签 (#12518)\n- 压缩摘要因输出上限被截断时，自动用加倍的上限重试一次 (#12469)\n- 计划模式拒绝调用时，说明被拒的命令、原因类别和可行的出路 (#12517)\n- 本回合只改了 `.md`/`.rst` 文档时，不再被要求运行验证命令 (#12520)\n- 交付卡片不再把主机自己的任务快照、工具缓存和 `.git` 当作改动，也不再给中文用户显示英文句子 (#12465)\n- 后台任务完成、终止、失败的提示改为按界面语言显示 (#12476)\n- 提问卡片的自由文字输入框始终可见，运行状态明确写为等待你的回答 (#12540)\n- 图标栏的悬停提示不再被裁掉或被遮住 (#12468)\n- 重写已发送消息的输入框与队列行的编辑框随文字长度调整高度，长段落不再只露出两行 (#12477)\n- 记忆页保存时，较新的草稿不会被先前的保存完成而清掉，各条记忆的写入按钮分别保持禁用 (#12135)\n- 切换设置里的连接后，软件包安装表单和更新锁不再沿用上一个连接的内容 (#12126)\n- 技能安装和注册的结果只报告所选来源自己的文件，同名技能被遮蔽时给出警告，目录别名也会被跟随 (#12107, #12109, #12110)\n- `memory` 工具的搜索和列表在丢弃结果时会注明丢了多少条，模型不再把截断当作完整 (#12104)\n- 宿主日志不再被例行请求刷满，内核异常退出时留下可读的崩溃记录 (#12523)\n",
+        "sha": "d76a5c4b52f60bf925b869a502f6fcf719f4c9a9",
+        "path": "release-notes/studio/2.34.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.34.0",
+        "zh": "Reasonix Studio v2.34.0"
+      },
+      "summary": {
+        "en": "本版让输入框可以直接切换工作区的本地分支，界面缩放改用统一范围并支持 Ctrl/Cmd +/-/0，电脑操作能判断每一步是否生效，并修复回退冲突、旧版会话导入、模型切换、GLM 思考参数和多处终端界面的问题。",
+        "zh": "本版让输入框可以直接切换工作区的本地分支，界面缩放改用统一范围并支持 Ctrl/Cmd +/-/0，电脑操作能判断每一步是否生效，并修复回退冲突、旧版会话导入、模型切换、GLM 思考参数和多处终端界面的问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.34.0",
+            "zh": "Reasonix Studio v2.34.0"
+          },
+          "body": {
+            "en": "本版让输入框可以直接切换工作区的本地分支，界面缩放改用统一范围并支持 Ctrl/Cmd +/-/0，电脑操作能判断每一步是否生效，并修复回退冲突、旧版会话导入、模型切换、GLM 思考参数和多处终端界面的问题。",
+            "zh": "本版让输入框可以直接切换工作区的本地分支，界面缩放改用统一范围并支持 Ctrl/Cmd +/-/0，电脑操作能判断每一步是否生效，并修复回退冲突、旧版会话导入、模型切换、GLM 思考参数和多处终端界面的问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.34.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/d76a5c4b52f60bf925b869a502f6fcf719f4c9a9/release-notes/studio/2.34.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.33.0",
+      "date": "2026-10-09",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版把图标栏移到窗口最左侧并加入反馈入口与三档显示方式，新增模型选择器搜索与分组、HTML 文件页面预览和「视觉效果」节能档，补齐终端界面的多个按键，并修复队列编辑、回退重发、反馈截图和带天空主题包长时间占用显卡的问题。\n\n## 新增\n\n- 图标栏移到窗口最左边，底部新增带未读角标的「发送反馈」入口；外观页「图标栏」改为始终显示（默认）／仅侧栏折叠时显示／从不显示，立即生效 (#12428)\n- 输入框的模型选择器带搜索框（输入即过滤，回车选第一项，Esc 关闭），按服务商分组并固定显示分组标题，条目改为单行，当前模型保留勾选，声明可读图的模型带「读图」标记 (#12442)\n- 工作台文件浏览器里打开 `.html`/`.htm` 文件时，标签页新增「预览」视图（默认）：按网页打开，同目录的样式、脚本、图片照常加载，文件变化后自动刷新，未保存的草稿不会被覆盖 (#12443)\n- 设置的外观页「高级外观」新增「视觉效果」：完整（默认）／节能。节能档去掉磨砂玻璃、动态天空和颗粒，布局不变；只作用于本机，立即生效 (#12448)\n- 终端界面的工具审批和计划审批卡片支持用 `j`/`k` 和 `Ctrl+N`/`Ctrl+P` 移动光标 (#12419)\n- 终端界面的提问卡片支持 `j`/`k` 上下移动、`h`/`l` 在问题之间左右切换 (#12420)\n- 终端界面的 `/mcp` 面板支持 `l`/右方向键进入服务的工具列表，`h`/左方向键返回或关闭面板，`q` 直接关闭 (#12421)\n- 终端界面在开启应用内鼠标捕获时，没有选中文字的右键会粘贴剪贴板里的文字，与 1.x 一致，通过 SSH 连接时仍显示原有提示；输入框隐藏时不粘贴 (#12436)\n- 终端界面在回合运行中按 `Ctrl+Enter`，把输入框内容作为引导发送，效果与 `Ctrl+S` 相同，在下一个工具边界送达；空闲时按它不做任何事，不会把想换行的草稿提交出去 (#12437)\n\n## 变更\n\n- 打开会话窗格时，MCP、改动、上下文和队列不再在状态返回前后各读取一次；在测试夹具里这四项各由两次降为一次，实际耗时变化尚未实测 (#12344)\n- Go 工具链升到 1.26.9、网络库 `golang.org/x/net` 升到 v0.60.0，清除漏洞扫描对本程序报告的 11 项可达漏洞，扫描结果为 0；只影响构建，没有源码改动 (#12446)\n\n## 修复\n\n- 带天空的主题包不再让显卡持续满载：天空画布降到每秒 15 帧，窗口不可见或失焦时停绘，面板模糊改为更实的底色。RTX 3060 上空闲占用从 9.3% 降到 1.0%，集成显卡未实测 (#12448)\n- 连续点击队列里两条的「编辑」时，先点的那条较晚返回，不再覆盖后点那条的编辑框和未保存的草稿；较早的拒绝提示也不再盖掉已打开的编辑框 (#12411)\n- 编辑已发送的消息并重发时，如果回退失败，编辑框保留修改的文字并在原处显示错误，可直接重试，不再关闭编辑框后什么都没发出去 (#12426)\n- 反馈截图还在读取时提交反馈再点「再写一条」，上一条的截图不再混进下一条反馈 (#12423)\n- 打开反馈对话框后，焦点偶尔停在标签页上而不进入正文输入框的问题已修复 (#12439)\n- 已发送消息里粘贴或上传并保存的图片现在显示预览；图片读取失败时保留预览框并显示「图片不可用」，竖图不再撑出预览框 (#12332)\n- 标题栏的设备面板在云端访问离线时，会区分说明是未登录、中继不可达还是中继拒绝，不再一律显示为未登录 (#12429)\n- 终端界面输入框里调出了多行历史条目后，上下键可以继续往更早的条目翻，不再卡在该条目的第一行 (#12435)\n- 项目里声明的 MCP 服务启用后，若命令、参数、环境变量或网址被改动，会回到「待授权」并显示将要启动的命令；升级后已启用的项目服务会再询问一次 (e2d8eba20, GHSA-j7r7-jh9q-wrq2)\n",
+        "sha": "5e17135b6fa1c90f6f2f4ae45957d12159fe0e7e",
+        "path": "release-notes/studio/2.33.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.33.0",
+        "zh": "Reasonix Studio v2.33.0"
+      },
+      "summary": {
+        "en": "本版把图标栏移到窗口最左侧并加入反馈入口与三档显示方式，新增模型选择器搜索与分组、HTML 文件页面预览和「视觉效果」节能档，补齐终端界面的多个按键，并修复队列编辑、回退重发、反馈截图和带天空主题包长时间占用显卡的问题。",
+        "zh": "本版把图标栏移到窗口最左侧并加入反馈入口与三档显示方式，新增模型选择器搜索与分组、HTML 文件页面预览和「视觉效果」节能档，补齐终端界面的多个按键，并修复队列编辑、回退重发、反馈截图和带天空主题包长时间占用显卡的问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.33.0",
+            "zh": "Reasonix Studio v2.33.0"
+          },
+          "body": {
+            "en": "本版把图标栏移到窗口最左侧并加入反馈入口与三档显示方式，新增模型选择器搜索与分组、HTML 文件页面预览和「视觉效果」节能档，补齐终端界面的多个按键，并修复队列编辑、回退重发、反馈截图和带天空主题包长时间占用显卡的问题。",
+            "zh": "本版把图标栏移到窗口最左侧并加入反馈入口与三档显示方式，新增模型选择器搜索与分组、HTML 文件页面预览和「视觉效果」节能档，补齐终端界面的多个按键，并修复队列编辑、回退重发、反馈截图和带天空主题包长时间占用显卡的问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.33.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/5e17135b6fa1c90f6f2f4ae45957d12159fe0e7e/release-notes/studio/2.33.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.32.0",
+      "date": "2026-10-08",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版带回可开关的图标栏，版本页可查看每个版本的更新内容，并修复队列、子代理显示、折叠会话删除、旧版导入等问题。\n\n## 新增\n\n- 图标栏回来了：设置的外观页新增「显示图标栏」，默认开启、立即生效；手机宽度下自动隐藏，加宽窗口后恢复你的选择 (#12377)\n- 版本页的版本行新增「更新内容」，点开即在行内阅读该版本的说明；只有目录里带说明的版本才有，从本版起发布的版本会带，首次查看后缓存在本机 (#12404, #12406)\n\n## 变更\n\n- 删除侧栏里被折叠的会话行时，同时删除它藏起来的恢复副本，不再删完后下一个副本顶上来像没删 (#12372)\n- 从旧版 Reasonix 导入时，1.x 桌面版的每个会话归入它原来的工作区，不再全部落进当前选中的工作区；找不到原工作区的仍归入当前工作区 (#12387)\n- 窗口背景色尽量与主题一致，以免小数缩放下窗口边缘露出白边；尚未在 150% 缩放的真机上验证 (#12374)\n- 折叠状态下的思考内容不再逐字播放动画，展开时直接显示最新内容 (#12369)\n- 打开会话窗格时检查点只读取一次，不再重复读取 (#12120)\n- 服务端拒绝请求时不再一律断言原因是丢失了助手的思考内容，不再把没有观察到的原因当作事实 (#12353)\n- 压缩阈值输入框在被容量保护截断时，直接显示实际生效的值和比例 (#12415)\n- 大型技能仓库安装后，设置面板的多个请求不再排队等同一次重复解析；在 Windows 上的效果是预期，尚未实测 (#12391, #12395)\n\n## 修复\n\n- 在队列编辑框里按 Esc 只关闭编辑，不再同时停止正在运行的回合 (#12385)\n- 点击队列里某一条的「立即发送」，现在发送的就是选中的那条，不再是排在最前的那条 (#12373)\n- 回退对话后，被回退的那条消息放回输入框供修改重发；已有不同草稿时追加在其后 (#12342)\n- 打开会话窗格时，状态栏余额不再闪一下消失再出现 (#12400)\n- 侧栏读取会话树失败后保留上一次的列表，不再变成空 (#12375)\n- 运行中的委派子代理在运行期间就显示在子代理列表和状态里，不必等它结束 (#12413)\n- 被主机在运行前拒绝的调用显示为「未执行」，不再标成「已中断」 (#12414)\n- 「已恢复待发队列」的提示按窗口语言显示，并指向输入框上方的队列 (#12416)\n- 同时打开两个链接时，内置浏览器停在后点开的那个，较早请求失败也不会盖掉它 (#12366)\n- 远程服务的令牌文件缺失或为空时，不再停掉正在运行的服务；恢复令牌后可继续使用 (#12358)\n- 终端界面输入 `/resu` 后立即按 Tab，第一次就补全为 `/resume`，不必等内核应答 (#12359)\n- 钩子试运行的结果和错误只显示在产生它的那条规则上，修改、删除或重试后不再沿用上一次的结果 (#12136)\n- 钩子编辑页在试运行或保存时不再丢失未保存的修改，保存失败后可用已改内容重试 (#12129)\n- 市场发布提交期间不再因点击其他位置而丢掉发布回执和草稿 (#12093)\n- 安装、启用或移除服务商扩展后，已打开的设置里模型列表随之刷新 (#12161)\n- 连续两次应用运行时更改，第二次的成功提示也完整显示四秒 (#12125)\n",
+        "sha": "f73421aa650084d2d52be600c207475d0f94ebcb",
+        "path": "release-notes/studio/2.32.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.32.0",
+        "zh": "Reasonix Studio v2.32.0"
+      },
+      "summary": {
+        "en": "本版带回可开关的图标栏，版本页可查看每个版本的更新内容，并修复队列、子代理显示、折叠会话删除、旧版导入等问题。",
+        "zh": "本版带回可开关的图标栏，版本页可查看每个版本的更新内容，并修复队列、子代理显示、折叠会话删除、旧版导入等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.32.0",
+            "zh": "Reasonix Studio v2.32.0"
+          },
+          "body": {
+            "en": "本版带回可开关的图标栏，版本页可查看每个版本的更新内容，并修复队列、子代理显示、折叠会话删除、旧版导入等问题。",
+            "zh": "本版带回可开关的图标栏，版本页可查看每个版本的更新内容，并修复队列、子代理显示、折叠会话删除、旧版导入等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.32.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/f73421aa650084d2d52be600c207475d0f94ebcb/release-notes/studio/2.32.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.31.0",
+      "date": "2026-10-08",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版首次提供原生 Windows ARM64 版 Studio，任务运行时可让电脑保持唤醒，反馈面板新增等级显示，并修复链接标签、压缩、队列重试、钩子放行等问题。\n\n## 新增\n\n- 首个原生 Windows ARM64 版：发布页提供 ARM64 安装程序和便携 zip，外壳与内核均为 ARM64，不再靠 x64 模拟；ARM64 机器按自己的平台更新，增量更新暂只对 x64 提供，会下载完整安装包 (#12272, #12286, #12270)\n- 任务运行期间让电脑保持唤醒：设置的外观页「窗口」新增本机开关，默认开启，只阻止系统空闲睡眠，合上盖子由系统决定，后台作业不计入 (#12283)\n- 我的反馈显示已获得的等级、已采纳数、距下一级的进度和当前限额；提交或回复被限流时说明哪个时间窗用完及何时重置，`/feedback list` 同样显示。仅作显示，目前不改变任何限额 (#12319)\n- 已收到的反馈被维护者审阅时，反馈面板显示「审核中」 (#12260)\n- 反馈对话框新增「铺满窗口」按钮，较长的维护者回复不再挤在窄列里 (#12111, #11575)\n- 模型目录加入 MiMo V2.6（pro、flash、pro-ultraspeed），未改动过的 V2.5 预设自动迁到 V2.6；小米将于 2026-10-21 停用 V2.5 (#12262)\n- 设置的子代理行会指出哪些 `subagent_models` 条目优先于它，并提供「改回跟随这里」按钮；项目级条目只提示 (#12306)\n\n## 变更\n\n- 不再主动推送上下文占用警告：对话里不再出现「上下文已达压缩阈值」卡片，模型仍可用 `context_budget` 工具按需查询 (#12248)\n- 终端界面 `reasonix tui` 首次交互运行时询问一次是否允许匿名使用统计；在 1.x 里回答过的不再询问，`DO_NOT_TRACK`、CI 和开发版不询问也不上报 (#12336)\n- Studio 的每日匿名心跳失败后会退避重试，开着跨过 UTC 午夜会再发一次；在设置里关闭遥测后无需重启即停止发送 (#12333)\n- 拦截类事件上的钩子无法执行（匹配正则无效、进程启动失败、载荷无法序列化）时，现在阻止该操作，不再当作没有钩子而放行 (#12261)\n- 增量更新要下载的内容超过完整包一半时，直接下载完整包，不再先拉分块再失败重来 (#12247)\n- 会话在等待提问或审批回答期间释放工作区写入占用，其他会话可以写这期间没人在写的路径 (#12298)\n- 读取服务商模型列表的入口挪到添加模型输入框旁，标签和提示更明确 (#12279)\n- 状态栏的子代理数只统计正在运行的，与后台任务数含义一致 (#12282)\n- 运行中状态改为醒目的实心徽标，等待与空闲保持原样 (#12066, #12044)\n- 浅色主题下警告、成功、错误色的文字改用对比度达标的文字色 (#12274)\n- 在 Windows 上，位于配置工作区之外的网络共享路径（`\\\\host\\share`），文件工具、内置浏览器和安装来源预览会在查找之前直接拒绝，拒绝提示写明原因 (f551c4bb6, 389cc40be)\n- 内置浏览器对这类网络共享路径的拒绝代码由 `browser.url_refused` 改为 `browser.network_path` (389cc40be)\n- 在 Windows 上，命令行里把网络共享路径当操作数的命令现在会请求批准，不再当作只读直接运行；已记住的前缀放行规则不再覆盖这类操作数 (040f77bde)\n\n## 修复\n\n- 压缩时摘要模型回的不是摘要（照常调用工具或继续干活）时，不再被当作摘要装入，该次压缩按失败处理；这只修了两个已查实的缺陷，压缩的其余问题仍在 #12309 跟踪 (#12322, #12308)\n- 一个失败的调用不再把同一批并行调用的全部结果都留在压缩后的上下文里，压缩因此能缩到限额内；其余结果照常折叠 (#12317)\n- 在内置浏览器里点链接时，新页面不再被切回代理的标签，也不再多出一个空白标签 (#12249, #12285)\n- 在内置浏览器地址栏输入磁盘路径（如 `D:/x.html`）时按文件打开，不再当成以盘符为主机名的网址 (#12326, #12321)\n- 停止或决定迟迟没有确认时，提示会区分内核忙、内核连不上和本窗口自己卡住，停止在内核报告空闲后即结束 (#12294)\n- 状态栏余额随模型来源切换立即刷新，不再显示上一个来源的余额 (#12271)\n- 暂停队列里「引导消息未被读到」的待发条目现在有「重试」按钮，不必撤回重发 (#12275)\n- 在远程窗格里设置默认模型，现在记录在模型所属的那台机器上，并在失败时说明原因，不再静默无效 (#12301)\n- 子代理继承的推理强度按它实际使用的模型解析，不再被映射到别的等级或让请求失败 (#12299)\n- 可选扩展的辅助进程没在运行时，提示改为本地化的明确说明，不再显示被截断的英文 (#12281)\n- 回合结束时，另一个终端界面里仍开着的提问或审批会随之关闭，输入框不再被卡住 (#12264)\n- 终端输出被转存到文件后，bash 的会话数据提示不再像拒绝，并指引用 `read_file` 或 `grep` 读取 (#12297)\n- 手机等触屏设备上，改写框和待发队列编辑框按回车换行而不是提交 (#12339, #12338)\n- 切换连接后，主题导入的回执、文件夹路径和主题清单不再串到新连接上 (#12088, #12090)\n- 安装来源检查拒绝 npx 会当作路径、标签或压缩包解析的 npm 包名（如 `@a/..`、`x.tgz`），也拒绝以点开头的 GitHub 属主和空路径仓库 (#11354)\n\n## 升级须知\n\n- 已安装 x64 版并在 ARM64 机器上运行的用户不会自动换成 ARM64 版：更新器按运行中程序的架构取包，需要手动下载一次 ARM64 安装程序 (#12286)\n",
+        "sha": "44e9492be4088d51c742bb7ca305719fe7f2c230",
+        "path": "release-notes/studio/2.31.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.31.0",
+        "zh": "Reasonix Studio v2.31.0"
+      },
+      "summary": {
+        "en": "本版首次提供原生 Windows ARM64 版 Studio，任务运行时可让电脑保持唤醒，反馈面板新增等级显示，并修复链接标签、压缩、队列重试、钩子放行等问题。",
+        "zh": "本版首次提供原生 Windows ARM64 版 Studio，任务运行时可让电脑保持唤醒，反馈面板新增等级显示，并修复链接标签、压缩、队列重试、钩子放行等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.31.0",
+            "zh": "Reasonix Studio v2.31.0"
+          },
+          "body": {
+            "en": "本版首次提供原生 Windows ARM64 版 Studio，任务运行时可让电脑保持唤醒，反馈面板新增等级显示，并修复链接标签、压缩、队列重试、钩子放行等问题。",
+            "zh": "本版首次提供原生 Windows ARM64 版 Studio，任务运行时可让电脑保持唤醒，反馈面板新增等级显示，并修复链接标签、压缩、队列重试、钩子放行等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.31.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/44e9492be4088d51c742bb7ca305719fe7f2c230/release-notes/studio/2.31.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.30.0",
+      "date": "2026-10-07",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版重做服务商编辑表单、让模型的 render_chart 在对话里直接画成图表，并新增已完成未查看标记与技能 paths 门控；同时修复多会话并发卡顿、压缩触发偏晚和一批设置面板草稿丢失问题。\n\n## 新增\n\n- 服务商表单：编辑页有未保存提示、还原按钮和「已保存」回执，测试结果显示在对应按钮旁，新增「测试已启用模型」按钮与汇总行，底部固定保存栏支持 Ctrl/Cmd+S (#12189, #12193, #12196, #12202)\n- 服务商表单：有未保存修改时切换服务或新增会产生询问，整体连接检查失败时会给出分类后的原因 (#12185, #12191)\n- 模型调用 `render_chart` 后，对话里直接画出柱状图、折线图或饼图；终端界面显示为对齐的数据表 (#12179, #12181)\n- 技能支持 `paths:` 声明：只有会话碰过匹配的文件后，该技能才会出现在模型的技能列表里 (#12192, #12195, #12199)\n- 会话完成但还没看过时，侧栏和标签页会显示标记，重启后仍在，打开该会话才清除 (#12231, #12233, #12234)\n- 手机网页端可以只读查看代理正在使用的浏览器标签页 (#12209)\n\n## 变更\n\n- 压缩触发改为参考服务商上次报告的提示词大小，带截图等本地估算偏低的会话不再拖到超窗口才压缩 (#12222)\n- 压缩之后，模型自己写的任务清单、已全部完成的清单、折叠期间改过的文件和已通过的检查会重新随请求带上 (#12216)\n- 附件被拒绝时，附件条直接显示原因（类型不支持、过大、为空、无法读取、写盘失败） (#12239)\n- MCP 提示词获取失败时，提示会写明是哪个提示词、为什么失败，模型下一轮也会知道这次调用失败了 (#12241)\n- 市场在注册表连不上时，显示上一次成功的浏览结果并标明是缓存 (#12210)\n- 命令行：Ctrl+L 清屏，与 `/cls` 相同；补全菜单和 `/resume` 选择器支持 Ctrl+P/Ctrl+N 上下移动 (#12223, #12217)\n- 添加服务商的探测被拒绝时保留错误代码，不再把对端回显的内容（可能含密钥）带进提示 (#12212)\n\n## 修复\n\n- 在后台启动的命令不再被画成红色失败；之后读取到后台任务失败或超时时，该调用会正确标为失败 (#12198, #12213)\n- 同时开着多个会话时，被其他窗格遮住的窗格不再按流式输出速度重绘，界面明显更流畅 (#12237)\n- 打开反馈对话框时背景不再做模糊，运行中的回合不再让 GPU 持续满载 (#12220)\n- 连接远程机器时会接入已经在运行的服务，不再另起一个争抢会话租约，也不再删掉它发布的端口文件 (#12229)\n- 保存服务商后编辑器在列表重新读取之后才重建，不再显示旧值 (#12177)\n- 服务商编辑和添加在保存期间锁定草稿，保存期间的修改不会再静默丢失；改地址后会丢弃旧地址的探测结果，模型检查沿用表单里的代理绕过设置 (#12167, #12170, #12174, #12175)\n- 备份面板在创建、恢复和删除进行中锁定输入，不会重复提交删除；取消全部类别后重新加载仍保持为空 (#12178, #12180, #12183, #12184)\n- 记忆面板保存、恢复或遗忘后，历史版本列表随即更新 (#12133)\n- 移除插件包后，设置里显示最新的重载结果；包详情的钩子行不再重复或残留 (#12155, #12163)\n- 登录或退出后，市场详情页的投票面板会随账号刷新 (#12169)\n- 首次打开带令牌片段的链接时，页面资源在认证完成后重新加载，不再因 401 而空白 (#12190)\n- 选择无效模型失败后，已在运行的扩展进程和流式回调保持可用 (#12205)\n- 历史恢复期间，已显示的扩展卡片不再消失 (#12206)\n- 扩展在回合之外提问并回答后，状态标签恢复为空闲，不再停在「运行中」或「等待确认」 (#12194)\n- 在没有剪贴板接口的环境复制后，焦点仍留在原按钮上，键盘用户可以继续 Tab (#12071)\n- 发布表单的版本提示改为如实说明：只有三段数字版本才会自动递增 (#12162)\n- 辅助功能：优化提示词按钮由其提示框描述，常驻扩展面板的进度条有了名称 (#12186, #12187)\n",
+        "sha": "2ed678a37c3e58a7ede68cd1afa4267c103f6ec1",
+        "path": "release-notes/studio/2.30.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.30.0",
+        "zh": "Reasonix Studio v2.30.0"
+      },
+      "summary": {
+        "en": "本版重做服务商编辑表单、让模型的 render_chart 在对话里直接画成图表，并新增已完成未查看标记与技能 paths 门控；同时修复多会话并发卡顿、压缩触发偏晚和一批设置面板草稿丢失问题。",
+        "zh": "本版重做服务商编辑表单、让模型的 render_chart 在对话里直接画成图表，并新增已完成未查看标记与技能 paths 门控；同时修复多会话并发卡顿、压缩触发偏晚和一批设置面板草稿丢失问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.30.0",
+            "zh": "Reasonix Studio v2.30.0"
+          },
+          "body": {
+            "en": "本版重做服务商编辑表单、让模型的 render_chart 在对话里直接画成图表，并新增已完成未查看标记与技能 paths 门控；同时修复多会话并发卡顿、压缩触发偏晚和一批设置面板草稿丢失问题。",
+            "zh": "本版重做服务商编辑表单、让模型的 render_chart 在对话里直接画成图表，并新增已完成未查看标记与技能 paths 门控；同时修复多会话并发卡顿、压缩触发偏晚和一批设置面板草稿丢失问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.30.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/2ed678a37c3e58a7ede68cd1afa4267c103f6ec1/release-notes/studio/2.30.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.29.0",
+      "date": "2026-10-06",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版让装有大量插件技能时的列表、开窗和状态读取明显变快，并修复压缩摘要被掐断与重试超窗口的问题。另新增远程机器开关、主题装饰色和终端界面的 `/resume <n>`、`/quit`，并修复停止后计划卡住、暂停队列里发消息失败重复的问题。\n\n## 新增\n\n- 远程机器的每一行新增两个开关：停止连接该机器，以及不在侧栏里列出它；被停止连接的机器不会再被拨号，已打开的窗格不受影响 (#11991)\n- 主题包可以单独设置链接、品牌色、悬停光晕和代理名称的颜色，默认外观不变 (#12030)\n- 命令行：终端界面的 `/resume <n>` 直接在原位继续第 n 个已保存的会话，序号不对或正忙时会说明原因；不带数字仍打开选择器 (#12113)\n\n## 变更\n\n- 压缩摘要请求改为只要还在持续返回内容就不会被切断，长时间没有任何进展才算超时，另有 30 分钟的总上限，提示会说明是哪一种 (#12036)\n- 摘要失败后的重试等待会在到达上下文窗口之前解除，不再带着超窗口的请求发出；中转站对超大请求返回 400 或 413 时也会先压缩再重试 (#12082)\n- 模型请求被重试时，状态行会说明原因（连接中断、超时、服务端状态码、流式输出停滞等）、等多久，秒数按每次尝试重新计时；服务商设置里新增 `idle_timeout_seconds` (#12050)\n- 设置里的「默认模型」一行显示配置的默认模型，不再跟着当前会话切换的模型变化 (#11992)\n- 在设置里搜索支持当前界面语言显示的名称，例如英文界面输入 `Community market` 可以找到对应设置 (#12094)\n- 中文的「本会话不再询问」「此类操作不再询问」按钮改为明确写出「允许」，不会再被当成静默拒绝 (#12021)\n- 主题包的取值改由一个生成的样式表下发，作者的样式表不必再加 `!important` 就能覆盖 (#12014)\n- 插件包里 Claude Code 的模块声明现在会被标为不支持的能力，只带模块的包不再显示为完全兼容 (#12017)\n- 命令行：`/quit`、`/exit` 重新可用，不再被当成普通消息发给模型；停止过程中再按一次 Ctrl+C 即可退出；补全菜单里按 Tab 接受高亮项，而不是下移 (#12146)\n\n## 修复\n\n- 安装了很多插件技能时，技能列表、打开窗格和状态读取大幅变快；实测 240 个插件技能的列表请求在 macOS 上由约 3.1 秒降到约 33 毫秒 (#12074, #12077, #12079)\n- 状态读取不再堆积占满浏览器连接，不再出现批准、计划决定或回答卡片长时间卡在「提交中」，决定提交最多等待 20 秒并给出明确提示 (#12056)\n- 点击侧栏会话行时立即显示为选中，不必等内核响应；重复点击同一行不会重复打开 (#12076)\n- 状态标签在后接入的窗口里不再在回合运行时显示「空闲」 (#12047)\n- 提示词优化和提交说明草拟在通用的 OpenAI 兼容服务上可用，这些服务拒绝「关闭思考」时会改用最低档重试，不再提示没有可用模型 (#12101)\n- 版本目录、中转站等请求改用 Studio 自己的客户端标识，不再以 Go 默认标识发出而可能被 Cloudflare 以 403 拦截 (#12064)\n- 切换连接后，备份面板不再保留上一个连接的恢复凭据和确认，选择另一份备份时也会清除上一份的预览 (#12127)\n- 切换连接后，记忆面板不再把旧连接的编辑内容、名称或版本发给新连接，也不会被旧连接的迟到结果覆盖 (#12131)\n- 缓存的 MCP 工具没有自带描述时，也会显示「上次连接的快照」标记 (#12096)\n- 浏览器标签打不开时会在窗格里显示原因（缺少浏览器引擎、启动失败、配置被占用等），错误文字也不再显示为正文颜色 (#12140)\n- 被强行结束的内核遗留的 `reasonix-jobs-*` 临时目录，会在下一次启动时清理；更新程序的临时文件不在本次修复范围内 (#12145)\n- 运行中保存子代理模型时，选择框不再跳回「跟随主模型」，并提示「已保存，尚未生效」 (#12150)\n- 输入框上的工具提示不再超出提示框，优化按钮不可用时也不再发虚 (#12152)\n- 在计划批准卡片打开时停止，计划会回到规划阶段，不再卡在等待批准，之后的消息也不会再被当成写操作拒绝 (#12154)\n- 停止后发送队列处于暂停时，再发的消息会作为后续消息保留，并提示「待发送已暂停，这条消息已排入队列，点“继续派发”后才会发送」，不再失败并留下重复副本；空闲时带技能标记的发送也适用 (#12157)\n",
+        "sha": "9ce1b8ba5eab6245d1a95d508b496a20c8de952f",
+        "path": "release-notes/studio/2.29.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.29.0",
+        "zh": "Reasonix Studio v2.29.0"
+      },
+      "summary": {
+        "en": "本版让装有大量插件技能时的列表、开窗和状态读取明显变快，并修复压缩摘要被掐断与重试超窗口的问题。另新增远程机器开关、主题装饰色和终端界面的 `/resume <n>`、`/quit`，并修复停止后计划卡住、暂停队列里发消息失败重复的问题。",
+        "zh": "本版让装有大量插件技能时的列表、开窗和状态读取明显变快，并修复压缩摘要被掐断与重试超窗口的问题。另新增远程机器开关、主题装饰色和终端界面的 `/resume <n>`、`/quit`，并修复停止后计划卡住、暂停队列里发消息失败重复的问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.29.0",
+            "zh": "Reasonix Studio v2.29.0"
+          },
+          "body": {
+            "en": "本版让装有大量插件技能时的列表、开窗和状态读取明显变快，并修复压缩摘要被掐断与重试超窗口的问题。另新增远程机器开关、主题装饰色和终端界面的 `/resume <n>`、`/quit`，并修复停止后计划卡住、暂停队列里发消息失败重复的问题。",
+            "zh": "本版让装有大量插件技能时的列表、开窗和状态读取明显变快，并修复压缩摘要被掐断与重试超窗口的问题。另新增远程机器开关、主题装饰色和终端界面的 `/resume <n>`、`/quit`，并修复停止后计划卡住、暂停队列里发消息失败重复的问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.29.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/9ce1b8ba5eab6245d1a95d508b496a20c8de952f/release-notes/studio/2.29.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.28.0",
+      "date": "2026-10-05",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版是第一个同时发布命令行 `reasonix` 的 Studio 版本：终端界面补齐 1.x 的常用命令并换上 2.x 内核，同时加固权限规则、插件安装与凭据显示，并新增提交说明草拟、用量日历范围和复制会话信息。\n\n## 新增\n\n- 命令行：本版起 `reasonix` 命令行随 Studio 一同发布，1.x 的命令行迁移到 2.x 内核，迁移差异见 `docs/MIGRATING.md` (#11968, #11920)\n- 终端界面：`/model`、`/provider` 打开可搜索的选择面板并切换当前会话，也可带参数直接切换；选择只对当前会话生效 (#11929)\n- 终端界面：`/skills` 打开面板，可搜索、按来源筛选，空格标记后按回车批量启停技能 (#11934)\n- 终端界面：`/mcp` 打开管理面板，可启停、重连并查看 MCP 服务；启用仓库自带的服务前会先显示脱敏后的启动命令并要求确认 (#11935)\n- 终端界面：`/remote`、`/preset`（别名 `/work-mode`、`/profile`）和 `/paste-image` 不再提示未知命令 (#11937)\n- 终端界面：底栏和每轮回执标出本次花费按高峰还是低谷价计费；只在按厂商官方时段定价时显示 (#11936)\n- 终端界面：没有可用密钥时发送消息会在本地拒绝并说明原因，不再发给服务商换回 401 (#11928)\n- 工作台的「更改」列表新增「提交…」：根据已暂存的差异草拟提交说明，可编辑，确认后只做本地提交，不推送 (#11534)\n- 暂存内容含疑似密钥文件时，提交前需勾选确认；这类文件的差异不会发给模型 (#11534)\n- 设置的用量页支持自定义日期范围和按自然月查看，并新增每日明细表，触屏上也能读到每天的确切用量 (#11665)\n- 用量图按配置的服务商显示名称，并为各服务商使用固定的颜色 (#11665)\n- 设置的用量页新增费用显示币种（自动、人民币、美元），`/currency` 切换后各面板立即跟随 (#11950)\n- 会话右键菜单新增「复制会话信息」，复制会话 ID、上下文目录、任务目录和会话记录文件路径 (#11667)\n- 智谱 GLM-5.2 提供 `auto`、`none`、`minimal` 到 `max` 的思考强度档位，GLM-5.3 提供 `auto`、`low`、`high`、`max`，所选档位会发给服务商 (#11342)\n- 未改动过的内置智谱预设会补上 GLM-5.3 和 GLM-5.3-Flash；自己调整过的模型列表不受影响 (#11342)\n- 自动语言模式下，用户用中文提问时，可见回答也会被要求使用中文，不再出现中文思考、英文回答 (#11953)\n- 新增可安装的离线回显服务商示例，无需密钥即可完整跑通一轮对话，供扩展作者参考 (#11839)\n\n## 变更\n\n- 在会话里切换模型不再改写配置里的 `default_model`，新会话和下次启动仍用原来的默认模型；设置里的「默认模型」和首次启动的选择仍会保存 (#11897)\n- 应用窗口的刷新快捷键改为 Ctrl/Cmd+Shift+R；F5 和 Ctrl/Cmd+R 留给页面，在内置浏览器里只刷新当前页 (#11908)\n- 保存的密钥现在逐字节原样读回：用引号包起来输入的密钥会连引号一起保存，`${HOME}` 之类不再被展开 (#11923)\n- 无法安全存储的密钥值会在写入前被拒绝，并提示原因，不会让整份凭据文件失效 (#11923)\n- 终端界面：未知的 `/xxx` 命令作为普通消息发给模型，并显示一行提示，与 1.x 一致 (#11969)\n- 终端界面：`/status` 补上工作区分支行、思考强度和模型引用，与 1.x 一致 (#11924)\n- 终端界面：`/rename <序号> <标题>` 命名指定的已保存会话，恢复选择器也显示自定义名称 (#11926)\n- 终端界面：待办全部完成后继续显示，直到下一轮开始 (#11933)\n- 终端界面：只有空白内容的思考块不再画出「thought for 0s」标记 (#11930)\n- 保存设置时运行时正忙，现在提示「已保存，等本轮结束后生效」，不再显示成重建失败 (#11911)\n- 服务商编辑表单区分保存失败和已保存但尚未生效，两者用不同标题和颜色 (#11939)\n- 添加或测试服务商时，如果只有 `/v1/models` 能应答，保存的地址会自动补全为带 `/v1` 的地址，聊天请求不再打到错误的路径 (#11909)\n- 单个模型检查被拒绝时，显示 HTTP 状态码和服务端返回的说明，其中密钥已被遮蔽 (#11990)\n- 同一地址上、使用不同密钥的两个服务商，其模型现在都会出现在模型列表里，不再被当成重复项丢掉 (#12006)\n- 手动压缩和自动压缩失败时，提示会用当前界面语言给出具体原因，取消、忙碌和未分类的失败也有说明 (#11975)\n- 压缩摘要请求改为使用服务商允许的较低思考强度，减少摘要被思考耗尽输出而丢弃；DeepSeek pro 没有低档，不受影响，仍可能被截断 (#11972)\n- 摘要因超时、失败或截断而失败后，输入增长到一定量会再次尝试自动压缩，不再整段对话都不再重试 (#11973)\n\n## 修复\n\n- Windows 上会话里第一次执行删除命令时，PowerShell 解析器冷启动较慢，不再因此被拒绝 (#11895)\n- Windows 开始菜单里的应用图标铺满图标格，与相邻图标大小一致；已安装或已固定的图标需等系统刷新图标缓存 (#11925)\n- 点开一个被窗格打开的历史版本，侧栏里不再同时出现两行同一份记录，也不会同时弹出两个删除确认 (#11914)\n- 第一轮对话所在的文件夹会被记住，之后启动到别的文件夹时，侧栏仍能找到这些会话；已经丢失的需要重新添加该项目 (#11981)\n- 提交消息后输入框立即清空，不会被草稿恢复重新填回；取回排队消息时原文只恢复一次 (#11831)\n- 排队消息取回的竞态：连点不再误报「已发送，无法取回」，过期的队列刷新不会把已取回的消息放回面板，也不会留下幽灵行 (#11976)\n- 反馈对话框关闭再打开后，已附的截图会保留，发送成功后才清掉 (#11903)\n- 没有打开任何会话时点击反馈，会先启动会话再打开，不再毫无反应；云备份按钮不可用时会说明还差什么 (#11960)\n- 创建云备份时，已删除服务商遗留的私有密钥槽不再导致备份创建成功却无法预览恢复，旧备份也因此可以恢复 (#11964)\n- 设置的「恢复旧会话」可以从 1.x 的项目目录、`sessions-v4` 和桌面版会话目录导入，选错目录时会提示应选哪一个 (#11927)\n- 点击对话里的链接时，若页面在内置浏览器里加载失败，不再同时在系统浏览器里再打开一份 (#11982)\n- 没有兼容能力而被拒绝的市场安装预览，不再进入「确认安装」界面，而是显示错误并可重试 (#11806)\n- 导出插件时，带字节序标记、UTF-16 或 GBK 编码的 JSON 文件也能正常导出，且仍会清除其中的凭据 (#11711)\n- 插件代理清单的名称与运行时一致，同名代理只列出实际生效的一个，并说明被遮蔽的路径 (#11742)\n- 插件的技能或代理声明被拒绝时，已安装列表和 `plugin doctor` 会给出原因，即使该插件已被停用；不显示被拒绝的字段值 (#11697)\n- `plugin doctor` 检查插件运行时文件是否可执行，不可执行时报错退出，不再显示 `ok` (#11719)\n- 通过 ACP 报告每个 MCP 服务的健康状态；尚未获启动批准的项目服务在列表里显示为待批准，开关保持关闭 (#11343)\n- 命令行归档里的 `reasonix version --verbose` 现在会显示提交号和构建时间，与 npm 包一致 (#11931)\n- 扩展 SDK：提供方流结束或取消时释放上下文，打开阶段的取消生效，拦截超时把读取外置内容的时间计算在内 (#11791, #11795, #11789)\n- 扩展 SDK：提供方返回未注册的块类型、负的用量或空的工具调用标识时，流以失败结束，不再静默丢块 (#11837, #11843, #11844)\n\n## 升级须知\n\n- 命令行：在未信任的文件夹里，`reasonix run` 和 `-p` 拒绝了编辑或命令时退出码为 4（加 `--fail-on-unverified` 时为 3），不再返回 0；脚本需先 `reasonix trust` 或明确指定模式 (#11920)\n- 命令行：Shift+Tab 和 Ctrl+Y 进入 YOLO 立即生效，没有确认，与 1.x 一致；只有 `--yolo` 或 `--permission-mode yolo` 启动时会在首次询问一次 (#11968)\n- 命令行：默认模式是自动，沙盒能限制写入且文件夹受信任时生效，否则为询问；启动前仍会询问是否信任该文件夹 (#11968, #11920)\n- 命令行：`/recover-context` 和 `/continue-checks` 已退役，`/web` 不是斜杠命令，请在外壳里运行 `reasonix web` (#11968)\n- 安全：Bash 的拒绝和询问规则现在会穿透 `env`、`sudo`、`doas`、`command`、`nohup`、`time`、`nice` 等包装，再匹配实际运行的程序；无法确定目标时改为询问，规则不会因此放宽 (#12018)\n- 安全：远程安装的清单必须完整且有上限：超过 2 MiB 或服务器擅自返回部分内容都会被拒绝，单次下载最长 30 秒 (#11808)\n- 安全：MCP 的地址、参数和诊断信息在所有显示、预览、导出和备份界面里统一遮蔽凭据；地址无法解析时整体隐藏；不含密钥的备份也会遮蔽这些内容 (#11816)\n- 安全：Studio 调用 `git` 时，会拒绝会运行程序或写文件的选项，例如 `--upload-pack`、`--output`、`--ext-diff` (#11906)\n- 安全：读取插件的代理清单只在插件包目录内进行，只读普通文件，并限制为 1 MiB；包外的路径不会被描述 (#11702)\n",
+        "sha": "d338338d546f7c48b5a3da38a452b6c6f62c394b",
+        "path": "release-notes/studio/2.28.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.28.0",
+        "zh": "Reasonix Studio v2.28.0"
+      },
+      "summary": {
+        "en": "本版是第一个同时发布命令行 `reasonix` 的 Studio 版本：终端界面补齐 1.x 的常用命令并换上 2.x 内核，同时加固权限规则、插件安装与凭据显示，并新增提交说明草拟、用量日历范围和复制会话信息。",
+        "zh": "本版是第一个同时发布命令行 `reasonix` 的 Studio 版本：终端界面补齐 1.x 的常用命令并换上 2.x 内核，同时加固权限规则、插件安装与凭据显示，并新增提交说明草拟、用量日历范围和复制会话信息。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.28.0",
+            "zh": "Reasonix Studio v2.28.0"
+          },
+          "body": {
+            "en": "本版是第一个同时发布命令行 `reasonix` 的 Studio 版本：终端界面补齐 1.x 的常用命令并换上 2.x 内核，同时加固权限规则、插件安装与凭据显示，并新增提交说明草拟、用量日历范围和复制会话信息。",
+            "zh": "本版是第一个同时发布命令行 `reasonix` 的 Studio 版本：终端界面补齐 1.x 的常用命令并换上 2.x 内核，同时加固权限规则、插件安装与凭据显示，并新增提交说明草拟、用量日历范围和复制会话信息。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.28.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/d338338d546f7c48b5a3da38a452b6c6f62c394b/release-notes/studio/2.28.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.27.0",
+      "date": "2026-10-04",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版修复 Windows 上内核因协程暴涨而崩溃的问题，让同一工作区里写不同文件的会话可以并行，并补强记忆迁移备份、递归删除保护、自动压缩失败说明，以及市场、主题、插件和 MCP 的大量使用细节。\n\n## 新增\n\n- 手机访问的局域网直连链接可以在用户配置的 `[serve] share_port` 里指定固定端口，不再每次随机；端口被占用时会明确提示 (#11568, #11540)\n- 市场「我的包」每一行新增「发布新版本」，自动带入类型、名称、简介、仓库、标签和可见性，只需补来源 (#11566)\n- 新增主题作者指南和可直接安装的纯主题示例 Paper Dawn，替换掉旧桌面时代的指南和含无效字段的模板 (#11578)\n- 市场发布表单在名称或来源框里按回车即可提交；市场的种类、排序和浏览切换支持方向键，MCP 安装位置支持方向键与 Home、End (#11845, #11821, #11847)\n- 扩展作者新增可安装的工具扩展示例、可运行的 stdio MCP 插件示例，以及本地测试和自定义宿主关闭的说明 (#11553, #11584, #11788)\n\n## 变更\n\n- 同一工作区里写入不同路径的会话现在可以并行，不再整个工作区排队等第一个写入的会话；同一路径、重叠目录和移动的两端仍会互相等待 (#11823, #11815, #11833)\n- 旧版记忆文件在迁移到 V2 之前会先原样备份，迁移改写的内容不再无从找回 (#11857, #11846)\n- 自动压缩失败时，卡片会说明具体原因（超时、摘要被截断、服务商出错、上下文已变化等），不再只写「这一轮什么也没折叠」 (#11869, #11838)\n- 子代理继承的思考强度在执行模型不支持时自动退回该模型默认值，换回支持的模型后恢复；子代理指定与父会话相同的模型时沿用父会话强度 (#11269, #11841, #11268)\n- 递归删除的目标不是工作区授权范围内的字面路径时，即使在自动或 YOLO 模式下也会被拒绝，模型会收到明确原因 (#11786, #11782)\n- 只改动 `.md`、`.rst` 文档且工作区没有任何检查项时，不再要求先跑一遍验证命令 (#11780, #11776)\n- 手机访问的互联网设备编号复用最小的空号，同一台手机重连不再变成「设备 3、4、5」 (#11879, #11855)\n- 命令行的 `--compact-ratio` 接受 0 到 100 之间任意比例，例如 0.5，与配置文件一致 (#11854)\n- 切换到已在使用的模型或思考强度时不再重建会话，切换更快 (#11546)\n- 市场发布表单选择私有时，说明改为「仅自己可见、无需审核」，不再承诺审核后发布 (#11716)\n\n## 修复\n\n- Windows 上宿主因工作区快照遍历把协程和线程撑爆而崩溃，现在遍历受限，不再崩溃 (#11840, #11820)\n- 删除保护不再因 Windows 8.3 短路径里的 `~` 把工作区外的删除误判为「目标不是字面路径」，现在会按越界目标拒绝 (#11866)\n- 通过 SSH 连接远程时，引导阶段点取消会立刻中止，不再卡在打开会话 (#11622, #11619)\n- 远程「从目录树打开」支持 Windows 盘符、UNC 和绝对路径，不再拼到远程主目录后面 (#11543, #11539)\n- PowerShell 命令别名存在但无法启动时被跳过，并记录实际用的外壳，不再每条命令都报 `exit status 1` (#11504, #10633)\n- 项目里的 MCP 条目不再丢掉用户禁用的工具，调用被禁用的工具会得到明确提示，空工具名不再被接受 (#11506, #11473)\n- 第三方中转拒绝 `previous_response_id` 并返回 400 时，自动改发完整历史重试，不再反复报错 (#11803, #11797)\n- 托盘菜单跟随系统语言，从访达或程序坞启动也不再回退为英文 (#11759, #11750)\n- 身份服务不可达时，侧栏和账号面板一致显示「已登录」和错误，并提供重试与退出，不再弹出登录表单 (#11777, #11769)\n- 界面大小不是 100% 时，会话和项目的右键菜单不再偏离点击位置或超出窗口底部 (#11729, #11727, #11773)\n- 侧栏拖到很窄时文字不再挤在一起重叠，最小宽度提高到 232 像素 (#11731, #11723)\n- 运行分析里点开一条记录，详情显示在被点的那一行下面，不必拖到列表最底部 (#11732, #11720)\n- 安装文本插件后切换模型，插件的技能和代理、自定义技能目录不再丢失 (#11736)\n- 回退对话后不再在工作目录留下 `.bak` 临时备份文件 (#11699)\n- MCP 添加命令：复制的 `mcp add` 命令（含续行、绝对路径启动器）能被正确解析，空定义不再出现在粘贴预览里 (#11747, #11779, #11804, #11752)\n- MCP 名称与传输：npx、uvx、Python、Node、Go 等启动方式生成的名字不再带版本号或选项值；只有路径里完整的 `sse` 段才判为 SSE，大小写不同的 HTTP 也能识别 (#11865, #11787, #11768)\n- 需要认证的 MCP 服务选「仅此项目」安装后，不再被保存为全局启用 (#11749)\n- MCP 检查输入在读取期间保持稳定，操作失败时显示当前的诊断信息 (#11805, #11809)\n- 主题：导入期间禁用重复操作；同一地址重新导入后图片立即更新；同时选 ZIP 与散文件时给出明确提示；读取失败时保留已有主题并可重试预览 (#11810, #11811, #11814, #11812, #11813)\n- 市场：安装失败可重新预览并保留失败项，登录失效时点赞回到登录入口，连续点提交审核不再重复提交，确认与发布反馈支持读屏 (#11784, #11781, #11580, #11807, #11800)\n- 插件、MCP 和技能清单读取失败时显示错误和重试按钮，不再当成空列表；更新期间的禁用导航变灰，插件开关保留重载结果 (#11796, #11477, #11819)\n- 插件安装失败后可通过重新预览恢复；空插件列表的指引改为设置 > 扩展 > 已安装 > 插件包 > 添加 (#11651, #11696)\n- `plugin doctor` 会检查已声明的代理目录，目录被删或被换成文件时报错；声明成文件的技能、代理、命令和提示目录会给出警告 (#11745, #11689, #11790)\n- 已安装插件换版本后，重复的贡献行和兼容性提示行不再残留旧内容；中文名技能显示为 `/包名:审查` 而不是 `SKILL` (#11737, #11733, #11740)\n- 导出插件包时，数字开头的 MCP 服务名和残缺的 `$NAME` 引用不再让收件人填写的值失效 (#11725, #11738)\n- 扩展 SDK：交互结果需显式确认，取消的请求不再写出，关闭回调和通知队列更稳，工具参数缺失与响应格式会校验 (#11850, #11802, #11798, #11793, #11828, #11835)\n",
+        "sha": "5bfdfb0bd6e2237d9c8665fc292e082119066a03",
+        "path": "release-notes/studio/2.27.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.27.0",
+        "zh": "Reasonix Studio v2.27.0"
+      },
+      "summary": {
+        "en": "本版修复 Windows 上内核因协程暴涨而崩溃的问题，让同一工作区里写不同文件的会话可以并行，并补强记忆迁移备份、递归删除保护、自动压缩失败说明，以及市场、主题、插件和 MCP 的大量使用细节。",
+        "zh": "本版修复 Windows 上内核因协程暴涨而崩溃的问题，让同一工作区里写不同文件的会话可以并行，并补强记忆迁移备份、递归删除保护、自动压缩失败说明，以及市场、主题、插件和 MCP 的大量使用细节。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.27.0",
+            "zh": "Reasonix Studio v2.27.0"
+          },
+          "body": {
+            "en": "本版修复 Windows 上内核因协程暴涨而崩溃的问题，让同一工作区里写不同文件的会话可以并行，并补强记忆迁移备份、递归删除保护、自动压缩失败说明，以及市场、主题、插件和 MCP 的大量使用细节。",
+            "zh": "本版修复 Windows 上内核因协程暴涨而崩溃的问题，让同一工作区里写不同文件的会话可以并行，并补强记忆迁移备份、递归删除保护、自动压缩失败说明，以及市场、主题、插件和 MCP 的大量使用细节。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.27.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/5bfdfb0bd6e2237d9c8665fc292e082119066a03/release-notes/studio/2.27.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
+      "version": "2.26.0",
+      "date": "2026-10-02",
+      "channel": "stable",
+      "sourceNotes": {
+        "language": "zh",
+        "markdown": "本版让 Studio 终端界面补齐 1.x 的连接引导、排队与引导命令、设置命令和 YOLO 模式，设置里新增社区与贡献者入口，并修复已保存的默认模型不在配置里时 Studio 启动失败、DeepSeek 请求偶发连接错误、子代理状态一直显示运行中等问题。\n\n## 新增\n\n- 终端界面：没有可用密钥时启动即打开「配置连接」面板，随时可用 `/setup`（别名 `/auth`）再打开；支持筛选连接、掩码输入密钥、Ctrl+T 测试、Enter 保存 (#11682, #11493)\n- 终端界面新增 `/queue`、`/steer`、`/takeover`、`/status`、`/export` 和 `/copy`，名称与用法同 1.x (#11683, #11493)\n- 终端界面新增 14 个设置命令，名称与用法同 1.x：`/cls`、`/rename`、`/todo`、`/forget`、`/reload`、`/effort`、`/verbose` 等 (#11685, #11493)\n- 终端界面的设置命令还有 `/diff-fold`、`/sandbox`、`/output-style`、`/reasoning-language`、`/theme`、`/language`、`/currency` (#11685, #11493)\n- 终端界面：YOLO 加入 Shift+Tab 的模式循环，Ctrl+Y 只需按一次即生效；底栏显示 `工作区@分支`；大段粘贴自动折叠 (#11687, #11493)\n- 设置的「版本」页新增「社区与贡献者」：QQ 群（群号可复制、加群按钮、二维码）、Discord、GitHub 问题页，以及可展开的贡献者列表 (#11660)\n- 「版本」页在版本下方新增「作者与维护者」一行；抖音号放在社区区块最下方，二维码默认折叠 (#11660)\n- 已安装插件的详情里，提示模板显示可直接输入的完整调用名，例如 `/插件名:模板名` (#11688)\n- 已安装插件的详情里，打包的子代理会列出数量和调用方式 (#11658)\n- 新增插件作者示例包：只读子代理示例 `repo-map-kit` 和原生提示模板示例 `work-note-kit` (#11663, #11694)\n\n## 变更\n\n- 插件的目录式主题按所在目录命名，同一插件里的多个主题不再都显示成「theme」 (#11684)\n- 插件的主题文件格式不受支持或内容有误时，已安装列表和 `plugin doctor` 会说明原因，被丢弃的主题项也会提示 (#11674)\n- 插件的钩子事件名拼错或工具匹配规则无效时，已安装列表和 `plugin doctor` 会给出警告 (#11695)\n- 插件安装时重名，提示里现在也会告诉你可以用替换方式更新 (#11670)\n- `reasonix plugin --help` 里的移除用法补上必须的 `--yes` (#11648)\n- 插件指南改为对应当前界面：设置 > 扩展 > 已安装、两步式添加与安装流程、更新与导出操作、重载运行时 (#11681)\n\n## 修复\n\n- 启动失败：已保存的默认模型不在当前配置的服务商里时，Studio 不再启动失败，而是改用已配置的模型并提示；配置文件不会被改写，命令行仍会给出明确的报错 (#11718)\n- 已退役的 `deepseek-v4-flash` 作为默认模型时，会随模型列表一起迁移到 `deepseek-flash` (#11718)\n- DeepSeek 请求在部分网络上因 HTTP/2 握手顺序而偶发 `PROTOCOL_ERROR`，现在可以正常发出 (#11686, #11679)\n- 子代理面板里的行会一直显示运行中，直到子代理真正结束；已结束的不再停在「运行中」 (#11712, #11706)\n- 排队的消息被「取回」后，原文会放回输入框 (#11713, #11707)\n- 顶栏的「引导待处理」计数改为与队列面板同源，不再显示面板里已经没有的项 (#11714, #11708)\n- 多个子代理并行时，各工作者的工具调用留在自己的卡片里，不再散到主列表 (#11691, #11338)\n- 多题提问框退回后点「下一题」，不再跳过已答的题，两题时第一题也不再直接变成「确认」 (#11640)\n- 触屏设备上回车键保持换行，发送用按钮 (#11637, #11616)\n- 自己发布的插件包安装失败后，可以点「重试」重新预览，不再只能返回 (#11655)\n- 技能的「用户不可调用」和「禁止模型调用」设置现在会反映在技能管理列表里 (#11649)\n- 内置场景技能的头部信息改为合法格式，不再带着无效头部的提示 (#11646)\n- 用链接方式安装插件后移除，不再残留旧链接，之后可以正常重新安装 (#11668)\n- 插件含有 `themes/*/theme.json` 且同级有 README 等文件时，现在可以安装 (#11677)\n- 经过别名目录（例如 macOS 的 `/var`）指定的本地链接来源，不再被误判为工作区之外 (#11664)\n",
+        "sha": "91c13b306c2c7c006d148806ea7417b8b4baf854",
+        "path": "release-notes/studio/2.26.0.md"
+      },
+      "title": {
+        "en": "Reasonix Studio v2.26.0",
+        "zh": "Reasonix Studio v2.26.0"
+      },
+      "summary": {
+        "en": "本版让 Studio 终端界面补齐 1.x 的连接引导、排队与引导命令、设置命令和 YOLO 模式，设置里新增社区与贡献者入口，并修复已保存的默认模型不在配置里时 Studio 启动失败、DeepSeek 请求偶发连接错误、子代理状态一直显示运行中等问题。",
+        "zh": "本版让 Studio 终端界面补齐 1.x 的连接引导、排队与引导命令、设置命令和 YOLO 模式，设置里新增社区与贡献者入口，并修复已保存的默认模型不在配置里时 Studio 启动失败、DeepSeek 请求偶发连接错误、子代理状态一直显示运行中等问题。"
+      },
+      "surfaces": [
+        "desktop"
+      ],
+      "guides": [],
+      "highlights": [
+        {
+          "kind": "improved",
+          "title": {
+            "en": "Reasonix Studio v2.26.0",
+            "zh": "Reasonix Studio v2.26.0"
+          },
+          "body": {
+            "en": "本版让 Studio 终端界面补齐 1.x 的连接引导、排队与引导命令、设置命令和 YOLO 模式，设置里新增社区与贡献者入口，并修复已保存的默认模型不在配置里时 Studio 启动失败、DeepSeek 请求偶发连接错误、子代理状态一直显示运行中等问题。",
+            "zh": "本版让 Studio 终端界面补齐 1.x 的连接引导、排队与引导命令、设置命令和 YOLO 模式，设置里新增社区与贡献者入口，并修复已保存的默认模型不在配置里时 Studio 启动失败、DeepSeek 请求偶发连接错误、子代理状态一直显示运行中等问题。"
+          }
+        }
+      ],
+      "changes": {
+        "new": [],
+        "improved": [],
+        "fixed": []
+      },
+      "upgrade": [],
+      "risks": [],
+      "contributors": [],
+      "links": {
+        "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/studio-v2.26.0",
+        "compare": "https://github.com/esengine/DeepSeek-Reasonix/blob/91c13b306c2c7c006d148806ea7417b8b4baf854/release-notes/studio/2.26.0.md",
+        "download": "https://reasonix.io/#start"
+      }
+    },
+    {
+      "product": "studio",
       "version": "2.25.0",
       "date": "2026-10-02",
       "channel": "stable",
