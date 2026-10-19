@@ -710,8 +710,8 @@ describe("deploy contract", () => {
     expect(workflow).toContain("FEEDBACK_ACCOUNT_SECRET: ${{ secrets.FEEDBACK_ACCOUNT_SECRET }}");
   });
 
-  it("ships the kill switch off by default", () => {
+  it("ships the kill switch on, as the owner decided for production", () => {
     const toml = readFileSync("wrangler.toml", "utf8") as string;
-    expect(toml).toMatch(/^FEEDBACK_ACCOUNT_LINK = "false"$/m);
+    expect(toml).toMatch(/^FEEDBACK_ACCOUNT_LINK = "true"$/m);
   });
 });
