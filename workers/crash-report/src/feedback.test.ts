@@ -5,6 +5,7 @@ import type { Env } from "./env";
 import { d1, fakeR2 } from "./feedback_testkit";
 import { purgeStaleFeedback } from "./feedback_retention";
 import { handleFeedbackRoute } from "./feedback_routes";
+import { FeedbackEnv } from "./feedback_schema";
 import feedbackMigrationSQL from "../migrate-feedback.sql?raw";
 import triageMigrationSQL from "../migrate-feedback-triage.sql?raw";
 import adoptionsMigrationSQL from "../migrate-feedback-adoptions.sql?raw";
@@ -77,6 +78,28 @@ describe("POST /v1/feedback", () => {
     expect(j.receipt).toMatch(/^FB-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
     expect(j.status).toBe("received");
     expect(j.installToken.length).toBeGreaterThan(20);
+  });
+
+  it("keeps the per-process memory the app attaches, and only in its fixed shape", async () => {
+    const memory = [{ process: "renderer", workingSetKB: 3992908, privateKB: 3900000 }, { process: "kernel", workingSetKB: 192844, privateKB: 150000 }];
+    const res = await submit(submission({ env: { version: "v2.45.0", memory } }));
+    expect(res.status).toBe(201);
+    const { receipt } = (await res.json()) as { receipt: string };
+    const detail = (await (await call(`/v1/admin/feedback/${receipt}`, { headers: admin })).json()) as { env: { memory?: unknown } };
+    expect(detail.env.memory).toEqual(memory);
+  });
+
+  it("refuses memory entries that could carry anything but a process type and two numbers", () => {
+    const bad = [
+      [{ process: "C:\\Users\\someone\\app.exe", workingSetKB: 1, privateKB: 1 }],
+      [{ process: "renderer", workingSetKB: "1", privateKB: 1 }],
+      [{ process: "renderer", workingSetKB: -1, privateKB: 1 }],
+      [{ process: "renderer", workingSetKB: 1.5, privateKB: 1 }],
+      Array.from({ length: 13 }, () => ({ process: "utility", workingSetKB: 1, privateKB: 1 })),
+    ];
+    for (const memory of bad) expect(FeedbackEnv.safeParse({ memory }).success).toBe(false);
+    expect(FeedbackEnv.safeParse({ memory: [{ process: "gpu", workingSetKB: 76560, privateKB: 60000 }] }).success).toBe(true);
+    expect(FeedbackEnv.safeParse({}).success).toBe(true);
   });
 
   it("replays an idempotency key without creating a second row", async () => {
