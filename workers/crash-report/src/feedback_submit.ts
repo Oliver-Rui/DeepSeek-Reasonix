@@ -25,9 +25,14 @@ import { scrubSensitiveText } from "./scrub";
 const RECEIPT_ATTEMPTS = 5;
 const MAX_LINKS_BEFORE_HOLD = 3;
 
-function scrubEnv(env: FeedbackSubmitInput["env"]): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(env)) if (typeof v === "string") out[k] = scrubSensitiveText(v);
+// Strings are scrubbed; the memory readings are already a bounded list of a fixed
+// process type and two integers (FeedbackMemory), so they are kept as they are.
+function scrubEnv(env: FeedbackSubmitInput["env"]): Record<string, string | NonNullable<FeedbackSubmitInput["env"]["memory"]>> {
+  const out: Record<string, string | NonNullable<FeedbackSubmitInput["env"]["memory"]>> = {};
+  for (const [k, v] of Object.entries(env)) {
+    if (typeof v === "string") out[k] = scrubSensitiveText(v);
+    else if (k === "memory" && Array.isArray(v)) out[k] = v;
+  }
   return out;
 }
 

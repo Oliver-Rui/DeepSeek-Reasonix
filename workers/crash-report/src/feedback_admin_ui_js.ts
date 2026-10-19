@@ -257,6 +257,7 @@ export const APP_JS = String.raw`(function () {
       kv("昵称", d.displayName), kv("联系方式（仅此处可见）", d.contact),
       kv("版本", e.version), kv("提交 commit", e.commit, true), kv("入口", e.surface), kv("渠道", e.channel),
       kv("系统", [e.os, e.osVersion, e.arch].filter(Boolean).join(" ")), kv("语言", e.locale), kv("模型厂商类型", e.providerKind),
+      kv("进程内存（KB，工作集/私有）", Array.isArray(e.memory) ? e.memory.map((m) => m.process + " " + m.workingSetKB + "/" + m.privateKB).join(" · ") : ""),
       kv("安装哈希", d.installHash, true), kv("已受信安装", d.installTrusted ? "是" : "否"),
       kv("提交时间", when(d.createdAt)), kv("更新时间", when(d.updatedAt)),
       kv("已修复于", d.resolvedVersion), kv("重复于", d.duplicateOf)

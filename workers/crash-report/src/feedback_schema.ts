@@ -3,6 +3,13 @@ import { CATEGORIES, MAX_ATTACHMENTS, MAX_CAP, MAX_REPLY_BYTES } from "./feedbac
 
 const short = (n: number) => z.string().max(n).optional();
 
+// Per-process memory the app attaches so a report of runaway memory says which
+// process it was. Process type from a fixed list, two bounded integers: no path,
+// pid, command line or user name.
+const MEMORY_PROCESSES = ["browser", "renderer", "gpu", "utility", "kernel"] as const;
+const memoryKB = z.number().int().min(0).max(2 ** 31);
+export const FeedbackMemory = z.array(z.object({ process: z.enum(MEMORY_PROCESSES), workingSetKB: memoryKB, privateKB: memoryKB })).max(12);
+
 export const FeedbackEnv = z.object({
   version: short(40),
   commit: short(40),
@@ -13,6 +20,8 @@ export const FeedbackEnv = z.object({
   locale: short(20),
   channel: z.enum(["stable", "preview"]).optional(),
   providerKind: z.enum(["deepseek", "openai", "anthropic", "other"]).optional(),
+  // A diagnostic must never cost the person their report: a malformed list is dropped, not refused.
+  memory: FeedbackMemory.optional().catch(undefined),
 });
 
 export const FeedbackSubmit = z.object({
