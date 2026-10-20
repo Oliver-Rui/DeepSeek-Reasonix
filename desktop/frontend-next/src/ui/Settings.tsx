@@ -7,13 +7,12 @@ import { useRuntimeReload } from "./RuntimeReload";
 import type { AccountState, AgentPort, Appearance as Look, CapabilityScope, McpEntry, ModelEntry, PluginPackage, SessionStatus, SkillEntry } from "../port/port";
 import { useSettingsSearch } from "./useSettingsSearch";
 import { bytes, tokens as fmtTokens } from "../i18n/format";
-import { SECTION_NAME } from "./prefsnav";
+import { SECTION_NAME, type Section } from "./prefsnav";
 import { SettingsNav } from "./SettingsNav";
 import { Group, SCOPE_SAID } from "./Group";
 import { PlanApproval, DefaultMode } from "./PlanApproval";
 import { PeersSection } from "./PeersSection";
 import { SessionCoordination } from "./SessionCoordination";
-import type { Section } from "./prefsnav";
 import { AddServer } from "./AddServer";
 import { PhoneAccess } from "./PhoneAccess";
 import { PhoneReminders } from "./PhoneReminders";
@@ -621,10 +620,8 @@ export function Settings({ hub, onError, port, networkPort, localWorkspacePort, 
 
           {at === "hooks" && (
             <>
-              <Group id="hooks"
-                title={t("自动化")}
-                hint={t("在 agent 执行任务前后运行自定义命令。这些命令在本机以当前用户权限运行；可拦截 agent 的两个事件已在下方标出。")}
-              >
+              <Group id="hooks" title={t("自动化")}
+                hint={t("在 agent 执行任务前后运行自定义命令。这些命令在本机以当前用户权限运行；可拦截 agent 的两个事件已在下方标出。")}>
                 <Hooks port={port} onChanged={afterExtChange} />
               </Group>
               <ScheduledRuns port={port} />
