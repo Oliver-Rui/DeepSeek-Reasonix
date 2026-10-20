@@ -1,0 +1,2 @@
+- 修复：启动画面的提示不再写成“安装或重启电脑后的首次启动”，改为“可能需要几秒到一分钟”，慢启动时都一样。关联 #13352。
+- Fixed: the starting window no longer says only the first start after an install or reboot is slow; it now says startup may take a few seconds to a minute. Refs #13352.

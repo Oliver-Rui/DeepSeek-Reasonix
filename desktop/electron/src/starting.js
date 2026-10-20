@@ -2,8 +2,8 @@
 const { BrowserWindow } = require("electron");
 
 const TEXT = {
-  en: ["Reasonix Studio is starting", "The first start after installing or rebooting can take a minute."],
-  zh: ["Reasonix Studio 正在启动", "安装或重启电脑后的首次启动可能需要一分钟。"],
+  en: ["Reasonix Studio is starting", "This may take a few seconds to a minute."],
+  zh: ["Reasonix Studio 正在启动", "可能需要几秒到一分钟。"],
 };
 
 function startingPage(locale) {

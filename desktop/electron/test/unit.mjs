@@ -15,6 +15,7 @@ const { offerCleanup, ownBundle } = require("../src/legacy.js");
 const { stripPackageGrants, readReport, unpaintedWindowCause } = require("../src/packagegrants.js");
 const { groundFor, themeSourceFor, GROUND } = require("../src/ground.js");
 const { folderAnswer } = require("../src/folderpanel.js");
+const { startingPage } = require("../src/starting.js");
 const { pick, loadPrefs, savePrefs, registerPrefs } = require("../src/prefs.js");
 
 const TOKEN = "a".repeat(64);
@@ -2942,4 +2943,13 @@ test("only the app's own window is answered, and nothing is read from the asker"
   assert.deepEqual(processMemoryHandler(app, () => true)({}), [{ process: "renderer", workingSetKB: 5, privateKB: 4 }]);
   assert.deepEqual(processMemoryHandler(app, () => null)({}), []);
   assert.deepEqual(processMemoryHandler({ getAppMetrics: () => { throw new Error("x"); } }, () => true)({}), []);
+});
+
+test("the starting window's note fits any slow launch, not only the first one after an install or reboot", () => {
+  const zh = startingPage("zh-CN");
+  const en = startingPage("en-US");
+  assert.doesNotMatch(zh, /首次|第一次|安装|重启/);
+  assert.doesNotMatch(en, /first|install|reboot|restart/i);
+  assert.match(zh, /几秒/);
+  assert.match(en, /few seconds/);
 });
