@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { describeFailure, missingReleases, readStudioSource, requireStudioSync, studioRecord, syncCatalog } from './sync-releases.mjs';
+import { describeFailure, missingReleases, readCLISource, readStudioSource, requireSync, requireStudioSync, studioRecord, syncCatalog } from './sync-releases.mjs';
 import { loadCatalog, validateCatalog, renderGitHubRelease } from './release-notes.mjs';
 
 const published = (tag, extra = {}) => ({ tag_name: tag, draft: false, prerelease: false, published_at: '2026-09-30T12:00:00Z', ...extra });
@@ -34,18 +34,19 @@ test('Studio preserves Chinese source verbatim and validates without CLI targeti
   assert.throws(() => validateCatalog({ schemaVersion: 1, releases: [{ ...release, sourceNotes: undefined }] }));
 });
 
-test('batch sync continues Studio backfill without a model key and reports CLI versions for retry', async () => {
+test('batch sync imports reviewed CLI and Studio source without model generation', async () => {
   const catalog = await cliOnlyCatalog();
   const saved = [];
   const result = await syncCatalog({
     catalog, published: [published('v1.99.0'), published('studio-v2.24.0')],
     readStudio: async () => ({ sha: 'a'.repeat(40), markdown: '中立更新。\n' }),
-    save: async (release) => saved.push(release), generateCLI: async () => { throw new Error('must not call'); },
-    hasModelKey: false,
+    save: async (release) => saved.push(release),
+    readCLI: async () => ({ version: '1.99.0', status: 'reviewed' }),
   });
-  assert.deepEqual(saved.map((r) => r.version), ['2.24.0']);
-  assert.deepEqual(result.pending, ['cli:1.99.0']);
-  assert.deepEqual(result.added, ['studio:2.24.0']);
+  assert.deepEqual(saved.map((r) => r.version), ['1.99.0', '2.24.0']);
+  assert.equal(saved[0].status, 'reviewed');
+  assert.deepEqual(result.pending, []);
+  assert.deepEqual(result.added, ['cli:1.99.0', 'studio:2.24.0']);
 });
 
 test('existing catalog entries are never regenerated', async () => {
@@ -74,21 +75,21 @@ test('CLI range selection uses the earlier CLI release even with newer Studio an
   ] }, '1.39.3').version, '1.39.2');
 });
 
-test('an upstream published CLI release becomes public only through the saved review draft', async () => {
+test('an upstream published CLI release preserves its publication-marker gate', async () => {
   const saved = [];
   const result = await syncCatalog({
-    catalog: await loadCatalog(), published: [published('v1.99.0')], hasModelKey: true,
-    generateCLI: async () => ({ version: '1.99.0', product: 'cli', status: 'reviewed' }),
+    catalog: await loadCatalog(), published: [published('v1.99.0')],
+    readCLI: async () => ({ version: '1.99.0', product: 'cli', status: 'reviewed' }),
     save: async (release) => saved.push(release),
   });
   assert.deepEqual(result.added, ['cli:1.99.0']);
-  assert.equal(saved[0].status, 'published');
+  assert.equal(saved[0].status, 'reviewed');
 });
 
 test('failure reasons carry the error class and a message but never secrets', async () => {
   const result = await syncCatalog({
-    catalog: await loadCatalog(), published: [published('v1.99.0')], hasModelKey: true,
-    generateCLI: async () => { throw new TypeError('request failed with Bearer abc123token and key sk-live-999\nstack line'); },
+    catalog: await loadCatalog(), published: [published('v1.99.0')],
+    readCLI: async () => { throw new TypeError('request failed with Bearer abc123token and key sk-live-999\nstack line'); },
     save: async () => {},
   });
   assert.deepEqual(result.pending, ['cli:1.99.0']);
@@ -139,11 +140,62 @@ test('a failed or incomplete Studio sync blocks publication of a stale catalog',
   assert.throws(() => requireStudioSync({ pending: ['studio:2.45.0'] }, catalog), /studio:2\.45\.0/);
 });
 
-test('production builds synchronize Studio before rendering and deployments require the website branch', async () => {
+test('production builds synchronize both products before rendering and deployments require the website branch', async () => {
   const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
-  assert.ok(pkg.scripts.prebuild.startsWith('node scripts/releases/sync-releases.mjs --studio-only &&'));
+  assert.ok(pkg.scripts.prebuild.startsWith('node scripts/releases/sync-releases.mjs &&'));
   const workflow = await readFile(new URL('../../../.github/workflows/pages.yml', import.meta.url), 'utf8');
   assert.match(workflow, /workflow_dispatch:\n    inputs:/);
   assert.match(workflow, /if: github\.ref == 'refs\/heads\/website'/);
   assert.match(workflow, /STUDIO_RELEASE_VERSION: \$\{\{ inputs\.studio_version \}\}/);
+});
+
+test('CLI sources use exact published tag commits and preserve reviewed bilingual content', async () => {
+  const catalog = await loadCatalog();
+  const record = catalog.releases.find((r) => r.version === '1.39.7');
+  const sha = 'c'.repeat(40);
+  for (const tag of ['v1.39.7', 'desktop-v1.39.7']) {
+    const result = await readCLISource({ ...published(tag), version: '1.39.7' }, async (endpoint, raw) => {
+      if (endpoint === `commits/${tag}`) return JSON.stringify({ sha });
+      assert.equal(endpoint, `contents/release-notes/releases.json?ref=${sha}`);
+      assert.equal(raw, true);
+      return JSON.stringify({ schemaVersion: 1, releases: [record] });
+    });
+    assert.deepEqual(result, record);
+  }
+});
+
+test('missing or invalid CLI source fails closed while independent Studio sync continues', async () => {
+  const release = { ...published('v1.99.0'), version: '1.99.0' };
+  const api = async (endpoint) => endpoint.startsWith('commits/')
+    ? JSON.stringify({ sha: 'd'.repeat(40) })
+    : JSON.stringify({ schemaVersion: 1, releases: [] });
+  const result = await syncCatalog({
+    catalog: await cliOnlyCatalog(), published: [release, published('studio-v2.99.0')],
+    readCLI: (r) => readCLISource(r, api),
+    readStudio: async () => ({ sha: 'e'.repeat(40), markdown: '更新说明。' }),
+    save: async () => {},
+  });
+  assert.deepEqual(result.pending, ['cli:1.99.0']);
+  assert.deepEqual(result.added, ['studio:2.99.0']);
+  assert.throws(() => requireSync(result), /cli:1\.99\.0/);
+  await assert.rejects(readCLISource(release, async () => JSON.stringify({ sha: 'invalid' })), /Invalid source commit/);
+  await assert.rejects(readCLISource(release, async (endpoint) => endpoint.startsWith('commits/')
+    ? JSON.stringify({ sha: 'd'.repeat(40) })
+    : JSON.stringify({ schemaVersion: 1, releases: [{ version: '1.99.0' }] })), /date/);
+});
+
+test('build sync respects the archive history boundary and never imports unpublished CLI drafts', async () => {
+  const catalog = { schemaVersion: 1, releases: [{ version: '1.39.7', channel: 'stable' }] };
+  const releases = [published('v1.0.0'), published('v1.39.8'), published('desktop-v1.39.8'),
+    published('v1.39.9'), published('v1.39.10', { draft: true }), published('v1.39.11', { prerelease: true })];
+  const run = () => syncCatalog({
+    catalog, published: releases,
+    readCLI: async (r) => ({ version: r.version, channel: 'stable', status: 'reviewed' }),
+    save: async (r) => catalog.releases.unshift(r),
+  });
+  assert.deepEqual((await run()).added, ['cli:1.39.8', 'cli:1.39.9']);
+  assert.deepEqual(catalog.releases.map((r) => r.version), ['1.39.9', '1.39.8', '1.39.7']);
+  const repeated = await run();
+  assert.deepEqual(repeated, { added: [], pending: [], failures: [] });
+  assert.doesNotThrow(() => requireSync(repeated));
 });

@@ -4,14 +4,16 @@ import { appendFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseStudioNotes } from '../../src/lib/studio-notes.mjs';
-import { compareVersionsDesc, loadCatalog, upsertRelease } from './release-notes.mjs';
+import { compareVersionsDesc, loadCatalog, upsertRelease, validateCatalog } from './release-notes.mjs';
 
 const repository = 'esengine/DeepSeek-Reasonix';
-const root = resolve(import.meta.dirname, '../../..');
-const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
 
 export function missingReleases(published, catalog, { studioOnly = false } = {}) {
   const existing = new Set(catalog.releases.map((r) => `${r.product || 'cli'}:${r.version}`));
+  // The archive starts after the earliest GitHub tags. Do not require source
+  // catalogs from releases that predate the website's supported history.
+  const oldestCLI = catalog.releases.filter((r) => r.product !== 'studio' && r.channel === 'stable')
+    .map((r) => r.version).sort(compareVersionsDesc).at(-1);
   const missing = new Map();
   for (const release of published) {
     if (release.draft || !release.published_at) continue;
@@ -21,6 +23,7 @@ export function missingReleases(published, catalog, { studioOnly = false } = {})
     const product = studio ? 'studio' : 'cli';
     if (studioOnly && product !== 'studio') continue;
     const version = (studio || cli)[1];
+    if (product === 'cli' && oldestCLI && compareVersionsDesc(version, oldestCLI) > 0) continue;
     const key = `${product}:${version}`;
     if (existing.has(key)) continue;
     // Prefer the canonical CLI release over duplicate desktop/package tags.
@@ -67,6 +70,22 @@ export async function readStudioSource(release, api) {
   return { sha, markdown };
 }
 
+export async function readCLISource(release, api) {
+  const { sha } = JSON.parse(await api(`commits/${release.tag_name}`));
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error(`Invalid source commit for ${release.tag_name}`);
+  const catalog = JSON.parse(await api(`contents/release-notes/releases.json?ref=${sha}`, true));
+  const record = catalog.releases?.find((r) => r.version === release.version && r.product !== 'studio');
+  if (!record) throw new Error(`Missing CLI source for ${release.tag_name}`);
+  validateCatalog({ schemaVersion: catalog.schemaVersion, releases: [record] });
+  // Keep reviewed records gated by fetch-publications.mjs and its all-surface
+  // marker. A GitHub release alone must not promote them to published.
+  return record;
+}
+
+export function requireSync(result) {
+  if (result.pending.length) throw new Error(`Changelog sync incomplete: ${result.pending.join(', ')}`);
+}
+
 export function requireStudioSync(result, catalog, expectedVersion) {
   if (result.pending.length) throw new Error(`Studio changelog sync incomplete: ${result.pending.join(', ')}`);
   const version = expectedVersion?.replace(/^v/, '');
@@ -75,7 +94,7 @@ export function requireStudioSync(result, catalog, expectedVersion) {
   }
 }
 
-export async function syncCatalog({ catalog, published, studioOnly = false, readStudio, save, generateCLI, hasModelKey }) {
+export async function syncCatalog({ catalog, published, studioOnly = false, readStudio, readCLI, save }) {
   const added = [], pending = [], failures = [];
   for (const release of missingReleases(published, catalog, { studioOnly })) {
     const key = `${release.product}:${release.version}`;
@@ -84,9 +103,7 @@ export async function syncCatalog({ catalog, published, studioOnly = false, read
         const { markdown, sha } = await readStudio(release);
         await save(studioRecord(release, markdown, sha));
       } else {
-        if (!hasModelKey) { pending.push(key); failures.push({ key, reason: 'no model key configured' }); continue; }
-        const generated = await generateCLI(release);
-        await save({ ...generated, status: 'published' });
+        await save(await readCLI(release));
       }
       added.push(key);
     } catch (error) {
@@ -107,18 +124,14 @@ async function main() {
   const result = await syncCatalog({
     catalog: await loadCatalog(), published, studioOnly,
     readStudio: (release) => readStudioSource(release, api),
-    save: (release) => upsertRelease(release), hasModelKey: Boolean(process.env.DEEPSEEK_API_KEY),
-    generateCLI: async (release) => {
-      const releaseTag = git('rev-parse', '--verify', `refs/tags/${release.tag_name}^{commit}`);
-      // Each range ends at the published tag, never today's product branch tip.
-      execFileSync(process.execPath, ['site/scripts/releases/generate-release-notes.mjs', '--version', release.version, '--to', releaseTag, '--tag', release.tag_name, '--date', release.published_at.slice(0, 10)], { cwd: root, stdio: 'inherit' });
-      return (await loadCatalog()).releases.find((r) => r.version === release.version && r.product !== 'studio');
-    },
+    save: (release) => upsertRelease(release),
+    readCLI: (release) => readCLISource(release, api),
   });
   const summary = `## Website changelog sync\n\nAdded: ${result.added.join(', ') || 'none'}\n\nPending (retried next run): ${result.pending.join(', ') || 'none'}\n${result.failures.map((f) => `\n- ${f.key}: ${f.reason}`).join('')}\n`;
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
-  if (studioOnly) requireStudioSync(result, await loadCatalog(), process.env.STUDIO_RELEASE_VERSION);
+  requireSync(result);
+  requireStudioSync(result, await loadCatalog(), process.env.STUDIO_RELEASE_VERSION);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
