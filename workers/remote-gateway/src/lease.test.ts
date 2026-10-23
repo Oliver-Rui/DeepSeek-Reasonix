@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  REVALIDATE_MS,
   CLOSE_IDLE,
   CLOSE_REAUTH_REQUIRED,
   CLOSE_REVOKED,
@@ -15,6 +16,12 @@ const controller: SocketLease = {
   role: "controller", userId: 7, deviceId: "a".repeat(64), scopes: ["desktop"], connectionId: "c".repeat(32),
   sessionId: "d".repeat(64), admittedAt: 0, lastActiveAt: 0, reauthAt: 10 * CONTROLLER_IDLE_MS,
 };
+
+describe("account re-check interval", () => {
+  it("is fifteen minutes: every re-check wakes the object and asks the account service, so it is the main cost of an idle connection", () => {
+    expect(REVALIDATE_MS).toBe(15 * 60 * 1000);
+  });
+});
 
 describe("connection lease", () => {
   it("slides with the latest activity, including runtime-answered heartbeats", () => {

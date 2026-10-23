@@ -2,14 +2,14 @@ import type { RemoteCapability } from "./env";
 
 export const CONTROLLER_IDLE_MS = 30 * 60 * 1000;
 export const DEVICE_IDLE_MS = 30 * 60 * 1000;
-export const REVALIDATE_MS = 5 * 60 * 1000;
+export const REVALIDATE_MS = 15 * 60 * 1000;
 export const HEARTBEAT_MS = 20 * 1000;
 // Re-checks may fail open while the account service is unreachable, but not for
 // longer than this; then every connection has to be admitted again.
 export const UNCHECKED_LIMIT_MS = 60 * 60 * 1000;
 // A full room makes room only by closing a controller silent this long.
 export const EVICTABLE_IDLE_MS = 60 * 1000;
-export const SESSION_REVOCATION_TTL_MS = 10 * 60 * 1000;
+export const SESSION_REVOCATION_TTL_MS = 15 * 60 * 1000;
 
 export const HEARTBEAT_REQUEST = '{"type":"heartbeat"}';
 export const HEARTBEAT_RESPONSE = '{"type":"heartbeat_ack"}';

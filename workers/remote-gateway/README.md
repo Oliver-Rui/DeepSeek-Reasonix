@@ -44,7 +44,7 @@ After admission each connection holds a lease:
 | Idle limit, sliding on the connection's own frames | 30 minutes | 30 minutes |
 | Also counts as activity | — | `{"type":"heartbeat"}`, answered by the runtime without waking the object |
 | Hard limit | the signing-in account session reaches 24 hours old | none |
-| Re-checked against the account service | every 5 minutes | every 5 minutes |
+| Re-checked against the account service | every 15 minutes | every 15 minutes |
 
 The account service refuses to issue a grant from a session older than 24 hours,
 or from a device-flow (`cli`) session, whose age says nothing about when a
