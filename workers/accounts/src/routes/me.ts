@@ -23,7 +23,7 @@ import {
   REMOTE_ATTACHMENT_TTL_MS,
   REMOTE_GRANT_TTL_MS,
 } from "../config";
-import { disconnectRemote, remoteDevicePresence } from "../remoteGateway";
+import { disconnectRemote, gatewayCallbackSecret, remoteDevicePresence } from "../remoteGateway";
 import { enforceRateLimit } from "../http/d1RateLimit";
 import { fetchFeedbackOverview, mintFeedbackAssertion, notifyFeedbackErasure } from "../feedbackLink";
 import backups from "./backups";
@@ -99,7 +99,10 @@ me.post("/gateways", async (c) => {
   const registered = await repos(c.env).remoteGateways.register({ userId: user.id, label, origin: normalized });
   if (registered === "limit") throw new ApiError(409, "gateway_limit", "Too many gateways are registered; remove one first.");
   if (registered === "exists") throw new ApiError(409, "gateway_exists", "That gateway is already registered.");
-  return c.json(registered, 201);
+  // Two secrets, shown once: `token` is what the gateway presents to this
+  // service; `callbackSecret` is what this service presents to the gateway when
+  // it asks about a device or revokes one. They are different on purpose.
+  return c.json({ ...registered, callbackSecret: await gatewayCallbackSecret(c.env.SESSION_PEPPER ?? "", registered.gateway.id) }, 201);
 });
 
 me.delete("/gateways/:gatewayId", async (c) => {
@@ -143,9 +146,13 @@ me.post("/remote-grants", async (c) => {
     ttlMs: REMOTE_GRANT_TTL_MS,
     session,
   });
+  // The relay the phone connects to: null means the hosted one.
+  const relay = device.gatewayId ? (await repos(c.env).remoteGateways.activeForUser(user.id, device.gatewayId))?.origin ?? null : null;
+  if (device.gatewayId && !relay) throw new ApiError(404, "device_not_found", "That device is unavailable.");
   return c.json({
     grant: { ...grant, targetDeviceId, scopes, reauthAt: new Date(reauthAt).toISOString() },
     device,
+    relay,
   }, 201);
 });
 

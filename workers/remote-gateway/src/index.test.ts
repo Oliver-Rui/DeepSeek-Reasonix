@@ -210,6 +210,19 @@ describe("remote gateway admission", () => {
     await expect(forwarded[0]!.request.json()).resolves.toEqual({ sessionId: "6".repeat(64) });
   });
 
+  it("answers the account service's calls with ACCOUNT_CALLBACK_TOKEN when one is set, and not with the token it presents to the account service", async () => {
+    const forwarded: ForwardedRequest[] = [];
+    const deviceId = "4".repeat(64);
+    const call = (token: string) => run(new Request("https://remote.reasonix.io/v1/devices/revoke", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-reasonix-gateway-token": token },
+      body: JSON.stringify({ deviceIds: [deviceId] }),
+    }), { ...environment(forwarded), ACCOUNT_CALLBACK_TOKEN: "callback-secret" });
+    expect((await call("gateway-secret")).status).toBe(401);
+    expect((await call("callback-secret")).status).toBe(200);
+    expect(forwarded).toHaveLength(1);
+  });
+
   it("admits a browser controller without exposing its ticket to the session", async () => {
     const forwarded: ForwardedRequest[] = [];
     const targetDeviceId = "e".repeat(64);

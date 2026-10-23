@@ -28,9 +28,15 @@ function equalSecret(supplied: string, expected: string): boolean {
   return difference === 0;
 }
 
+// The account service's calls (device status, revocation) carry
+// ACCOUNT_CALLBACK_TOKEN when this gateway has one. The hosted gateway has none
+// and keeps using the one shared secret both ways; a self-hosted gateway has a
+// separate secret in each direction, so the token it presents to the account
+// service cannot be used to call it back.
 function gatewayAuthenticated(request: Request, env: Env): boolean {
   const supplied = request.headers.get("x-reasonix-gateway-token") ?? "";
-  return Boolean(env.REMOTE_GATEWAY_TOKEN) && equalSecret(supplied, env.REMOTE_GATEWAY_TOKEN ?? "");
+  const expected = env.ACCOUNT_CALLBACK_TOKEN || env.REMOTE_GATEWAY_TOKEN;
+  return Boolean(expected) && equalSecret(supplied, expected ?? "");
 }
 
 // The account service calls this right after revoking a device or ending a

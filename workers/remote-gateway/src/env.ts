@@ -6,6 +6,7 @@ export interface Env {
   ACCOUNT_ORIGIN: string;
   ALLOWED_ORIGINS: string;
   REMOTE_GATEWAY_TOKEN?: string;
+  ACCOUNT_CALLBACK_TOKEN?: string;
   REMOTE_SESSIONS: DurableObjectNamespace;
   ATTACHMENTS: R2Bucket;
   GATEWAY_LIMITER?: RateLimiter;
