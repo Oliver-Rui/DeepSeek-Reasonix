@@ -6,6 +6,7 @@ import { DeviceGrantRepo } from "./deviceGrants";
 import { RemoteDeviceRepo } from "./remoteDevices";
 import { RemoteAttachmentRepo } from "./remoteAttachments";
 import { RemoteControllerRepo } from "./remoteControllers";
+import { RemoteGatewayRepo } from "./remoteGateways";
 import { RemoteChallengeRepo } from "./remoteChallenges";
 import { RemotePushRepo } from "./remotePush";
 import { RateCounterRepo } from "./rateCounters";
@@ -20,6 +21,7 @@ export interface Repos {
   remoteAttachments: RemoteAttachmentRepo;
   remoteControllers: RemoteControllerRepo;
   remoteChallenges: RemoteChallengeRepo;
+  remoteGateways: RemoteGatewayRepo;
   remotePush: RemotePushRepo;
   rateCounters: RateCounterRepo;
   feedbackErasures: FeedbackErasureRepo;
@@ -38,6 +40,7 @@ export function repos(env: Bindings): Repos {
     remoteAttachments: new RemoteAttachmentRepo(env.DB, pepper),
     remoteControllers: new RemoteControllerRepo(env.DB),
     remoteChallenges: new RemoteChallengeRepo(env.DB, pepper),
+    remoteGateways: new RemoteGatewayRepo(env.DB, pepper),
     remotePush: new RemotePushRepo(env.DB),
     rateCounters: new RateCounterRepo(env.DB),
     feedbackErasures: new FeedbackErasureRepo(env.DB),
@@ -46,5 +49,5 @@ export function repos(env: Bindings): Repos {
 
 export {
   UserRepo, SessionRepo, EmailTokenRepo, DeviceGrantRepo, RemoteDeviceRepo, RemoteAttachmentRepo,
-  RemoteControllerRepo, RemoteChallengeRepo, RateCounterRepo, FeedbackErasureRepo,
+  RemoteControllerRepo, RemoteChallengeRepo, RemoteGatewayRepo, RateCounterRepo, FeedbackErasureRepo,
 };

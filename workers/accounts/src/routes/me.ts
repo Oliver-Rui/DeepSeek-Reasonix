@@ -13,6 +13,7 @@ import {
   ProfileSchema,
   PasswordChangeSchema,
   RemoteDeviceRegisterSchema,
+  RemoteGatewayRegisterSchema,
   RemoteDeviceRenameSchema,
   RemoteGrantIssueSchema,
   RemoteAttachmentIssueSchema,
@@ -29,6 +30,7 @@ import backups from "./backups";
 import remoteControllers from "./remoteControllers";
 import remotePush from "./remotePush";
 import { ConfigBackupRepo } from "../db/configBackups";
+import { normalizeGatewayOrigin } from "../db/remoteGateways";
 
 const me = new Hono<AppEnv>();
 
@@ -70,8 +72,41 @@ me.get("/devices", async (c) => {
 me.post("/devices", async (c) => {
   const user = currentUser(c);
   const input = await parseBody(c, RemoteDeviceRegisterSchema);
-  const registered = await repos(c.env).remoteDevices.register({ userId: user.id, ...input });
+  const { remoteDevices, remoteGateways } = repos(c.env);
+  if (input.gatewayId && !(await remoteGateways.activeForUser(user.id, input.gatewayId))) {
+    throw new ApiError(404, "gateway_not_found", "That gateway is unavailable.");
+  }
+  const registered = await remoteDevices.register({ userId: user.id, ...input });
   return c.json(registered, 201);
+});
+
+// A gateway the person runs themselves. The token is shown once, here; only
+// its hash is kept, and it is accepted for the devices bound to this gateway
+// and for nothing else (routes/remote.ts).
+me.get("/gateways", async (c) => {
+  const user = currentUser(c);
+  return c.json({ gateways: await repos(c.env).remoteGateways.listForUser(user.id) });
+});
+
+me.post("/gateways", async (c) => {
+  const user = currentUser(c);
+  await enforceRateLimit(c.env, { name: "gateway-register", limit: 10, windowMs: 60 * 60_000 }, String(user.id));
+  const { label, origin } = await parseBody(c, RemoteGatewayRegisterSchema);
+  const normalized = normalizeGatewayOrigin(origin);
+  if (!normalized) {
+    throw new ApiError(422, "invalid_gateway_origin", "A gateway address must be a public https origin such as https://relay.example.com.");
+  }
+  const registered = await repos(c.env).remoteGateways.register({ userId: user.id, label, origin: normalized });
+  if (registered === "limit") throw new ApiError(409, "gateway_limit", "Too many gateways are registered; remove one first.");
+  if (registered === "exists") throw new ApiError(409, "gateway_exists", "That gateway is already registered.");
+  return c.json(registered, 201);
+});
+
+me.delete("/gateways/:gatewayId", async (c) => {
+  const user = currentUser(c);
+  const revoked = await repos(c.env).remoteGateways.revoke(user.id, c.req.param("gatewayId"));
+  if (!revoked) throw new ApiError(404, "gateway_not_found", "That gateway is unavailable.");
+  return c.json({ ok: true, revokedDevices: revoked.deviceIds.length });
 });
 
 me.patch("/devices/:deviceId", async (c) => {

@@ -14,6 +14,7 @@ interface RemoteDeviceRow {
   updated_at: string;
   last_seen_at: string | null;
   revoked_at: string | null;
+  gateway_id: string | null;
 }
 
 export interface RemoteDevice {
@@ -26,6 +27,7 @@ export interface RemoteDevice {
   updatedAt: string;
   lastSeenAt: string | null;
   revokedAt: string | null;
+  gatewayId: string | null;
 }
 
 export interface ConsumedRemoteGrant {
@@ -67,6 +69,7 @@ function toDevice(row: RemoteDeviceRow): RemoteDevice {
     updatedAt: row.updated_at,
     lastSeenAt: row.last_seen_at,
     revokedAt: row.revoked_at,
+    gatewayId: row.gateway_id,
   };
 }
 
@@ -82,6 +85,7 @@ export class RemoteDeviceRepo {
     platform: string;
     publicKey: string;
     capabilities: RemoteCapability[];
+    gatewayId?: string | null;
   }): Promise<{ device: RemoteDevice; deviceCredential: string }> {
     const id = generateToken();
     const deviceCredential = generateToken();
@@ -90,20 +94,21 @@ export class RemoteDeviceRepo {
     const row = await this.db.prepare(
       `INSERT INTO remote_devices (
          id, user_id, credential_hash, name, platform, public_key, capabilities,
-         created_at, updated_at, revoked_at
-       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8, NULL)
+         created_at, updated_at, revoked_at, gateway_id
+       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8, NULL, ?9)
        ON CONFLICT (user_id, public_key) DO UPDATE SET
          credential_hash = excluded.credential_hash,
          name = excluded.name,
          platform = excluded.platform,
          capabilities = excluded.capabilities,
+         gateway_id = excluded.gateway_id,
          updated_at = excluded.updated_at,
          revoked_at = NULL
        RETURNING id, user_id, name, platform, public_key, capabilities,
-                 created_at, updated_at, last_seen_at, revoked_at`,
+                 created_at, updated_at, last_seen_at, revoked_at, gateway_id`,
     ).bind(
       id, input.userId, credentialHash, input.name, input.platform,
-      input.publicKey, JSON.stringify(input.capabilities), now,
+      input.publicKey, JSON.stringify(input.capabilities), now, input.gatewayId ?? null,
     ).first<RemoteDeviceRow>();
     if (!row) throw new Error("remote device registration returned no row");
     return { device: toDevice(row), deviceCredential };
@@ -112,7 +117,7 @@ export class RemoteDeviceRepo {
   async listForUser(userId: number): Promise<RemoteDevice[]> {
     const result = await this.db.prepare(
       `SELECT id, user_id, name, platform, public_key, capabilities,
-              created_at, updated_at, last_seen_at, revoked_at
+              created_at, updated_at, last_seen_at, revoked_at, gateway_id
        FROM remote_devices WHERE user_id = ?1
        ORDER BY revoked_at IS NULL DESC, updated_at DESC`,
     ).bind(userId).all<RemoteDeviceRow>();
@@ -122,7 +127,7 @@ export class RemoteDeviceRepo {
   async activeForUser(userId: number, deviceId: string): Promise<RemoteDevice | null> {
     const row = await this.db.prepare(
       `SELECT id, user_id, name, platform, public_key, capabilities,
-              created_at, updated_at, last_seen_at, revoked_at
+              created_at, updated_at, last_seen_at, revoked_at, gateway_id
        FROM remote_devices WHERE id = ?1 AND user_id = ?2 AND revoked_at IS NULL`,
     ).bind(deviceId, userId).first<RemoteDeviceRow>();
     return row ? toDevice(row) : null;
@@ -134,7 +139,7 @@ export class RemoteDeviceRepo {
       `UPDATE remote_devices SET name = ?1, updated_at = ?2
        WHERE id = ?3 AND user_id = ?4 AND revoked_at IS NULL
        RETURNING id, user_id, name, platform, public_key, capabilities,
-                 created_at, updated_at, last_seen_at, revoked_at`,
+                 created_at, updated_at, last_seen_at, revoked_at, gateway_id`,
     ).bind(name, now, deviceId, userId).first<RemoteDeviceRow>();
     return row ? toDevice(row) : null;
   }
@@ -179,15 +184,19 @@ export class RemoteDeviceRepo {
     return (revoked?.results ?? []).map((row) => row.id);
   }
 
-  async authenticate(deviceId: string, credential: string): Promise<{ userId: number; device: RemoteDevice } | null> {
+  // `gatewayId` scopes the answer to one gateway: null is the hosted gateway, a
+  // string is a registered one. Leaving it out is for a device authenticating to
+  // this service itself, which is not a gateway call.
+  async authenticate(deviceId: string, credential: string, gatewayId?: string | null): Promise<{ userId: number; device: RemoteDevice } | null> {
     const credentialHash = await hashToken(this.pepper, credential);
     const now = new Date().toISOString();
     const row = await this.db.prepare(
       `UPDATE remote_devices SET last_seen_at = ?1, updated_at = ?1
        WHERE id = ?2 AND credential_hash = ?3 AND revoked_at IS NULL
+         AND (?4 = 0 OR gateway_id IS ?5)
        RETURNING id, user_id, name, platform, public_key, capabilities,
-                 created_at, updated_at, last_seen_at, revoked_at`,
-    ).bind(now, deviceId, credentialHash).first<RemoteDeviceRow>();
+                 created_at, updated_at, last_seen_at, revoked_at, gateway_id`,
+    ).bind(now, deviceId, credentialHash, gatewayId === undefined ? 0 : 1, gatewayId ?? null).first<RemoteDeviceRow>();
     return row ? { userId: row.user_id, device: toDevice(row) } : null;
   }
 
@@ -214,7 +223,7 @@ export class RemoteDeviceRepo {
     return { ticket, expiresAt };
   }
 
-  async consumeGrant(ticket: string): Promise<ConsumedRemoteGrant | null> {
+  async consumeGrant(ticket: string, gatewayId?: string | null): Promise<ConsumedRemoteGrant | null> {
     const ticketHash = await hashToken(this.pepper, ticket);
     const now = new Date().toISOString();
     const row = await this.db.prepare(
@@ -225,6 +234,7 @@ export class RemoteDeviceRepo {
            WHERE d.id = remote_connection_grants.target_device_id
              AND d.user_id = remote_connection_grants.user_id
              AND d.revoked_at IS NULL
+             AND (?3 = 0 OR d.gateway_id IS ?4)
          )
          AND (session_hash IS NULL OR EXISTS (
            SELECT 1 FROM sessions s
@@ -233,7 +243,7 @@ export class RemoteDeviceRepo {
              AND s.expires_at > ?2
          ))
        RETURNING user_id, target_device_id, scopes, session_hash, authenticated_at`,
-    ).bind(ticketHash, now).first<{
+    ).bind(ticketHash, now, gatewayId === undefined ? 0 : 1, gatewayId ?? null).first<{
       user_id: number;
       target_device_id: string;
       scopes: string;
@@ -253,13 +263,13 @@ export class RemoteDeviceRepo {
   // Answers whether each live relay connection may continue. A connection that
   // names a session also needs that session to exist and to have signed in
   // after `signedInAfter`; one that names none is held only to its device.
-  async checkLeases(leases: RemoteLease[], signedInAfter: string): Promise<RemoteLeaseVerdict[]> {
+  async checkLeases(leases: RemoteLease[], signedInAfter: string, gatewayId?: string | null): Promise<RemoteLeaseVerdict[]> {
     const now = new Date().toISOString();
     const verdicts: RemoteLeaseVerdict[] = [];
     for (const lease of leases) {
       const device = await this.db.prepare(
-        "SELECT 1 AS ok FROM remote_devices WHERE id = ?1 AND user_id = ?2 AND revoked_at IS NULL",
-      ).bind(lease.deviceId, lease.userId).first<{ ok: number }>();
+        "SELECT 1 AS ok FROM remote_devices WHERE id = ?1 AND user_id = ?2 AND revoked_at IS NULL AND (?3 = 0 OR gateway_id IS ?4)",
+      ).bind(lease.deviceId, lease.userId, gatewayId === undefined ? 0 : 1, gatewayId ?? null).first<{ ok: number }>();
       if (!device) {
         verdicts.push("revoked");
         continue;
