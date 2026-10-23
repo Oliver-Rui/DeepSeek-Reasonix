@@ -58,6 +58,12 @@ export const RemoteDeviceRegisterSchema = z.object({
   platform: z.enum(["macos", "windows", "linux"]),
   publicKey: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
   capabilities: z.array(remoteCapability).min(1).max(5).transform((items) => [...new Set(items)]),
+  gatewayId: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+}).strict();
+
+export const RemoteGatewayRegisterSchema = z.object({
+  label: z.string().trim().min(1).max(64),
+  origin: z.string().trim().min(1).max(200),
 }).strict();
 
 export const RemoteDeviceRenameSchema = z.object({

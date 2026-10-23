@@ -62,8 +62,11 @@ Design notes:
 | PATCH  | `/me`                      | ✓    | `{ displayName?, bio?, avatarUrl?, handle? }` |
 | POST   | `/me/password`             | ✓    | `{ currentPassword, newPassword }`      |
 | GET    | `/me/devices`              | ✓    | registered remote devices with live `online` state |
-| POST   | `/me/devices`              | ✓    | register/rotate a device credential     |
+| POST   | `/me/devices`              | ✓    | register/rotate a device credential; optional `gatewayId` binds it to one of your gateways |
 | PATCH  | `/me/devices/:id`          | ✓    | rename an active device                 |
+| GET    | `/me/gateways`             | ✓    | gateways you run yourself (self-hosted relays) |
+| POST   | `/me/gateways`             | ✓    | register a public `https` origin; the scoped gateway token is returned once, only its hash is stored (3 per account) |
+| DELETE | `/me/gateways/:id`         | ✓    | remove a gateway and revoke the devices bound to it |
 | DELETE | `/me/devices/:id`          | ✓    | revoke a device and close its live relay connections |
 | POST   | `/me/remote-grants`        | ✓    | issue a 60-second, scoped connection ticket; `403 remote_reauth_required` once the session is 24 h old or is a device-flow session |
 | GET    | `/me/backups`              | ✓    | list encrypted config backups + `limits` |
