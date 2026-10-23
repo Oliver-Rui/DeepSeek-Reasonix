@@ -99,3 +99,42 @@ Encrypted attachments use the private `reasonix-remote-attachments` R2 bucket.
 Objects are always served as `application/octet-stream` with content sniffing
 disabled. The bucket has a one-day lifecycle rule; authorization expires after
 15 minutes even when physical deletion has not run yet.
+
+## Running your own gateway
+
+You can run the relay yourself and keep the account service ours. Only the
+devices you bind to your gateway use it; everyone else, and your other devices,
+stay on the hosted one. Message bodies are end-to-end encrypted either way, so
+your gateway sees no more than ours does.
+
+1. **Register it.** While signed in, `POST https://id.reasonix.io/me/gateways`
+   with `{"label": "home", "origin": "https://relay.example.com"}`. The origin
+   must be a public `https` address (no IP address, `localhost`, private name,
+   path or credentials). The reply carries the gateway `id`, a `token` and a
+   `callbackSecret`; **both secrets are shown once** and only the token's hash is
+   kept. You can register 3 gateways; registering the same origin again after
+   removing it issues new secrets. `GET /me/gateways` lists them and
+   `DELETE /me/gateways/:id` removes one and revokes the devices bound to it.
+2. **Deploy this Worker** under your own Cloudflare account with your route in
+   `wrangler.toml`. Keep `ACCOUNT_ORIGIN = "https://id.reasonix.io"`, set
+   `ALLOWED_ORIGINS` to the web page origins that will connect to you, and keep
+   the Durable Object and migration blocks. The `ATTACHMENTS` R2 binding is
+   required by the code but attachments are not available on a self-hosted
+   gateway (the account service refuses them), so an empty bucket is enough.
+3. **Set the two secrets:** `REMOTE_GATEWAY_TOKEN` = the `token` (what your
+   gateway presents to the account service, which accepts it only for your
+   devices) and `ACCOUNT_CALLBACK_TOKEN` = the `callbackSecret` (what the
+   account service presents to your gateway when it asks whether a device is
+   online or revokes one). They are different on purpose.
+4. **Point the desktop at it:** `REASONIX_REMOTE_URL=wss://relay.example.com`
+   and `REASONIX_REMOTE_GATEWAY_ID=<id>`, then restart Studio so the computer
+   registers again at your gateway. A relay address must be `wss://` (or
+   `ws://` to this machine only).
+5. **The phone** needs nothing: the connection grant names your relay and the
+   page connects there.
+
+What stays with us: sign-in, device registration, connection grants and
+revocation decisions. If your gateway is unreachable the account service cannot
+close its live connections at once; the gateway's own 15-minute re-check closes
+them.
+
