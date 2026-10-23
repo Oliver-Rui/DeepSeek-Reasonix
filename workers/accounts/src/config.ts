@@ -3,6 +3,10 @@
 export const SESSION_COOKIE = "rxid";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+// A command-line session is extended by a full term whenever it is used, so one
+// in regular use does not lapse; it still ends this long after it was created.
+export const CLI_SESSION_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
+export const CLI_SESSION_RENEW_AFTER_MS = 24 * 60 * 60 * 1000; // at most once a day
 export const VERIFY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
 

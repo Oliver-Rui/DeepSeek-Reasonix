@@ -1,6 +1,6 @@
 import type { UserRow } from "../types";
 import { generateToken, hashToken } from "../auth/crypto";
-import { SESSION_TTL_MS } from "../config";
+import { CLI_SESSION_MAX_AGE_MS, CLI_SESSION_RENEW_AFTER_MS, SESSION_TTL_MS } from "../config";
 
 export interface NewSession {
   kind?: "web" | "cli";
@@ -64,8 +64,25 @@ export class SessionRepo {
       return null;
     }
     if (row.status !== "active") return null;
+    if (row.s_kind === "cli") await this.renew(tokenHash, row.s_created, row.s_expires);
     const { s_expires: _ignored, s_created: createdAt, s_kind: kind, ...user } = row;
     return { user, session: { id: tokenHash, kind: kind === "cli" ? "cli" : "web", createdAt } };
+  }
+
+  // A command-line session in use is extended by a full term, at most once a
+  // day, and never past its maximum age. A failed write leaves the session as
+  // it was: it is still valid, and the next use tries again.
+  private async renew(tokenHash: string, createdAt: string, expiresAt: string): Promise<void> {
+    const now = Date.now();
+    if (Date.parse(expiresAt) - now > SESSION_TTL_MS - CLI_SESSION_RENEW_AFTER_MS) return;
+    const next = Math.min(now + SESSION_TTL_MS, Date.parse(createdAt) + CLI_SESSION_MAX_AGE_MS);
+    if (!(next > Date.parse(expiresAt))) return;
+    try {
+      await this.db.prepare("UPDATE sessions SET expires_at = ?1, last_seen_at = ?2 WHERE token_hash = ?3 AND kind = 'cli'")
+        .bind(new Date(next).toISOString(), new Date(now).toISOString(), tokenHash).run();
+    } catch {
+      // keep the existing term
+    }
   }
 
   async deleteByToken(token: string): Promise<void> {
