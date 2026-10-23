@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import app from "./index";
 import type { Bindings } from "./env";
 import { memoryD1 } from "./testdb";
@@ -16,7 +16,12 @@ let db: D1Database;
 let env: Bindings;
 let counter = 0;
 
+afterEach(() => vi.useRealTimers());
+
+// The fixtures are dated and the hook discards orphans older than a week, so the
+// clock is pinned next to them; against the real date the test would expire.
 beforeEach(async () => {
+  vi.useFakeTimers({ now: new Date("2026-10-16T00:00:00Z"), toFake: ["Date"] });
   db = await memoryD1(schema, seed, migration,
     "INSERT INTO gh_category_map (gh_slug, forum_slug) VALUES ('q-a', 'help')");
   env = {

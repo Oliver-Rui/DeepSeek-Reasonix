@@ -44,6 +44,7 @@ export interface Bindings {
 export interface Variables {
   user: AccountUser | null;
   session: SessionRef | null;
+  gatewayScope: { gatewayId: string | null };
 }
 
 export type AppEnv = { Bindings: Bindings; Variables: Variables };
