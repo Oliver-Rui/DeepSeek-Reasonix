@@ -65,7 +65,7 @@ Design notes:
 | POST   | `/me/devices`              | ✓    | register/rotate a device credential; optional `gatewayId` binds it to one of your gateways |
 | PATCH  | `/me/devices/:id`          | ✓    | rename an active device                 |
 | GET    | `/me/gateways`             | ✓    | gateways you run yourself (self-hosted relays) |
-| POST   | `/me/gateways`             | ✓    | register a public `https` origin; the scoped gateway token is returned once, only its hash is stored (3 per account) |
+| POST   | `/me/gateways`             | ✓    | register a public `https` origin; the scoped gateway `token` (what the gateway presents to this service) and a separate `callbackSecret` (what this service presents to the gateway) are returned once; only the token hash is stored (3 per account) |
 | DELETE | `/me/gateways/:id`         | ✓    | remove a gateway and revoke the devices bound to it |
 | DELETE | `/me/devices/:id`          | ✓    | revoke a device and close its live relay connections |
 | POST   | `/me/remote-grants`        | ✓    | issue a 60-second, scoped connection ticket; `403 remote_reauth_required` once the session is 24 h old or is a device-flow session |

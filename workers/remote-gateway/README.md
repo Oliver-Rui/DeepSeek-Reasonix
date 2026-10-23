@@ -28,7 +28,10 @@ Text messages are limited to 64 KiB and each device accepts at most four
 controller connections. Each controller receives a private connection ID;
 device replies must target that ID, so responses are never broadcast to other
 controllers. The account service and this Worker share the
-`REMOTE_GATEWAY_TOKEN` Worker secret.
+`REMOTE_GATEWAY_TOKEN` Worker secret. A self-hosted gateway also sets
+`ACCOUNT_CALLBACK_TOKEN`: the account service presents that one when it asks
+about or revokes a device, while `REMOTE_GATEWAY_TOKEN` is what the gateway
+presents to the account service, so neither secret can be used as the other.
 
 ## Admission and leases
 
